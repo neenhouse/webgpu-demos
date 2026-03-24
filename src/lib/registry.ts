@@ -197,6 +197,14 @@ export const demos: DemoEntry[] = [
     color: '#ff5577',
     component: lazy(() => import('../demos/compute-particles')),
   },
+  {
+    name: 'resolution-warp',
+    title: 'Resolution Warp',
+    description: 'CRT pixelation sphere using TSL screenSize for pixel-scale grids, phosphor sub-pixels, scanlines, and moiré patterns',
+    requiresWebGPU: false,
+    color: '#44bbdd',
+    component: lazy(() => import('../demos/resolution-warp')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
