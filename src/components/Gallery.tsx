@@ -20,7 +20,12 @@ export default function Gallery() {
             }
           >
             <div className="demo-card-preview">
-              <div className="demo-card-glow" />
+              <img
+                src={`/thumbnails/${demo.name}.jpg`}
+                alt={demo.title}
+                className="demo-card-thumb"
+                loading="lazy"
+              />
             </div>
             <div className="demo-card-info">
               <h3>{demo.title}</h3>
