@@ -253,6 +253,14 @@ export const demos: DemoEntry[] = [
     color: '#0055ee',
     component: lazy(() => import('../demos/waveform-viz')),
   },
+  {
+    name: 'black-hole',
+    title: 'Black Hole',
+    description: 'Gravitational lensing black hole with swirling accretion disk, photon ring glow, and screen-space starfield warping',
+    requiresWebGPU: false,
+    color: '#221133',
+    component: lazy(() => import('../demos/black-hole')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
