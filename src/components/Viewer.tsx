@@ -84,7 +84,7 @@ function Overlay({ demo, isWebGPU }: OverlayProps) {
 }
 
 export default function Viewer({ demoName }: { demoName: string }) {
-  const [isWebGPU, setIsWebGPU] = useState(true);
+  const [isWebGPU, setIsWebGPU] = useState<boolean | null>(null);
   const demo = getDemoByName(demoName);
 
   useEffect(() => {
@@ -107,6 +107,10 @@ export default function Viewer({ demoName }: { demoName: string }) {
 
   if (!demo) {
     return <DemoNotFound name={demoName} />;
+  }
+
+  if (isWebGPU === null) {
+    return <LoadingSpinner />;
   }
 
   const DemoComponent = demo.component;
