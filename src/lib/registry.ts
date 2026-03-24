@@ -254,12 +254,12 @@ export const demos: DemoEntry[] = [
     component: lazy(() => import('../demos/waveform-viz')),
   },
   {
-    name: 'particle-morph',
-    title: 'Particle Morph',
-    description: '5000 particles morph between sphere, cube, torus, and icosahedron with GPU compute spring physics and noise scatter',
-    requiresWebGPU: true,
-    color: '#00ddaa',
-    component: lazy(() => import('../demos/particle-morph')),
+    name: 'cyber-city',
+    title: 'Cyber City',
+    description: 'Procedural cyberpunk skyline with 350 instanced neon buildings, reflective ground plane, and atmospheric fog',
+    requiresWebGPU: false,
+    color: '#ff1177',
+    component: lazy(() => import('../demos/cyber-city')),
   },
 ];
 
