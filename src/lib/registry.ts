@@ -253,6 +253,14 @@ export const demos: DemoEntry[] = [
     color: '#0055ee',
     component: lazy(() => import('../demos/waveform-viz')),
   },
+  {
+    name: 'neural-net',
+    title: 'Neural Network',
+    description: '48 nodes across 5 layers connected by 472 edges with traveling data pulses and layer-based color coding',
+    requiresWebGPU: false,
+    color: '#44ccbb',
+    component: lazy(() => import('../demos/neural-net')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
