@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 10)
+## Last updated: 2026-03-24 (Demo 11 — galaxy-collision)
 
 ## Working Patterns
 
@@ -97,6 +97,11 @@
 - **Grid darkening at pixel block boundaries**: Using `smoothstep` from both edges of `fract` (`smoothstep(0, edge, fract) * smoothstep(1, 1-edge, fract)`) creates bright centers with dark borders between pixel blocks. Mixing between 0.0 and 1.0 (rather than 0.3 and 1.0) makes the grid lines more visible.
 - **Resolution-dependent diagonal shimmer on halo shells**: `sin(screenUV.x.mul(screenSize.x.div(N)).add(screenUV.y.mul(screenSize.y.div(N))).add(time))` creates diagonal stripe patterns whose spatial frequency scales with the actual viewport pixel count, producing resolution-adaptive interference patterns.
 - **Emissive blow-out from high multipliers on screen-space patterns**: When combining multiple multiplicative screen-space effects (phosphor, grid, scanlines) with emissive, the base emissive multiplier must be low (0.7x or less). Higher values (1.2x+) cause the sphere face-on center to blow out to white because the screen-space effects are strongest at the center where all patterns overlap additively.
+- **Dual-attractor N-body gravity via compute**: Two `uniform(new THREE.Vector3())` attractors updated from CPU each frame + compute shader gravity integration creates convincing galaxy collision dynamics. Force = `G / distSq.max(softening)` with softening ~0.1 prevents singularity blow-up. Mild drag (0.05 * dt) prevents runaway energy accumulation.
+- **Galaxy disk orientation for camera visibility**: Distributing stars in the XY plane (using cos/sin for x,y and thin z scatter) ensures the galaxy disks face the default camera at `[0, 0, 4]`. Distributing in XZ plane results in edge-on viewing that hides spiral structure.
+- **Tilting one galaxy via rotation transform in compute init**: Applying a rotation matrix (cos/sin of tilt angle) to one galaxy's y,z coordinates during `computeInit` creates visual differentiation between the two colliding galaxies. A tilt of ~0.5 radians (~30 deg) is enough to be visible without losing disk structure.
+- **Nested `If()` works in compute `Fn()`**: Multiple levels of `If()` nesting (e.g., `If(escaped, () => { If(whichAttractor < 0.5, ...) })`) works correctly inside compute shader context. Each `If` creates proper conditional branches in the generated shader.
+- **CPU attractor orbit with spiral-in**: `orbitRadius = max(minR, startR - t * rate)` with increasing `orbitSpeed` as radius decreases creates a natural spiral-in merger pattern. The speed increase prevents the galaxies from stalling at the minimum radius.
 
 ## Batch History
 
@@ -127,3 +132,7 @@
   - Vite HMR consistently serves stale code for lazy-loaded demos — requires dev server restart
   - Programmatic `SkinnedMesh`/`Skeleton` works in R3F without GLTF by building bones, assigning `skinIndex`/`skinWeight` attributes, and binding in `useEffect`
   - Headed Playwright is required for WebGPU canvas screenshots (headless produces black)
+
+### Batch 2
+
+- **Batch 2, Demo 1 (2026-03-24)**: `galaxy-collision` - Two spiral galaxies (5000 stars each, 10000 total) collide via GPU compute gravity simulation. Two attractors orbit each other in a spiral-in pattern while compute shader integrates gravitational forces per star each frame. Stars color-shift by velocity: blue (slow orbiting), white (fast near-core), orange (ejected). Galaxy 2 tilted 30 deg for visual variety. Bloom halo shells around each galactic core. Used dual `uniform(vec3)` attractors updated from CPU, nested `If()` in compute for star recycling, and XY-plane disk distribution to face the default camera. Demonstrated full N-body-lite gravity on GPU with `instancedArray`, `Fn()().compute()`, and hybrid CPU-matrices + GPU-color pattern.

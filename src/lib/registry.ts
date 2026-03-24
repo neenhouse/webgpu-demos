@@ -213,6 +213,14 @@ export const demos: DemoEntry[] = [
     color: '#bb44ff',
     component: lazy(() => import('../demos/skeletal-wave')),
   },
+  {
+    name: 'galaxy-collision',
+    title: 'Galaxy Collision',
+    description: 'Two spiral galaxies collide with GPU compute gravity driving 10000+ stars',
+    requiresWebGPU: true,
+    color: '#2244aa',
+    component: lazy(() => import('../demos/galaxy-collision')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
