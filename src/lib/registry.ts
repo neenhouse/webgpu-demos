@@ -189,6 +189,14 @@ export const demos: DemoEntry[] = [
     color: '#33cc99',
     component: lazy(() => import('../demos/multi-material')),
   },
+  {
+    name: 'compute-particles',
+    title: 'Compute Particles',
+    description: '20,000 GPU-driven particles with compute shader physics, gravity, respawn, and velocity-based color',
+    requiresWebGPU: true,
+    color: '#ff5577',
+    component: lazy(() => import('../demos/compute-particles')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
