@@ -181,6 +181,14 @@ export const demos: DemoEntry[] = [
     color: '#aa44cc',
     component: lazy(() => import('../demos/volumetric-cloud')),
   },
+  {
+    name: 'multi-material',
+    title: 'Multi-Material',
+    description: 'Cube assembled from 6 planes, each with a unique TSL material: fire, ice, electric, gold, nature, and plasma',
+    requiresWebGPU: false,
+    color: '#33cc99',
+    component: lazy(() => import('../demos/multi-material')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
