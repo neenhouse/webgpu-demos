@@ -229,6 +229,14 @@ export const demos: DemoEntry[] = [
     color: '#ff6622',
     component: lazy(() => import('../demos/fractal-zoom')),
   },
+  {
+    name: 'fluid-sim',
+    title: 'Fluid Simulation',
+    description: '256x256 GPU compute fluid with semi-Lagrangian advection, vorticity confinement, and multi-color dye injection',
+    requiresWebGPU: true,
+    color: '#11ccaa',
+    component: lazy(() => import('../demos/fluid-sim')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
