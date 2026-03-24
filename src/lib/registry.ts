@@ -261,6 +261,38 @@ export const demos: DemoEntry[] = [
     color: '#ff1177',
     component: lazy(() => import('../demos/cyber-city')),
   },
+  {
+    name: 'deep-sea',
+    title: 'Deep Sea',
+    description: 'Bioluminescent jellyfish with chain tentacles, luminous plankton, volumetric light shafts, and depth fog',
+    requiresWebGPU: false,
+    color: '#00aacc',
+    component: lazy(() => import('../demos/deep-sea')),
+  },
+  {
+    name: 'particle-morph',
+    title: 'Particle Morph',
+    description: '5000 particles morphing between sphere, cube, torus, and icosahedron with spring physics',
+    requiresWebGPU: false,
+    color: '#00ddaa',
+    component: lazy(() => import('../demos/particle-morph')),
+  },
+  {
+    name: 'black-hole',
+    title: 'Black Hole',
+    description: 'Event horizon with gravitational lensing, swirling accretion disk, photon ring, and warped starfield',
+    requiresWebGPU: false,
+    color: '#221133',
+    component: lazy(() => import('../demos/black-hole')),
+  },
+  {
+    name: 'neural-net',
+    title: 'Neural Network',
+    description: '5-layer neural network with 48 nodes, 420 glowing edges, and traveling data pulses',
+    requiresWebGPU: false,
+    color: '#44ccbb',
+    component: lazy(() => import('../demos/neural-net')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
