@@ -205,6 +205,14 @@ export const demos: DemoEntry[] = [
     color: '#44bbdd',
     component: lazy(() => import('../demos/resolution-warp')),
   },
+  {
+    name: 'skeletal-wave',
+    title: 'Skeletal Wave',
+    description: 'Programmatic skinned mesh tentacles with CPU-driven bone animation and TSL height-based color gradients',
+    requiresWebGPU: false,
+    color: '#bb44ff',
+    component: lazy(() => import('../demos/skeletal-wave')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

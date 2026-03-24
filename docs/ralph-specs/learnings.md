@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 9)
+## Last updated: 2026-03-24 (Demo 10)
 
 ## Working Patterns
 
@@ -76,6 +76,11 @@
 - **Hash noise creates vertical banding on planes**: When `hash(positionWorld.mul(N))` is applied to a flat plane, the noise creates vertical stripe patterns because the position varies smoothly in only two axes. This produces an interesting wood-grain or interference pattern aesthetic rather than random noise.
 - **UV-based concentric rings on planes**: `sin(uv().sub(0.5).length().mul(40).sub(time.mul(3)))` creates expanding concentric ring patterns centered on each face. Combined with `smoothstep`, this produces clean plasma/radar ring animations.
 
+- **Programmatic `SkinnedMesh` + `Skeleton` in R3F**: Building a bone chain via `new THREE.Bone()` with parent-child relationships, creating a `THREE.Skeleton(bones)`, and calling `mesh.add(bones[0])` + `mesh.bind(skeleton)` in `useEffect` works correctly with WebGPURenderer. The `<skinnedMesh>` JSX element accepts geometry with `skinIndex` and `skinWeight` buffer attributes, and `MeshStandardNodeMaterial` with TSL node overrides renders properly on skinned geometry.
+- **CylinderGeometry skin weight assignment by vertex Y**: For a cylinder with base at y=0, normalizing each vertex's Y to `[0, 1]` and mapping to bone indices with linear interpolation weights creates smooth skeletal deformation. Using `BONE_COUNT * 3` height segments ensures enough geometry resolution for clean bending.
+- **Bone animation via rotation in useFrame**: Setting `bone.rotation.x` and `bone.rotation.z` each frame with sine/cosine waves propagated along the chain (phase offset per bone index) creates fluid tentacle/snake motion. Increasing amplitude toward the tip (`0.08 + progress * 0.15`) creates a natural whip-like effect where tips move more than the base.
+- **Strong tilt angle for jellyfish tentacles**: Using `tiltX = Math.sin(angle) * 1.2` (about 70 degrees) on tentacle groups makes them radiate outward convincingly. Lower tilt values (0.3) make tentacles point too much at the camera from the default `[0,0,4]` camera position.
+- **Vite HMR stale code confirmed again**: Modifying a lazily-imported demo source and refreshing the browser still serves the old code until the Vite dev server is killed and restarted. This is a consistent issue across all demo iterations.
 - **`instancedArray()` for GPU-persistent storage buffers**: `instancedArray(count, 'vec3')` and `instancedArray(count, 'float')` create GPU storage buffers that persist across frames and can be written by compute shaders and read by materials. Import from `three/tsl`.
 - **`Fn()().compute(count)` for compute shader definition**: Chain `Fn(() => { ... })()` with `.compute(count)` to create a compute shader that dispatches `count` work items. The `Fn()` body uses `instanceIndex` to access per-element data in storage buffers.
 - **`If()` works inside compute `Fn()` context**: Unlike material `useMemo` context where `If()` crashes due to null `currentStack`, `If()` inside a compute `Fn()` body works correctly for conditional logic (e.g., respawning dead particles). The compute shader compilation provides the necessary stack context.
@@ -104,3 +109,21 @@
 - **Batch 1, Demo 7 (2026-03-24)**: `multi-material` - Multi-material objects with different TSL materials per face. Cube assembled from 6 plane meshes in a group, each with a unique TSL-driven material: fire (hash noise flicker), ice (cyan fresnel), electric (rapid purple arcs), gold (breathing metallic), nature (green organic), and plasma (UV concentric rings). Initially attempted BoxGeometry with material arrays, which produced WebGPU "vertex count 0" warnings and rendered nothing. Workaround: separate meshes per face in a group. Demonstrated material factory functions, per-face accent lighting, and UV-based ring patterns.
 - **Batch 1, Demo 8 (2026-03-24)**: `compute-particles` - Compute shaders (storageBuffer, computeFn) with `requiresWebGPU: true`. 8,000 instanced icosahedrons with GPU compute shader driving particle physics (gravity, drag, lifetime respawn via `If()`). Material reads velocity and lifetime from compute storage buffers for speed-based cyan-yellow-orange color gradient and lifetime-based emissive fade. Initially attempted `positionNode` to drive instance positions from compute buffer, which doesn't work (positionNode offsets vertices, not instances). Also attempted `SpriteNodeMaterial` with `THREE.Points` which rendered invisible in R3F. Final approach: CPU instance matrices for positioning + compute buffers for per-particle color/emissive. Demonstrated `instancedArray`, `Fn()().compute()`, `If()` in compute context, `renderer.computeAsync`/`renderer.compute` in R3F, and hybrid CPU-position/GPU-color pattern.
 - **Batch 1, Demo 9 (2026-03-24)**: `resolution-warp` - TSL viewportSize / resolution-dependent effects. Icosahedron with CRT-style pixelation using `screenSize` to create pixel-scale grids, phosphor sub-pixel simulation, horizontal scanlines, and moiré patterns. Halo shells use resolution-dependent diagonal shimmer. Initially used `viewportResolution` which triggered deprecation warnings; switched to `screenSize`. Key learnings: `screenSize` is the current replacement for deprecated `viewportResolution`; `screenUV.mul(screenSize)` gives actual pixel coordinates for pixel-perfect effects; emissive multiplier must be low (0.7x) when combining multiple multiplicative screen-space effects to avoid center blow-out.
+- **Batch 1, Demo 10 (2026-03-24)**: `skeletal-wave` - Skinned mesh with TSL node overrides. Programmatic bone chain (12 bones) driving 7 cylinder tentacles radiating from a central icosahedron hub in a jellyfish shape. CPU bone animation with sine wave propagation, TSL `positionWorld.y` color gradient (orange-red base to violet to cyan tip), fresnel rim glow, and pulsing emissive. Demonstrated programmatic `SkinnedMesh`/`Skeleton` construction in R3F without GLTF, `skinIndex`/`skinWeight` buffer attribute assignment, and bone rotation animation with amplitude increasing toward tips.
+
+### Batch 1 Summary
+
+- **Total demos created**: 25 (15 from initial + 10 from batch)
+- **Batch 1 demos (10)**: noise-dissolve, screen-hologram, uv-kaleidoscope, bloom-orbs, sprite-sparks, volumetric-cloud, multi-material, compute-particles, resolution-warp, skeletal-wave
+- **Initial demos (15)**: tsl-torus, particle-field, procedural-terrain, crystal-grid, aurora-waves, morphing-sphere, neon-rings, ocean-surface, pulse-grid, spiral-galaxy, flame-orb, dna-helix, wireframe-landscape, plasma-globe, ribbon-dance
+- **Skipped capabilities**: None. All 10 planned capabilities were implemented. Skinned mesh (the final and most complex) was achieved using programmatic bone construction rather than GLTF loading.
+- **Key learnings across batch**:
+  - TSL node materials work well with WebGPURenderer in R3F for color, emissive, position, and opacity overrides
+  - `If()`/`Discard()` only works inside compute `Fn()` context, not in material `useMemo` — use `alphaTest`/`opacityNode` for fragment discard
+  - `PointsNodeMaterial` and `SpriteNodeMaterial` are nearly invisible in R3F WebGPU — use instanced mesh instead
+  - `BoxGeometry` material arrays fail with WebGPURenderer — use separate meshes per face
+  - `positionNode` on `InstancedMesh` offsets vertices, not instance positions — use CPU matrices for positioning
+  - `viewportResolution` is deprecated — use `screenSize` instead
+  - Vite HMR consistently serves stale code for lazy-loaded demos — requires dev server restart
+  - Programmatic `SkinnedMesh`/`Skeleton` works in R3F without GLTF by building bones, assigning `skinIndex`/`skinWeight` attributes, and binding in `useEffect`
+  - Headed Playwright is required for WebGPU canvas screenshots (headless produces black)
