@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 3)
+## Last updated: 2026-03-24 (Demo 4)
 
 ## Working Patterns
 
@@ -21,6 +21,11 @@
 - **Polar UV kaleidoscope folding**: Convert UVs to polar (`atan`, `length`), divide angle by segment count, `fract()` and mirror with `abs()` to fold, then convert back to cartesian. Creates N-way symmetry from any UV pattern.
 - **Multi-stop color gradients via chained `mix`/`smoothstep`**: Chain `mix(a, b, smoothstep(...))` calls for multi-color ramps: `mix(mix(c1, c2, step1), c3, step2)` creates a 3-stop gradient from a single float pattern value.
 - **`vec3()` for emissive inline colors**: When `color()` feels heavy, `vec3(r, g, b)` with float components (0-1 range) works for emissive node assignment.
+- **Layered halo shells for bloom/glow without post-processing**: Multiple concentric transparent meshes with `THREE.BackSide`, `THREE.AdditiveBlending`, and `depthWrite = false` create convincing bloom halos around a core object. Each shell uses fresnel-driven opacity so edges glow brightest. Scale multipliers of 1.3x, 1.6x, 2.0x give good visual layering.
+- **`AdditiveBlending` for light scatter simulation**: Setting `mat.blending = THREE.AdditiveBlending` on transparent halo shells makes overlapping glow regions brighten naturally, simulating real light scatter without post-processing passes.
+- **`BackSide` rendering for halos**: Using `mat.side = THREE.BackSide` on halo shells means they render their inner faces, which wrap around the core object and create a glow that appears to emanate outward from the core.
+- **Fresnel power tuning per shell layer**: Increasing fresnel `pow()` exponent for outer layers (1.5, 2.0, 2.5) makes outer halos concentrate more at edges while inner halos remain broader, creating natural glow falloff.
+- **Reusable material factory functions**: Extracting `makeCoreMaterial()` and `makeHaloMaterial()` as standalone functions with parameters (color, phase, layer index) enables clean composition of multiple instances with different palettes.
 
 ## Broken Patterns
 
@@ -42,9 +47,12 @@
 - **UV kaleidoscope on icosahedron**: Polar UV folding on a subdivided icosahedron creates smooth concentric color zones with subtle symmetry breaks at UV seams. The result is more "enchanted orb" than sharp mandala -- the smooth geometry interpolates UV values, softening the folded pattern edges. Still visually appealing with animated spherize warping.
 - **Violet/magenta/gold palette**: Deep violet (#5511aa) center transitioning through magenta (#dd2288) to gold (#ffaa22) at edges creates a rich, jewel-toned look. Pink-tinted lights (#ffaacc, #cc66ff) complement rather than fight the palette.
 - **Layered UV patterns**: Combining rings, spokes, diamond grid, and petal patterns at different frequencies with weighted blending creates complexity from simple trigonometric ingredients. Higher ring frequency (60) produces more visible detail than lower (30).
+- **Multi-orb glow composition**: Multiple bloom orbs at different positions, sizes, and color palettes with staggered `oscSine` phase offsets create a visually rich scene where each orb pulses independently. Gold, cyan, magenta, green, and violet form a diverse yet harmonious palette against a dark background.
+- **Minimal scene lighting for emissive-driven scenes**: When objects provide their own glow via `emissiveNode`, ambient and directional lights should be very low (0.05, 0.2) to let the emissive glow dominate the visual composition.
 
 ## Batch History
 
 - **Batch 1, Demo 1 (2026-03-24)**: `noise-dissolve` - Advanced TSL noise functions (hash) with dissolve effect. Dodecahedron with multi-octave hash noise dissolve, burning edges, fresnel rim glow. Used `alphaTest`/`opacityNode` instead of `If`/`Discard` due to stack context limitation.
 - **Batch 1, Demo 2 (2026-03-24)**: `screen-hologram` - TSL screenUV / screen-space effects. Holographic icosahedron with screen-space scanlines, glitch bands, fract-based line artifacts, fresnel rim glow, and screen-position color gradient. Demonstrated `screenUV`, `sin`, `fract`, `smoothstep` for layered screen-space modulation.
 - **Batch 1, Demo 3 (2026-03-24)**: `uv-kaleidoscope` - TSL texture projection / UV manipulation. Icosahedron with polar UV folding (6-way kaleidoscope symmetry), animated `spherizeUV` warping, layered procedural patterns (rings, spokes, diamond grid, petals), and multi-stop violet/magenta/gold color gradient. Demonstrated `uv()`, `atan(y,x)`, `spherizeUV`, polar-to-cartesian conversion, and chained `mix`/`smoothstep` color ramps.
+- **Batch 1, Demo 4 (2026-03-24)**: `bloom-orbs` - Bloom/glow post-processing via TSL. Five floating orbs with layered transparent halo shells simulating bloom entirely through TSL material nodes. Used `AdditiveBlending`, `BackSide` rendering, fresnel-driven opacity, and strong `emissiveNode` to create convincing glow without a post-processing pass. Demonstrated material factory functions, per-layer fresnel tuning, and multi-orb composition with staggered phase.

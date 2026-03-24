@@ -157,6 +157,14 @@ export const demos: DemoEntry[] = [
     color: '#dd2288',
     component: lazy(() => import('../demos/uv-kaleidoscope')),
   },
+  {
+    name: 'bloom-orbs',
+    title: 'Bloom Orbs',
+    description: 'Floating orbs with TSL-driven glow halos, fresnel rims, additive blending, and pulsing emissive bloom',
+    requiresWebGPU: false,
+    color: '#ccff00',
+    component: lazy(() => import('../demos/bloom-orbs')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
