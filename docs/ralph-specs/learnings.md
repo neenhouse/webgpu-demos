@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 11 — galaxy-collision)
+## Last updated: 2026-03-24 (Demo 12 — fractal-zoom)
 
 ## Working Patterns
 
@@ -40,6 +40,13 @@
 - **Per-face colored accent lights reinforce material identity**: Placing a colored point light aligned with each face's direction (e.g., red light at +X for the fire face, cyan at -X for ice) reinforces the material's color identity through scene lighting. The `distance` parameter limits bleed between zones.
 - **Plane assembly for cube faces**: 6 `planeGeometry` meshes positioned at offsets [+/-1, 0, 0], [0, +/-1, 0], [0, 0, +/-1] with appropriate rotations form a seamless cube. This is more flexible than `BoxGeometry` because each face can have a completely independent material, vertex displacement, and TSL graph.
 - **Initial rotation for multi-face visibility**: Setting `rotation={[0.6, 0.8, 0.0]}` on the group gives a good default camera angle showing 3 faces simultaneously, which is essential for demonstrating multi-material effects in a single screenshot.
+
+- **`Loop()` with `If()`/`Break()` works in material `Fn()` context**: Unlike standalone `If()`/`Discard()` which crash in `useMemo` material construction, `Loop(N, () => { If(cond, () => { Break(); }); })` inside a `Fn(() => { ... })` works correctly for iterative shader algorithms like Mandelbrot. The `Fn()` provides the necessary node builder stack for `If()` and `Break()`.
+- **`.toVar()` + `.assign()` for mutable shader variables**: `float(0.0).toVar()` creates a mutable shader variable that can be updated with `.assign(newValue)` inside loops. Essential for iterative algorithms where values accumulate across iterations. Also works with `int(0).toVar()` and `.addAssign()` for incrementing.
+- **`MeshBasicNodeMaterial` with `colorNode` for pure shader output**: When rendering a full-screen shader effect (no lighting needed), `MeshBasicNodeMaterial` with `colorNode` returning a `vec4` is simpler and more efficient than `MeshStandardNodeMaterial`. No ambient/directional lights required.
+- **Viewport-filling plane via `viewport.width`/`viewport.height`**: R3F's `useThree().viewport` provides world-space dimensions at z=0 for the current camera. Using `<planeGeometry args={[viewport.width, viewport.height]} />` creates a plane that exactly fills the screen, enabling full-viewport shader effects with `screenUV`.
+- **Smooth Mandelbrot coloring via `log2(log2(mag))`**: Instead of integer iteration count (which creates visible banding), `iter + 1 - log2(log2(|z|^2)) / log2(2)` produces a continuous floating-point value for smooth color gradients across the fractal boundary.
+- **CPU-driven uniform animation for zoom/pan**: Using `uniform()` values updated from `useFrame()` for zoom center and scale avoids needing compute shaders for camera control. The TSL shader reads these uniforms each frame to recompute the fractal at the new coordinates.
 
 ## Broken Patterns
 
@@ -136,3 +143,4 @@
 ### Batch 2
 
 - **Batch 2, Demo 1 (2026-03-24)**: `galaxy-collision` - Two spiral galaxies (5000 stars each, 10000 total) collide via GPU compute gravity simulation. Two attractors orbit each other in a spiral-in pattern while compute shader integrates gravitational forces per star each frame. Stars color-shift by velocity: blue (slow orbiting), white (fast near-core), orange (ejected). Galaxy 2 tilted 30 deg for visual variety. Bloom halo shells around each galactic core. Used dual `uniform(vec3)` attractors updated from CPU, nested `If()` in compute for star recycling, and XY-plane disk distribution to face the default camera. Demonstrated full N-body-lite gravity on GPU with `instancedArray`, `Fn()().compute()`, and hybrid CPU-matrices + GPU-color pattern.
+- **Batch 2, Demo 2 (2026-03-24)**: `fractal-zoom` - Mandelbrot set rendered entirely in TSL shaders on a full-viewport plane. 80-iteration `Loop()` with `If()`/`Break()` for escape detection, smooth iteration count via `log2(log2(mag))`, 7-stop cycling color palette via chained `mix()`/`smoothstep()`. CPU-driven animated zoom navigates through 5 interesting Mandelbrot coordinates (seahorse valley, antenna spiral, period-3 mini-brot) with exponential zoom up to ~3000x. Uses `screenUV` for fragment coordinates on a viewport-filling `PlaneGeometry`. Demonstrated `Loop()` with `If()`/`Break()` in material `Fn()` context, `.toVar()` + `.assign()` for mutable shader variables, and `MeshBasicNodeMaterial` with `colorNode` returning `vec4` for pure shader-driven rendering.

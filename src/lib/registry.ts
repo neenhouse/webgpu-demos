@@ -221,6 +221,14 @@ export const demos: DemoEntry[] = [
     color: '#2244aa',
     component: lazy(() => import('../demos/galaxy-collision')),
   },
+  {
+    name: 'fractal-zoom',
+    title: 'Fractal Zoom',
+    description: 'Mandelbrot set with infinite zoom, smooth coloring, and cycling vivid gradients rendered in TSL',
+    requiresWebGPU: false,
+    color: '#ff6622',
+    component: lazy(() => import('../demos/fractal-zoom')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
