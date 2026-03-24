@@ -149,6 +149,14 @@ export const demos: DemoEntry[] = [
     color: '#22ddcc',
     component: lazy(() => import('../demos/screen-hologram')),
   },
+  {
+    name: 'uv-kaleidoscope',
+    title: 'UV Kaleidoscope',
+    description: 'Procedural mandala with polar UV folding, spherize warping, and animated concentric patterns',
+    requiresWebGPU: false,
+    color: '#dd2288',
+    component: lazy(() => import('../demos/uv-kaleidoscope')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
