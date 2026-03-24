@@ -133,6 +133,14 @@ export const demos: DemoEntry[] = [
     color: '#ff2244',
     component: lazy(() => import('../demos/ribbon-dance')),
   },
+  {
+    name: 'noise-dissolve',
+    title: 'Noise Dissolve',
+    description: 'Dodecahedron dissolving and reforming with hash noise, burning edges, and fresnel rim',
+    requiresWebGPU: false,
+    color: '#ee8833',
+    component: lazy(() => import('../demos/noise-dissolve')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
