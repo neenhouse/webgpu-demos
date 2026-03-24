@@ -24,6 +24,53 @@ function LoadingSpinner() {
   );
 }
 
+interface WebGPURequiredBlockProps {
+  demo: DemoEntry;
+}
+
+function WebGPURequiredBlock({ demo }: WebGPURequiredBlockProps) {
+  const { prev, next } = getAdjacentDemos(demo.name);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && prev) window.location.hash = prev.name;
+      if (e.key === 'ArrowRight' && next) window.location.hash = next.name;
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [prev, next]);
+
+  return (
+    <div className="webgpu-required-block">
+      <img
+        src={`/thumbnails/${demo.name}.jpg`}
+        alt={demo.title}
+        className="webgpu-required-bg"
+      />
+      <div className="webgpu-required-content">
+        <h2>This demo requires WebGPU</h2>
+        <p>{demo.title} — {demo.description}</p>
+        <p className="webgpu-required-hint">
+          Your browser doesn't support WebGPU. Try Chrome 113+ or Edge 113+.
+        </p>
+        <a href="/" className="back-button">← Back to Gallery</a>
+      </div>
+      <div className="webgpu-required-nav">
+        {prev && (
+          <a href={`#${prev.name}`} className="nav-button nav-prev">
+            ‹ {prev.title}
+          </a>
+        )}
+        {next && (
+          <a href={`#${next.name}`} className="nav-button nav-next">
+            {next.title} ›
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 interface OverlayProps {
   demo: DemoEntry;
   isWebGPU: boolean;
@@ -117,17 +164,23 @@ export default function Viewer({ demoName }: { demoName: string }) {
 
   return (
     <div className="viewer">
-      <Suspense fallback={<LoadingSpinner />}>
-        <Canvas
-          className="viewer-canvas"
-          camera={{ position: [0, 0, 4], fov: 70 }}
-          gl={glCreator}
-        >
-          <DemoComponent />
-          <OrbitControls enableDamping />
-        </Canvas>
-      </Suspense>
-      <Overlay key={demo.name} demo={demo} isWebGPU={isWebGPU} />
+      {demo.requiresWebGPU && !isWebGPU ? (
+        <WebGPURequiredBlock demo={demo} />
+      ) : (
+        <>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Canvas
+              className="viewer-canvas"
+              camera={{ position: [0, 0, 4], fov: 70 }}
+              gl={glCreator}
+            >
+              <DemoComponent />
+              <OrbitControls enableDamping />
+            </Canvas>
+          </Suspense>
+          <Overlay key={demo.name} demo={demo} isWebGPU={isWebGPU} />
+        </>
+      )}
     </div>
   );
 }
