@@ -141,6 +141,14 @@ export const demos: DemoEntry[] = [
     color: '#ee8833',
     component: lazy(() => import('../demos/noise-dissolve')),
   },
+  {
+    name: 'screen-hologram',
+    title: 'Screen Hologram',
+    description: 'Holographic projection with screen-space scanlines, glitch bands, and fresnel rim glow',
+    requiresWebGPU: false,
+    color: '#22ddcc',
+    component: lazy(() => import('../demos/screen-hologram')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
