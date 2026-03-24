@@ -34,3 +34,18 @@ Each demo is a self-contained scene at /viewer#demo-name with:
 - Unique visual effect or technique
 - Camera controls (orbit)
 - A brief description overlay
+
+## Documentation Hierarchy
+
+Before implementing any feature, read docs in this order:
+
+1. `docs/vision.md` — project vision, architecture, current state
+2. `docs/prd/` — requirements and feature inventory (what to build and current status)
+3. `docs/specs/` — technical design documents (how to build it)
+
+**Governance chain**: Vision governs PRDs. PRDs govern specs. Specs govern implementation.
+Do not contradict upstream docs. If a spec conflicts with a PRD, the PRD wins.
+
+After implementing a feature:
+- Update the PRD feature status (PLANNED -> COMPLETE)
+- Update the spec status (APPROVED -> IMPLEMENTED)
