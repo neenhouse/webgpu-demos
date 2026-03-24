@@ -253,6 +253,14 @@ export const demos: DemoEntry[] = [
     color: '#0055ee',
     component: lazy(() => import('../demos/waveform-viz')),
   },
+  {
+    name: 'cyber-city',
+    title: 'Cyber City',
+    description: 'Procedural cyberpunk skyline with 350 instanced neon buildings, reflective ground plane, and atmospheric fog',
+    requiresWebGPU: false,
+    color: '#ff1177',
+    component: lazy(() => import('../demos/cyber-city')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
