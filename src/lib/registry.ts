@@ -253,6 +253,14 @@ export const demos: DemoEntry[] = [
     color: '#0055ee',
     component: lazy(() => import('../demos/waveform-viz')),
   },
+  {
+    name: 'deep-sea',
+    title: 'Deep Sea',
+    description: 'Bioluminescent jellyfish with bone-animated tentacles, luminous plankton, and volumetric light shafts in a dark underwater scene',
+    requiresWebGPU: false,
+    color: '#00aacc',
+    component: lazy(() => import('../demos/deep-sea')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
