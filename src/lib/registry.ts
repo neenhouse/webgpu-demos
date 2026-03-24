@@ -245,6 +245,14 @@ export const demos: DemoEntry[] = [
     color: '#2288aa',
     component: lazy(() => import('../demos/procedural-planet')),
   },
+  {
+    name: 'waveform-viz',
+    title: 'Waveform Visualizer',
+    description: 'Concentric rings of instanced spheres deform to simulated audio frequencies with intensity-driven color shifts',
+    requiresWebGPU: false,
+    color: '#0055ee',
+    component: lazy(() => import('../demos/waveform-viz')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
