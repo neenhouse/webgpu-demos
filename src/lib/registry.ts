@@ -237,6 +237,14 @@ export const demos: DemoEntry[] = [
     color: '#11ccaa',
     component: lazy(() => import('../demos/fluid-sim')),
   },
+  {
+    name: 'procedural-planet',
+    title: 'Procedural Planet',
+    description: 'Rotating planet with hash-noise biome coloring, transparent cloud layer, atmospheric fresnel glow, and instanced starfield',
+    requiresWebGPU: false,
+    color: '#2288aa',
+    component: lazy(() => import('../demos/procedural-planet')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
