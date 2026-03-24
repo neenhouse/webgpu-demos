@@ -26,6 +26,9 @@ export default function Gallery() {
                 className="demo-card-thumb"
                 loading="lazy"
               />
+              {demo.requiresWebGPU && (
+                <span className="webgpu-badge">WebGPU</span>
+              )}
             </div>
             <div className="demo-card-info">
               <h3>{demo.title}</h3>
