@@ -123,7 +123,7 @@ export default function Viewer({ demoName }: { demoName: string }) {
           <OrbitControls enableDamping />
         </Canvas>
       </Suspense>
-      <Overlay demo={demo} isWebGPU={isWebGPU} />
+      <Overlay key={demo.name} demo={demo} isWebGPU={isWebGPU} />
     </div>
   );
 }
