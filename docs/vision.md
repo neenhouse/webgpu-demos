@@ -6,9 +6,9 @@ A gallery of WebGPU experiments built with Three.js — each demo showcases a di
 
 ## Current State
 
-**Stage**: Prototype
+**Stage**: Active
 
-Gallery grid, demo viewer with WebGPU/WebGL auto-detection, and hash routing are built. 5 demos showcase different TSL techniques: torus knot, particle field, procedural terrain, crystal grid, and aurora waves. CI deploys to Cloudflare Pages.
+35 demos spanning TSL materials, compute shaders, volumetrics, fractals, fluid simulation, skeletal animation, and more. Gallery with WebGPU/WebGL auto-detection, per-demo compatibility blocking, and hash routing. Two batch generation cycles complete via Choo Choo Ralph with accumulated learnings. CI deploys to Cloudflare Pages.
 
 > **Last updated**: 2026-03-24 — See `docs/prd/` for detailed feature status.
 
