@@ -18,7 +18,7 @@ A gallery of WebGPU experiments built with Three.js WebGPURenderer. Each demo is
 | 2 | Demo gallery | COMPLETE | | Responsive grid with accent-colored cards |
 | 3 | WebGPU detection | COMPLETE | | Auto-fallback to WebGL with notice banner |
 | 4 | Demo templates | COMPLETE | | 5 demos: TSL torus, particle field, terrain, crystal grid, aurora |
-| 5 | Batch generation | PLANNED | | Choo Choo Ralph workflow, after templates proven |
+| 5 | Batch generation | PARTIAL | | Choo Choo Ralph spec created, learnings file ready, first batch not yet run |
 
 ## Active Requirements
 
@@ -63,7 +63,7 @@ Detect WebGPU support and gracefully fall back to WebGL.
 - [x] **REQ-10**: WebGL fallback `COMPLETE`
   - AC: If WebGPU unavailable, renders with `WebGLRenderer` instead
   - AC: Shows non-intrusive banner: "Running in WebGL mode — some effects may differ"
-- [ ] **REQ-11**: Per-demo compatibility `PLANNED`
+- [x] **REQ-11**: Per-demo compatibility `COMPLETE`
   - AC: Demos that require compute shaders show "Requires WebGPU" when running in WebGL mode
 
 ## Intent Backlog
