@@ -173,6 +173,14 @@ export const demos: DemoEntry[] = [
     color: '#ff8844',
     component: lazy(() => import('../demos/sprite-sparks')),
   },
+  {
+    name: 'volumetric-cloud',
+    title: 'Volumetric Cloud',
+    description: 'Layered shell volumetric nebula with TSL Fn() noise-driven density, animated swirling, and warm-to-cool emissive glow',
+    requiresWebGPU: false,
+    color: '#aa44cc',
+    component: lazy(() => import('../demos/volumetric-cloud')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

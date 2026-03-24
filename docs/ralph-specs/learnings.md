@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 5)
+## Last updated: 2026-03-24 (Demo 6)
 
 ## Working Patterns
 
@@ -30,6 +30,11 @@
 - **3-stop height color gradient via chained `mix`/`smoothstep`**: `mix(mix(warm, mid, smoothstep(0, 0.4, h)), cool, smoothstep(0.35, 1, h))` with overlapping smoothstep ranges creates a smooth bottom-orange/mid-gold/top-cyan transition. Works well for vertical particle distributions.
 - **Spiral fountain parametric layout**: `angle = t * PI * 16`, `radius = 0.15 + t * 2.0`, `height = (t - 0.5) * 4.5` creates a funnel/tornado shape. Adding `(random - 0.5) * t * 0.35` scatter breaks up the mathematical regularity at the wider end.
 - **Headed Playwright for WebGPU screenshots**: Must use `chromium.launch({ headless: false })` for screenshot capture of WebGPU canvases. Headless mode produces blank/black images.
+- **Concentric shell volumetric technique**: 8 nested icosahedron shells (subdivision 5) with `BackSide` rendering, `AdditiveBlending`, and `depthWrite = false` create a convincing volumetric nebula/cloud effect. Each shell uses a factory function with layer index to control opacity, color, and emissive independently.
+- **Multi-octave hash noise in Fn() for cloud density**: `Fn(() => { ... })` wrapping three `hash()` calls at different frequencies (base, 2.3x, 4.7x) with animated time offsets per layer creates evolving cloud density patterns. `smoothstep(0.3, 0.7, combined)` carves cloud shapes from the noise.
+- **Very low per-shell opacity prevents additive blowout**: With 8+ additive shells, per-shell opacity must be very low (0.015-0.04 range, clamped to max 0.08). Even small values accumulate significantly across many overlapping shells. Initial attempt with 0.06-0.12 per shell created completely blown-out white results.
+- **BackSide vs DoubleSide for shell volumetrics**: `BackSide` produces cleaner layered shells than `DoubleSide`. With `DoubleSide`, both front and back faces contribute opacity, effectively doubling the visual density and making facet edges more visible. `BackSide` gives one clean pass per shell.
+- **Asymmetric accent lighting enhances volumetric depth**: Point lights placed off-center (not just at origin) create light/shadow asymmetry across volumetric shells, making the cloud appear more three-dimensional. A warm core light + cool side accent gives nebula-like illumination variation.
 
 ## Broken Patterns
 
@@ -40,6 +45,7 @@
 - **`PointsNodeMaterial` renders extremely dim in R3F/WebGPU**: `PointsNodeMaterial` with `colorNode`, `sizeNode`, and `opacityNode` produces barely visible particles even with size 60-100 and color multiplied 3-4x. The particles render (visible as faint dots) but are nearly black. `AdditiveBlending` does not help. This may be a compatibility issue with the R3F + WebGPURenderer pipeline. **Workaround**: Use instanced mesh (`instancedMesh` with `MeshStandardNodeMaterial`) as a proven alternative for particle effects.
 - **`attribute()` returns `AttributeNode<unknown>` in TypeScript**: Calling `attribute('aSeed')` returns a generic `AttributeNode<unknown>` that lacks `.mul()`, `.x`, `.y`, `.z` methods. Wrapping in `float(attribute('aSeed') as unknown as number)` is a hacky workaround. The cleaner approach is to avoid custom attributes entirely and use `hash(positionWorld)` for per-instance variation.
 - **Playwright headless cannot capture WebGPU canvas**: `page.screenshot()` in headless Chromium/Playwright produces black images for WebGPU canvases. `canvas.toDataURL()` also returns blank data. Only headed Playwright (`headless: false`) with actual GPU access can capture WebGPU content.
+- **DoubleSide + AdditiveBlending doubles visible density**: Using `mat.side = THREE.DoubleSide` on additive shells causes both front and back faces to contribute opacity in the same pass, effectively doubling the per-shell density and making individual facet edges highly visible. This caused the first attempt at volumetric cloud to look like clusters of opaque bubbles rather than soft gas. **Workaround**: Use `BackSide` rendering which gives one clean contribution per shell.
 
 ## Visual Quality Notes
 
@@ -58,6 +64,8 @@
 - **Minimal scene lighting for emissive-driven scenes**: When objects provide their own glow via `emissiveNode`, ambient and directional lights should be very low (0.05, 0.2) to let the emissive glow dominate the visual composition.
 - **Spiral fountain with warm-to-cool gradient**: 600 instanced sparks in a funnel/tornado shape with orange-red base transitioning through gold to cyan top creates a fiery-to-electric look. Multiple colored point lights (orange below, cyan above) reinforce the gradient.
 - **Emissive multiplier sweet spot**: 2-3x color multiplier for emissive gives strong self-lit glow while retaining color identity. Going above 4x causes blow-out to white, losing the gradient.
+- **Warm-to-cool shell color gradient for nebula**: Orange core (#ff7733) through pink/magenta (#cc66ee) to deep purple (#7744bb) outer shells creates a convincing emission nebula look. The warm core suggests a heat source while the violet outer shells suggest cooling gas.
+- **Concentric ring banding as aesthetic feature**: With `BackSide` shell rendering, each shell boundary creates a visible ring. Rather than being a defect, this produces a target/radar-like pattern that reads as density layers in a gaseous cloud, especially with the warm-to-cool color gradient.
 
 ## Batch History
 
@@ -66,3 +74,4 @@
 - **Batch 1, Demo 3 (2026-03-24)**: `uv-kaleidoscope` - TSL texture projection / UV manipulation. Icosahedron with polar UV folding (6-way kaleidoscope symmetry), animated `spherizeUV` warping, layered procedural patterns (rings, spokes, diamond grid, petals), and multi-stop violet/magenta/gold color gradient. Demonstrated `uv()`, `atan(y,x)`, `spherizeUV`, polar-to-cartesian conversion, and chained `mix`/`smoothstep` color ramps.
 - **Batch 1, Demo 4 (2026-03-24)**: `bloom-orbs` - Bloom/glow post-processing via TSL. Five floating orbs with layered transparent halo shells simulating bloom entirely through TSL material nodes. Used `AdditiveBlending`, `BackSide` rendering, fresnel-driven opacity, and strong `emissiveNode` to create convincing glow without a post-processing pass. Demonstrated material factory functions, per-layer fresnel tuning, and multi-orb composition with staggered phase.
 - **Batch 1, Demo 5 (2026-03-24)**: `sprite-sparks` - Sprite/billboard particles with TSL. 600 instanced icosahedrons in a spiral fountain with TSL-driven warm-to-cool color gradient (`positionWorld.y`), per-particle `hash()` phase for pulsing emissive, fresnel rim glow, and vertex breathing. Initially attempted `PointsNodeMaterial` which rendered nearly invisible particles; fell back to instanced mesh approach. Demonstrated `hash(positionWorld)` for per-instance variation, 3-stop height color gradient, emissive multiplier tuning, and multi-colored point lights for cohesive scene lighting.
+- **Batch 1, Demo 6 (2026-03-24)**: `volumetric-cloud` - Volumetric/raymarching effects via TSL Fn(). 8 concentric icosahedron shells with BackSide rendering and AdditiveBlending simulate volumetric density. Multi-octave hash noise inside Fn() creates animated cloud density patterns per shell. Warm orange-gold core fading through pink/magenta to deep violet outer shells creates an emission nebula aesthetic. Key learning: with 8+ additive shells, per-shell opacity must be extremely low (0.015-0.04) to avoid blowout; BackSide rendering is cleaner than DoubleSide for layered volumetrics.
