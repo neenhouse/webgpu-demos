@@ -254,12 +254,12 @@ export const demos: DemoEntry[] = [
     component: lazy(() => import('../demos/waveform-viz')),
   },
   {
-    name: 'deep-sea',
-    title: 'Deep Sea',
-    description: 'Bioluminescent jellyfish with bone-animated tentacles, luminous plankton, and volumetric light shafts in a dark underwater scene',
-    requiresWebGPU: false,
-    color: '#00aacc',
-    component: lazy(() => import('../demos/deep-sea')),
+    name: 'particle-morph',
+    title: 'Particle Morph',
+    description: '5000 particles morph between sphere, cube, torus, and icosahedron with GPU compute spring physics and noise scatter',
+    requiresWebGPU: true,
+    color: '#00ddaa',
+    component: lazy(() => import('../demos/particle-morph')),
   },
 ];
 
