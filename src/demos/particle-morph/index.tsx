@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
@@ -140,24 +141,25 @@ export default function ParticleMorph() {
     return shapes;
   }, []);
 
-  // CPU particle state
-  const particleState = useMemo(() => ({
+  // CPU particle state (useRef to allow mutation in useFrame)
+  const particleState = useRef({
     pos: new Float32Array(PARTICLE_COUNT * 3),
     vel: new Float32Array(PARTICLE_COUNT * 3),
     scales: new Float32Array(PARTICLE_COUNT),
-  }), []);
+  });
 
   // Initialize
   useEffect(() => {
     const src = shapeData[0];
-    particleState.pos.set(src);
-    particleState.vel.fill(0);
+    particleState.current.pos.set(src);
+    particleState.current.vel.fill(0);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particleState.scales[i] = 0.025 + (Math.abs(Math.sin(i * 127.1) * 43758.5453) % 1) * 0.015;
+      particleState.current.scales[i] = 0.025 + (Math.abs(Math.sin(i * 127.1) * 43758.5453) % 1) * 0.015;
     }
-  }, [shapeData, particleState]);
+  }, [shapeData]);
 
   // TSL uniform for shape phase (drives color)
+   
   const shapePhaseUniform = useMemo(() => uniform(0), []);
 
   // Material: TSL color transitions per shape phase
@@ -212,12 +214,12 @@ export default function ParticleMorph() {
     const src = shapeData[0];
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       dummy.position.set(src[i * 3], src[i * 3 + 1], src[i * 3 + 2]);
-      dummy.scale.setScalar(particleState.scales[i]);
+      dummy.scale.setScalar(particleState.current.scales[i]);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
-  }, [shapeData, particleState]);
+  }, [shapeData]);
 
   const elapsedRef = useRef(0);
   const dummyRef = useRef(new THREE.Object3D());
@@ -254,7 +256,7 @@ export default function ParticleMorph() {
     const sp = progress * progress * (3 - 2 * progress);
     const invSp = 1 - sp;
 
-    const { pos, vel, scales } = particleState;
+    const { pos, vel, scales } = particleState.current;
 
     // Spring physics constants
     const springK = 8.0;

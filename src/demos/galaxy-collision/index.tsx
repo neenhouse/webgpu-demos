@@ -250,18 +250,19 @@ export default function GalaxyCollision() {
       const radius = t * 1.2 + Math.random() * 0.25;
 
       // XY disk
-      let x = center.x + Math.cos(angle) * radius;
-      let y = center.y + Math.sin(angle) * radius;
-      let z = (Math.random() - 0.5) * 0.08;
+      const x = center.x + Math.cos(angle) * radius;
+      const baseY = center.y + Math.sin(angle) * radius;
+      const baseZ = (Math.random() - 0.5) * 0.08;
 
       // Tilt galaxy 2
-      if (galaxy === 1) {
-        const tiltAngle = 0.5;
-        const oy = y - center.y;
-        const oz = z;
-        y = center.y + oy * Math.cos(tiltAngle) - oz * Math.sin(tiltAngle);
-        z = oy * Math.sin(tiltAngle) + oz * Math.cos(tiltAngle);
-      }
+      const tiltAngle = galaxy === 1 ? 0.5 : 0;
+      const oy = baseY - center.y;
+      const y = galaxy === 1
+        ? center.y + oy * Math.cos(tiltAngle) - baseZ * Math.sin(tiltAngle)
+        : baseY;
+      const z = galaxy === 1
+        ? oy * Math.sin(tiltAngle) + baseZ * Math.cos(tiltAngle)
+        : baseZ;
 
       dummy.position.set(x, y, z);
       const scale = 0.015 + Math.random() * 0.02;
