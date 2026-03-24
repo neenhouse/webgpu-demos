@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { WebGPURenderer } from 'three/webgpu';
 import { WebGLRenderer } from 'three';
-import { getDemoByName, type DemoEntry } from '../lib/registry';
+import { getDemoByName, getAdjacentDemos, type DemoEntry } from '../lib/registry';
 import { isWebGPUAvailable } from '../lib/webgpu-detect';
 
 function DemoNotFound({ name }: { name: string }) {
@@ -31,11 +31,21 @@ interface OverlayProps {
 
 function Overlay({ demo, isWebGPU }: OverlayProps) {
   const [visible, setVisible] = useState(true);
+  const { prev, next } = getAdjacentDemos(demo.name);
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' && prev) window.location.hash = prev.name;
+      if (e.key === 'ArrowRight' && next) window.location.hash = next.name;
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [prev, next]);
 
   return (
     <div
@@ -43,16 +53,30 @@ function Overlay({ demo, isWebGPU }: OverlayProps) {
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
-      <a href="/" className="back-button">
-        ← Gallery
-      </a>
-      <div className="overlay-info">
-        <h2>{demo.title}</h2>
-        <p>{demo.description}</p>
-        {!isWebGPU && (
-          <p className="fallback-notice">
-            Running in WebGL mode — some effects may differ
-          </p>
+      <div className="overlay-top">
+        <a href="/" className="back-button">
+          ← Gallery
+        </a>
+      </div>
+      <div className="overlay-bottom">
+        {prev && (
+          <a href={`#${prev.name}`} className="nav-button nav-prev">
+            ‹ {prev.title}
+          </a>
+        )}
+        <div className="overlay-info">
+          <h2>{demo.title}</h2>
+          <p>{demo.description}</p>
+          {!isWebGPU && (
+            <p className="fallback-notice">
+              Running in WebGL mode — some effects may differ
+            </p>
+          )}
+        </div>
+        {next && (
+          <a href={`#${next.name}`} className="nav-button nav-next">
+            {next.title} ›
+          </a>
         )}
       </div>
     </div>

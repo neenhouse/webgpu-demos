@@ -127,9 +127,19 @@
   opacity: 1;
 }
 
+.overlay-top {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.overlay-bottom {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
 .back-button {
   pointer-events: auto;
-  align-self: flex-start;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.6);
@@ -143,8 +153,28 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+.nav-button {
+  pointer-events: auto;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  font-size: 0.85rem;
+  color: #ddd;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.nav-next {
+  margin-left: auto;
+}
+
 .overlay-info {
-  align-self: flex-start;
+  flex: 1;
   max-width: 400px;
   padding: 1rem 1.25rem;
   border-radius: 10px;

@@ -58,3 +58,12 @@ export const demos: DemoEntry[] = [
 export function getDemoByName(name: string): DemoEntry | undefined {
   return demos.find((d) => d.name === name);
 }
+
+export function getAdjacentDemos(name: string): { prev: DemoEntry | null; next: DemoEntry | null } {
+  const idx = demos.findIndex((d) => d.name === name);
+  if (idx === -1) return { prev: null, next: null };
+  return {
+    prev: idx > 0 ? demos[idx - 1] : demos[demos.length - 1],
+    next: idx < demos.length - 1 ? demos[idx + 1] : demos[0],
+  };
+}
