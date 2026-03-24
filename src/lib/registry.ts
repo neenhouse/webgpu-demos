@@ -165,6 +165,14 @@ export const demos: DemoEntry[] = [
     color: '#ccff00',
     component: lazy(() => import('../demos/bloom-orbs')),
   },
+  {
+    name: 'sprite-sparks',
+    title: 'Sprite Sparks',
+    description: 'Billboard point-sprite particle fountain with TSL-driven size, color gradients, and pulsing opacity',
+    requiresWebGPU: false,
+    color: '#ff8844',
+    component: lazy(() => import('../demos/sprite-sparks')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

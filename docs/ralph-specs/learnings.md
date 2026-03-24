@@ -1,6 +1,6 @@
 # Batch Demo Learnings
 
-## Last updated: 2026-03-24 (Demo 4)
+## Last updated: 2026-03-24 (Demo 5)
 
 ## Working Patterns
 
@@ -26,6 +26,10 @@
 - **`BackSide` rendering for halos**: Using `mat.side = THREE.BackSide` on halo shells means they render their inner faces, which wrap around the core object and create a glow that appears to emanate outward from the core.
 - **Fresnel power tuning per shell layer**: Increasing fresnel `pow()` exponent for outer layers (1.5, 2.0, 2.5) makes outer halos concentrate more at edges while inner halos remain broader, creating natural glow falloff.
 - **Reusable material factory functions**: Extracting `makeCoreMaterial()` and `makeHaloMaterial()` as standalone functions with parameters (color, phase, layer index) enables clean composition of multiple instances with different palettes.
+- **`hash(positionWorld)` for per-instance variation**: `hash(positionWorld.x.mul(N).add(positionWorld.z.mul(M)))` generates a pseudo-random seed per instance based on world position. This drives per-particle emissive phase offsets and pulsing without needing custom attributes (which have TS typing issues).
+- **3-stop height color gradient via chained `mix`/`smoothstep`**: `mix(mix(warm, mid, smoothstep(0, 0.4, h)), cool, smoothstep(0.35, 1, h))` with overlapping smoothstep ranges creates a smooth bottom-orange/mid-gold/top-cyan transition. Works well for vertical particle distributions.
+- **Spiral fountain parametric layout**: `angle = t * PI * 16`, `radius = 0.15 + t * 2.0`, `height = (t - 0.5) * 4.5` creates a funnel/tornado shape. Adding `(random - 0.5) * t * 0.35` scatter breaks up the mathematical regularity at the wider end.
+- **Headed Playwright for WebGPU screenshots**: Must use `chromium.launch({ headless: false })` for screenshot capture of WebGPU canvases. Headless mode produces blank/black images.
 
 ## Broken Patterns
 
@@ -33,6 +37,9 @@
 - **Hash noise creates banded patterns**: `hash(positionLocal.mul(N))` on smooth geometry (like a subdivided dodecahedron) creates concentric ring/band patterns rather than salt-and-pepper randomness. This is because `hash()` is deterministic and position varies smoothly across the surface. The banded look is visually interesting but different from typical dissolve effects seen in games.
 - **`mat.opacityNode` typed as `Node | null`**: Reading back `mat.opacityNode` after assignment and chaining `.mul()` on it causes TS error `Property 'mul' does not exist on type 'Node'`. Must compose the full opacity expression in local variables before a single assignment.
 - **`.atan2()` does not exist on Node**: TSL nodes do not have an `.atan2()` method. Use the standalone `atan(y, x)` function instead. TS will error with "Property 'atan2' does not exist on type 'Node<\"float\">'".
+- **`PointsNodeMaterial` renders extremely dim in R3F/WebGPU**: `PointsNodeMaterial` with `colorNode`, `sizeNode`, and `opacityNode` produces barely visible particles even with size 60-100 and color multiplied 3-4x. The particles render (visible as faint dots) but are nearly black. `AdditiveBlending` does not help. This may be a compatibility issue with the R3F + WebGPURenderer pipeline. **Workaround**: Use instanced mesh (`instancedMesh` with `MeshStandardNodeMaterial`) as a proven alternative for particle effects.
+- **`attribute()` returns `AttributeNode<unknown>` in TypeScript**: Calling `attribute('aSeed')` returns a generic `AttributeNode<unknown>` that lacks `.mul()`, `.x`, `.y`, `.z` methods. Wrapping in `float(attribute('aSeed') as unknown as number)` is a hacky workaround. The cleaner approach is to avoid custom attributes entirely and use `hash(positionWorld)` for per-instance variation.
+- **Playwright headless cannot capture WebGPU canvas**: `page.screenshot()` in headless Chromium/Playwright produces black images for WebGPU canvases. `canvas.toDataURL()` also returns blank data. Only headed Playwright (`headless: false`) with actual GPU access can capture WebGPU content.
 
 ## Visual Quality Notes
 
@@ -49,6 +56,8 @@
 - **Layered UV patterns**: Combining rings, spokes, diamond grid, and petal patterns at different frequencies with weighted blending creates complexity from simple trigonometric ingredients. Higher ring frequency (60) produces more visible detail than lower (30).
 - **Multi-orb glow composition**: Multiple bloom orbs at different positions, sizes, and color palettes with staggered `oscSine` phase offsets create a visually rich scene where each orb pulses independently. Gold, cyan, magenta, green, and violet form a diverse yet harmonious palette against a dark background.
 - **Minimal scene lighting for emissive-driven scenes**: When objects provide their own glow via `emissiveNode`, ambient and directional lights should be very low (0.05, 0.2) to let the emissive glow dominate the visual composition.
+- **Spiral fountain with warm-to-cool gradient**: 600 instanced sparks in a funnel/tornado shape with orange-red base transitioning through gold to cyan top creates a fiery-to-electric look. Multiple colored point lights (orange below, cyan above) reinforce the gradient.
+- **Emissive multiplier sweet spot**: 2-3x color multiplier for emissive gives strong self-lit glow while retaining color identity. Going above 4x causes blow-out to white, losing the gradient.
 
 ## Batch History
 
@@ -56,3 +65,4 @@
 - **Batch 1, Demo 2 (2026-03-24)**: `screen-hologram` - TSL screenUV / screen-space effects. Holographic icosahedron with screen-space scanlines, glitch bands, fract-based line artifacts, fresnel rim glow, and screen-position color gradient. Demonstrated `screenUV`, `sin`, `fract`, `smoothstep` for layered screen-space modulation.
 - **Batch 1, Demo 3 (2026-03-24)**: `uv-kaleidoscope` - TSL texture projection / UV manipulation. Icosahedron with polar UV folding (6-way kaleidoscope symmetry), animated `spherizeUV` warping, layered procedural patterns (rings, spokes, diamond grid, petals), and multi-stop violet/magenta/gold color gradient. Demonstrated `uv()`, `atan(y,x)`, `spherizeUV`, polar-to-cartesian conversion, and chained `mix`/`smoothstep` color ramps.
 - **Batch 1, Demo 4 (2026-03-24)**: `bloom-orbs` - Bloom/glow post-processing via TSL. Five floating orbs with layered transparent halo shells simulating bloom entirely through TSL material nodes. Used `AdditiveBlending`, `BackSide` rendering, fresnel-driven opacity, and strong `emissiveNode` to create convincing glow without a post-processing pass. Demonstrated material factory functions, per-layer fresnel tuning, and multi-orb composition with staggered phase.
+- **Batch 1, Demo 5 (2026-03-24)**: `sprite-sparks` - Sprite/billboard particles with TSL. 600 instanced icosahedrons in a spiral fountain with TSL-driven warm-to-cool color gradient (`positionWorld.y`), per-particle `hash()` phase for pulsing emissive, fresnel rim glow, and vertex breathing. Initially attempted `PointsNodeMaterial` which rendered nearly invisible particles; fell back to instanced mesh approach. Demonstrated `hash(positionWorld)` for per-instance variation, 3-stop height color gradient, emissive multiplier tuning, and multi-colored point lights for cohesive scene lighting.
