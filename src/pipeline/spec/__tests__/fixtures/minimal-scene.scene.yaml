@@ -1,0 +1,10 @@
+version: "1.0"
+
+meta:
+  name: Minimal Test
+  technique: none
+  description: Bare minimum scene
+
+objects:
+  - id: cube
+    prompt: a simple cube

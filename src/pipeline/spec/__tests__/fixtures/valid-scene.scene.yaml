@@ -1,0 +1,154 @@
+version: "1.0"
+
+meta:
+  name: Test Junkyard
+  technique: parametric + CSG
+  description: A test scene with multiple object types
+  author: test-suite
+
+camera:
+  position: [0, 8, 15]
+  target: [0, 0, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: An abandoned junkyard at dusk
+  background: "#1a1a2e"
+  fog:
+    type: linear
+    color: "#1a1a2e"
+    near: 20
+    far: 100
+  ambient:
+    color: "#8899aa"
+    intensity: 0.4
+  lights:
+    - type: directional
+      position: [10, 20, 10]
+      target: [0, 0, 0]
+      color: "#ffddaa"
+      intensity: 1.2
+      castShadow: true
+    - type: point
+      position: [0, 3, 0]
+      color: "#ff4400"
+      intensity: 2
+      distance: 15
+
+objects:
+  - id: ground
+    prompt: flat cracked concrete ground plane
+    style: realistic
+    generator: parametric/terrain
+    transform:
+      position: [0, 0, 0]
+      rotation: [0, 0, 0]
+      scale: [20, 1, 20]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.95
+    lod: auto
+
+  - id: car-wreck
+    prompt: rusted abandoned sedan with flat tires and broken windows
+    style: realistic
+    generator: parametric/vehicle
+    params:
+      vehicle_type: sedan
+      damage: heavy
+    transform:
+      position: [3, 0, -2]
+      rotation: [0, 35, 0]
+      scale: 1
+    material:
+      prompt: heavily rusted metal with peeling paint
+      pbr:
+        roughness: 0.85
+        metalness: 0.6
+        color: "#8B4513"
+    castShadow: true
+    receiveShadow: true
+    children:
+      - id: car-tire-fl
+        prompt: flat deflated tire
+        generator: parametric/debris
+        transform:
+          position: [-0.7, 0.2, 0.9]
+          scale: 0.3
+        material:
+          preset: rubber-worn
+
+  - id: barrel-stack
+    prompt: stack of oil barrels
+    style: realistic
+    generator: csg
+    transform:
+      position: [-4, 0, 1]
+    material:
+      prompt: dented rusty metal barrel
+      pbr:
+        metalness: 0.7
+        roughness: 0.8
+    register_prefab: true
+    instances:
+      - position: [-4, 0, 1]
+        rotation: [0, 0, 0]
+        scale: 1
+      - position: [-4, 0.8, 1]
+        rotation: [0, 45, 0]
+        scale: 1
+      - position: [-3.5, 0, 2]
+        rotation: [0, 15, 0]
+        scale: 1
+
+  - id: alien-plant
+    prompt: bioluminescent alien plant with glowing tendrils
+    style: stylized
+    generator: sdf
+    transform:
+      position: [0, 0, 5]
+      scale: 1.5
+    material:
+      shader: |
+        mat.colorNode = mix(
+          color(0x003300),
+          color(0x00ff88),
+          positionLocal.y.mul(0.5).add(0.5)
+        );
+        mat.emissiveNode = color(0x00ffcc).mul(
+          oscSine(time.add(positionLocal.y.mul(3.0))).mul(0.5).add(0.5)
+        );
+    animation:
+      - property: transform.rotation.y
+        type: rotate
+        speed: 0.1
+        amplitude: 360
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.5
+        amplitude: 1.5
+        range: [0.3, 1.8]
+
+  - id: glow-rock
+    prompt: large mossy boulder
+    style: realistic
+    generator: parametric/rock
+    transform:
+      position: [-2, 0, -4]
+      scale: 2
+    material:
+      preset: earth-dirt
+      overrides:
+        roughness: 0.95
+    lod:
+      levels:
+        - distance: 0
+          detail: 1.0
+        - distance: 30
+          detail: 0.5
+        - distance: 80
+          detail: 0.2
+    collision: convex
