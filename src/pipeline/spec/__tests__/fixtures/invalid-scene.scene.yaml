@@ -1,0 +1,13 @@
+version: "1.0"
+
+meta:
+  name: Invalid Scene
+  # missing: technique, description
+
+objects:
+  - id: bad-object
+    # missing: prompt (required)
+    material:
+      pbr:
+        roughness: 1.5
+        metalness: -0.3
