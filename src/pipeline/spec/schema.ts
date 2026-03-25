@@ -98,3 +98,112 @@ export const MaterialDefSchema = z.object({
   wireframe: z.boolean().optional(),
   flatShading: z.boolean().optional(),
 });
+
+// ─── Object (recursive) ─────────────────────────────────────
+
+export type ObjectInput = z.input<typeof BaseObjectSchema> & {
+  children?: ObjectInput[];
+};
+
+const BaseObjectSchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  style: z.enum([
+    'realistic', 'stylized', 'cel-shaded', 'low-poly', 'voxel', 'wireframe',
+  ]).optional(),
+  generator: z.string().optional(),
+  params: z.record(z.unknown()).optional(),
+  transform: TransformSchema.default({
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: 1,
+  }),
+  material: MaterialDefSchema.optional(),
+  textures: TextureDefSchema.optional(),
+  animation: z.array(AnimationSchema).optional(),
+  register_prefab: z.boolean().optional(),
+  prefab_ref: z.string().optional(),
+  instances: z.array(TransformSchema).optional(),
+  lod: LodSchema.default('none'),
+  collision: z.enum(['none', 'box', 'sphere', 'mesh', 'convex']).default('none'),
+  visible: z.boolean().default(true),
+  castShadow: z.boolean().default(true),
+  receiveShadow: z.boolean().default(true),
+});
+
+export const ObjectSchema: z.ZodType<
+  z.infer<typeof BaseObjectSchema> & { children?: z.infer<typeof BaseObjectSchema>[] }
+> = BaseObjectSchema.extend({
+  children: z.lazy(() => z.array(ObjectSchema)).optional(),
+});
+
+// ─── Fog ─────────────────────────────────────────────────────
+
+export const FogSchema = z.object({
+  type: z.enum(['linear', 'exponential']),
+  color: z.string(),
+  near: z.number().optional(),
+  far: z.number().optional(),
+  density: z.number().optional(),
+});
+
+// ─── Ambient ─────────────────────────────────────────────────
+
+export const AmbientSchema = z.object({
+  color: z.string().default('#ffffff'),
+  intensity: z.number().default(0.5),
+});
+
+// ─── Environment ─────────────────────────────────────────────
+
+export const EnvironmentSchema = z.object({
+  description: z.string().optional(),
+  background: z.string().default('#000000'),
+  fog: FogSchema.optional(),
+  ambient: AmbientSchema.default({ color: '#ffffff', intensity: 0.5 }),
+  lights: z.array(LightSchema).default([]),
+});
+
+// ─── Camera ──────────────────────────────────────────────────
+
+export const CameraSchema = z.object({
+  position: Vec3Schema.default([0, 5, 10]),
+  target: Vec3Schema.default([0, 0, 0]),
+  fov: z.number().default(60),
+  near: z.number().default(0.1),
+  far: z.number().default(1000),
+});
+
+// ─── Meta ────────────────────────────────────────────────────
+
+export const MetaSchema = z.object({
+  name: z.string(),
+  technique: z.string(),
+  description: z.string(),
+  author: z.string().optional(),
+});
+
+// ─── PrefabDef ───────────────────────────────────────────────
+
+export const PrefabDefSchema = ObjectSchema;
+
+// ─── Scene (top-level) ──────────────────────────────────────
+
+export const SceneSchema = z.object({
+  version: z.string().default('1.0'),
+  meta: MetaSchema,
+  camera: CameraSchema.default({
+    position: [0, 5, 10],
+    target: [0, 0, 0],
+    fov: 60,
+    near: 0.1,
+    far: 1000,
+  }),
+  environment: EnvironmentSchema.default({
+    background: '#000000',
+    ambient: { color: '#ffffff', intensity: 0.5 },
+    lights: [],
+  }),
+  objects: z.array(ObjectSchema).min(1),
+  prefabs: z.record(PrefabDefSchema).optional(),
+});
