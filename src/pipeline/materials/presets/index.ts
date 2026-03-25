@@ -2,6 +2,7 @@ import type { PresetFactory } from '../types.ts';
 
 /**
  * Preset registry: maps preset names to factory functions.
+ * Presets register themselves as side effects when imported.
  */
 const presetRegistry = new Map<string, PresetFactory>();
 
@@ -25,3 +26,14 @@ export function getPreset(name: string): PresetFactory | undefined {
 export function listPresets(): string[] {
   return Array.from(presetRegistry.keys());
 }
+
+// Eagerly load all presets -- each import triggers registerPreset() as a side effect.
+// Since presets are small factory functions (no heavy assets), eager loading is fine.
+import './rusted-metal.ts';
+import './concrete.ts';
+import './chrome.ts';
+import './wood.ts';
+import './glass.ts';
+import './organic.ts';
+import './neon.ts';
+import './cel-shaded.ts';
