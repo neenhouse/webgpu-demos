@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
 import { useSceneLoader } from './scene-loader';
 import EnvironmentRenderer from './EnvironmentRenderer';
@@ -15,7 +14,9 @@ interface SceneFromYamlProps {
  * the complete Three.js scene via R3F.
  *
  * Must be rendered INSIDE an R3F <Canvas> — the parent demo component
- * or Viewer provides the Canvas wrapper.
+ * or Viewer provides the Canvas wrapper. The Viewer already provides
+ * OrbitControls, so this component only sets camera position/target
+ * and updates the existing controls' target.
  */
 export default function SceneFromYaml({ scenePath }: SceneFromYamlProps) {
   // Load and parse the scene YAML (Suspense-compatible)
@@ -28,6 +29,11 @@ export default function SceneFromYaml({ scenePath }: SceneFromYamlProps) {
 
   // Set up camera from scene spec
   const camera = useThree((state) => state.camera) as THREE.PerspectiveCamera;
+  // Access the controls (provided by the Viewer's OrbitControls)
+  const controls = useThree((state) => state.controls) as unknown as {
+    target?: THREE.Vector3;
+    update?: () => void;
+  } | null;
 
   useEffect(() => {
     if (!scene.camera) return;
@@ -37,18 +43,21 @@ export default function SceneFromYaml({ scenePath }: SceneFromYamlProps) {
     camera.near = scene.camera.near;
     camera.far = scene.camera.far;
     camera.updateProjectionMatrix();
-  }, [scene.camera, camera]);
+
+    // Update OrbitControls target if available
+    if (controls?.target) {
+      controls.target.set(...scene.camera.target);
+      controls.update?.();
+    } else {
+      // Fallback: just use camera.lookAt
+      camera.lookAt(...scene.camera.target);
+    }
+  }, [scene.camera, camera, controls]);
 
   return (
     <>
       {/* Environment: fog, background, ambient light, lights */}
       <EnvironmentRenderer environment={scene.environment} />
-
-      {/* OrbitControls with target from camera spec */}
-      <OrbitControls
-        target={scene.camera.target as unknown as THREE.Vector3}
-        enableDamping
-      />
 
       {/* Scene objects */}
       {scene.objects.map((obj) => (
