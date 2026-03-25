@@ -76,3 +76,12 @@ function createErrorMarker(object: SceneObject): GeneratorResult {
     },
   };
 }
+
+// Register all generators
+import { csgGenerator } from './csg.ts';
+import { sdfGenerator } from './sdf.ts';
+import { parametricGenerator } from './parametric/index.ts';
+
+registerGenerator(csgGenerator);
+registerGenerator(sdfGenerator);
+registerGenerator(parametricGenerator);
