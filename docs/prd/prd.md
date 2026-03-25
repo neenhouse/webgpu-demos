@@ -66,6 +66,8 @@ Detect WebGPU support and gracefully fall back to WebGL.
 - [x] **REQ-11**: Per-demo compatibility `COMPLETE`
   - AC: Demos that require compute shaders show "Requires WebGPU" when running in WebGL mode
 
+| 6 | Extractable scene spec | COMPLETE | | Engine-agnostic YAML scene pipeline spec v1.0 at `docs/spec/scene-pipeline-spec-v1.md` |
+
 ## Intent Backlog
 
 - **Demo templates (5+ types)**: Compute particle systems, TSL custom materials, GPU-driven terrain, post-processing with compute, instanced geometry. Each template is a self-contained demo that can be batch-generated with variations.
