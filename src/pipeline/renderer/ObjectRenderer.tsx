@@ -3,6 +3,7 @@ import * as THREE from 'three/webgpu';
 import { generateObject } from '../generators/index';
 import type { SceneObject as GeneratorSceneObject } from '../generators/types';
 import { resolveMaterial } from '../materials/resolver';
+import { useAnimations } from './animation';
 import type { SceneObject, Transform } from '../spec/types';
 
 interface ObjectRendererProps {
@@ -122,6 +123,12 @@ export default function ObjectRenderer({
     }
     instancedMesh.instanceMatrix.needsUpdate = true;
   }, [instancedMesh, object.instances]);
+
+  // Drive animations via useFrame
+  // For non-instanced: animate the group (transform animations affect whole object + children)
+  // For instanced: animate the primitive wrapper
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useAnimations(object.animation, groupRef, materialRef);
 
   // Compute transform values
   const position = object.transform.position as [number, number, number];
