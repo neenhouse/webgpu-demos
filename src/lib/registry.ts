@@ -293,6 +293,14 @@ export const demos: DemoEntry[] = [
     color: '#44ccbb',
     component: lazy(() => import('../demos/neural-net')),
   },
+  {
+    name: 'test-scene',
+    title: 'Test Scene (Pipeline)',
+    description: 'Integration test: terrain, rocks, and CSG archway rendered from scene YAML',
+    requiresWebGPU: false,
+    color: '#66aa44',
+    component: lazy(() => import('../demos/test-scene')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
