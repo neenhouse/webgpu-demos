@@ -131,9 +131,12 @@ const BaseObjectSchema = z.object({
   receiveShadow: z.boolean().default(true),
 });
 
-export const ObjectSchema: z.ZodType<
-  z.infer<typeof BaseObjectSchema> & { children?: z.infer<typeof BaseObjectSchema>[] }
-> = BaseObjectSchema.extend({
+/** Recursive object output type including optional children */
+export type ObjectSchemaOutput = z.infer<typeof BaseObjectSchema> & {
+  children?: ObjectSchemaOutput[];
+};
+
+export const ObjectSchema: z.ZodType<ObjectSchemaOutput> = BaseObjectSchema.extend({
   children: z.lazy(() => z.array(ObjectSchema)).optional(),
 });
 
