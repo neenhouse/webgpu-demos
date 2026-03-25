@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
-import type { Transform } from '../spec/types';
+import type { Transform, SceneObject } from '../spec/types';
+import type { GeneratorResult } from '../generators/types';
 import type { Prefab } from './types';
 
 export class PrefabRegistry {
@@ -65,4 +66,45 @@ export class PrefabRegistry {
     mesh.instanceMatrix.needsUpdate = true;
     return mesh;
   }
+}
+
+/**
+ * After an object is generated, optionally register it as a prefab.
+ * Call this after geometry generation for every object.
+ */
+export function maybeRegisterPrefab(
+  registry: PrefabRegistry,
+  object: SceneObject,
+  result: GeneratorResult,
+): void {
+  if (object.register_prefab) {
+    registry.register(object.id, {
+      id: object.id,
+      prompt: object.prompt,
+      style: object.style ?? 'realistic',
+      geometry: result.geometry,
+      material: result.material ?? new THREE.MeshStandardNodeMaterial(),
+      metadata: result.metadata,
+    });
+  }
+}
+
+/**
+ * If an object references a prefab, look it up.
+ * Returns the Prefab if found, undefined if no prefab_ref is set.
+ * Logs a warning and returns undefined if the ref is set but not found
+ * (matching spec: "Unknown prefab reference: skip the object, log error").
+ */
+export function lookupPrefab(
+  registry: PrefabRegistry,
+  object: SceneObject,
+): Prefab | undefined {
+  if (!object.prefab_ref) return undefined;
+
+  const prefab = registry.get(object.prefab_ref);
+  if (!prefab) {
+    console.error(`[PrefabRegistry] Unknown prefab_ref "${object.prefab_ref}" on object "${object.id}" — skipping`);
+    return undefined;
+  }
+  return prefab;
 }
