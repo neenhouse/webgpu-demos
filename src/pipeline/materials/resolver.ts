@@ -92,6 +92,11 @@ export function resolveMaterial(
   let mat: THREE.MeshStandardNodeMaterial | null = null;
 
   // Step 1: inherit -- clone from parent or referenced object
+  // Note: MeshStandardNodeMaterial.clone() copies node references (shallow clone
+  // of node graph). This is correct -- inherited children share the same node graph
+  // unless they override specific nodes in subsequent steps.
+  // Shader is atomic -- if a child provides def.shader, it replaces all node
+  // assignments from the inherited material's shader (compileShader assigns directly).
   if (def.inherit) {
     if (def.inherit === 'parent') {
       if (context?.parentMaterial) {
@@ -102,17 +107,13 @@ export function resolveMaterial(
         );
       }
     } else {
-      // String ID reference
-      const referenced = context?.sceneObjects?.get(def.inherit);
-      if (referenced?.material) {
-        // The referenced material would need to be resolved first in a real scene
-        // For now, log that we found the reference
-        console.warn(
-          `[material-resolver] inherit from "${def.inherit}" -- cross-object inheritance requires pre-resolved materials`,
-        );
+      // String ID reference -- look up already-resolved material
+      const resolvedMat = context?.resolvedMaterials?.get(def.inherit);
+      if (resolvedMat) {
+        mat = resolvedMat.clone() as THREE.MeshStandardNodeMaterial;
       } else {
         console.warn(
-          `[material-resolver] inherit: "${def.inherit}" but object not found in scene context`,
+          `[material-resolver] inherit: "${def.inherit}" but no resolved material found for that object ID`,
         );
       }
     }

@@ -56,6 +56,8 @@ export interface MaterialContext {
   parentMaterial?: THREE.MeshStandardNodeMaterial;
   /** Map of scene objects by ID for cross-object inheritance */
   sceneObjects?: Map<string, { material?: MaterialDef }>;
+  /** Map of already-resolved materials by object ID for cross-object inheritance */
+  resolvedMaterials?: Map<string, THREE.MeshStandardNodeMaterial>;
   /** ID of the object being resolved (for error messages) */
   objectId?: string;
 }
