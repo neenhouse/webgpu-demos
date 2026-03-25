@@ -1,0 +1,301 @@
+version: "1.0"
+
+meta:
+  name: Alien Garden
+  technique: parametric + SDF + TSL shaders
+  description: Bioluminescent alien garden with glowing mushrooms, exotic vegetation, and SDF organic shapes
+  author: pipeline-showcase
+
+camera:
+  position: [8, 6, 14]
+  target: [0, 1, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Eerie alien planet surface with colored fog and bioluminescence
+  background: "#0a0618"
+  fog:
+    type: exponential
+    color: "#120830"
+    density: 0.025
+  ambient:
+    color: "#443366"
+    intensity: 0.3
+  lights:
+    - type: directional
+      position: [10, 20, 5]
+      target: [0, 0, 0]
+      color: "#6644aa"
+      intensity: 0.8
+      castShadow: true
+    - type: point
+      position: [0, 3, 0]
+      color: "#00ffaa"
+      intensity: 2.5
+      distance: 20
+    - type: point
+      position: [-5, 2, -3]
+      color: "#ff44cc"
+      intensity: 1.8
+      distance: 15
+    - type: point
+      position: [5, 1, 4]
+      color: "#44aaff"
+      intensity: 1.5
+      distance: 12
+
+objects:
+  # ── Alien terrain ───────────────────────────────
+  - id: alien-ground
+    prompt: alien planet surface with strange undulations
+    style: stylized
+    generator: parametric/terrain
+    params:
+      biome: alien
+      segments: 64
+      amplitude: 1.2
+      frequency: 0.08
+      seed: 42
+    transform:
+      position: [0, 0, 0]
+      scale: [25, 1, 25]
+    material:
+      pbr:
+        color: "#1a0e2e"
+        roughness: 0.85
+        metalness: 0.1
+        emissive: "#110022"
+        emissive_intensity: 0.3
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # ── Giant mushrooms (instanced) ─────────────────
+  - id: giant-mushroom
+    prompt: tall bioluminescent mushroom with glowing cap
+    style: stylized
+    generator: parametric/organic
+    params:
+      type: mushroom
+      cap_radius: 1.5
+      stem_height: 3
+      seed: 10
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#663399"
+        roughness: 0.6
+        metalness: 0.1
+        emissive: "#9933ff"
+        emissive_intensity: 1.2
+    register_prefab: true
+    instances:
+      - position: [-3, 0, -2]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [4, 0, -4]
+        rotation: [0, 120, 0]
+        scale: 1.3
+      - position: [-6, 0, 3]
+        rotation: [0, 45, 0]
+        scale: 0.8
+      - position: [2, 0, 6]
+        rotation: [0, 200, 0]
+        scale: 1.1
+      - position: [-1, 0, -7]
+        rotation: [0, 90, 0]
+        scale: 0.9
+    castShadow: true
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.4
+        amplitude: 0.8
+        range: [0.5, 2.0]
+
+  # ── Small mushroom cluster (instanced) ──────────
+  - id: small-mushroom
+    prompt: small glowing mushroom cluster
+    style: stylized
+    generator: parametric/organic
+    params:
+      type: mushroom
+      cap_radius: 0.4
+      stem_height: 0.8
+      seed: 33
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#22aa66"
+        roughness: 0.5
+        emissive: "#00ff88"
+        emissive_intensity: 1.5
+    register_prefab: true
+    instances:
+      - position: [1, 0, 1]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [-2, 0, 4]
+        rotation: [0, 30, 0]
+        scale: 0.7
+      - position: [5, 0, 2]
+        rotation: [0, 60, 0]
+        scale: 0.9
+      - position: [-4, 0, -5]
+        rotation: [0, 150, 0]
+        scale: 1.2
+      - position: [3, 0, -1]
+        rotation: [0, 200, 0]
+        scale: 0.8
+      - position: [-6, 0, -1]
+        rotation: [0, 270, 0]
+        scale: 1.1
+      - position: [7, 0, -3]
+        rotation: [0, 315, 0]
+        scale: 0.6
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.7
+        amplitude: 1.0
+        range: [0.8, 2.5]
+
+  # ── Alien vegetation ────────────────────────────
+  - id: alien-tree
+    prompt: alien tendril tree with bioluminescent leaves
+    style: stylized
+    generator: parametric/vegetation
+    params:
+      type: tree
+      height: 5
+      trunk_radius: 0.15
+      foliage_radius: 2.5
+      seed: 99
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#2d1b4e"
+        roughness: 0.7
+        emissive: "#6622cc"
+        emissive_intensity: 0.6
+    register_prefab: true
+    instances:
+      - position: [-5, 0, -6]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [6, 0, -6]
+        rotation: [0, 90, 0]
+        scale: 1.2
+      - position: [-8, 0, 1]
+        rotation: [0, 180, 0]
+        scale: 0.9
+    castShadow: true
+
+  - id: alien-bush
+    prompt: glowing alien shrub with pulsing fronds
+    style: stylized
+    generator: parametric/vegetation
+    params:
+      type: bush
+      height: 1.5
+      seed: 55
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#1a4433"
+        roughness: 0.6
+        emissive: "#00cc66"
+        emissive_intensity: 0.8
+    register_prefab: true
+    instances:
+      - position: [2, 0, 3]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [-3, 0, 6]
+        rotation: [0, 45, 0]
+        scale: 0.8
+      - position: [7, 0, 1]
+        rotation: [0, 120, 0]
+        scale: 1.1
+      - position: [-7, 0, 5]
+        rotation: [0, 200, 0]
+        scale: 0.9
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: sine
+        speed: 0.3
+        amplitude: 0.5
+        range: [0.4, 1.2]
+
+  # ── SDF alien plant (raymarched) ────────────────
+  - id: sdf-alien-flower
+    prompt: bioluminescent alien flower with organic raymarched shape
+    style: stylized
+    generator: sdf
+    transform:
+      position: [0, 1.5, 0]
+      scale: 2.0
+    material:
+      shader: |
+        mat.colorNode = mix(
+          color(0x110033),
+          color(0x00ffcc),
+          positionLocal.y.mul(0.5).add(0.5)
+        );
+        mat.emissiveNode = color(0x00ffaa).mul(
+          oscSine(time.add(positionLocal.y.mul(4.0))).mul(0.5).add(0.5)
+        );
+    castShadow: false
+    animation:
+      - property: transform.rotation.y
+        type: rotate
+        speed: 0.08
+        amplitude: 360
+
+  # ── Glowing orb rocks ──────────────────────────
+  - id: glow-rock
+    prompt: smooth alien rock with inner glow
+    style: stylized
+    generator: parametric/rock
+    params:
+      variant: boulder
+      detail: 3
+      seed: 88
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#221144"
+        roughness: 0.4
+        metalness: 0.2
+        emissive: "#4400ff"
+        emissive_intensity: 1.0
+    register_prefab: true
+    instances:
+      - position: [3, 0, -5]
+        rotation: [0, 0, 0]
+        scale: 0.7
+      - position: [-4, 0, -3]
+        rotation: [0, 90, 0]
+        scale: 0.5
+      - position: [6, 0, 5]
+        rotation: [0, 45, 0]
+        scale: 0.6
+      - position: [-2, 0, 8]
+        rotation: [0, 180, 0]
+        scale: 0.8
+      - position: [8, 0, -1]
+        rotation: [0, 270, 0]
+        scale: 0.4
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.5
+        amplitude: 0.7
+        range: [0.5, 1.8]

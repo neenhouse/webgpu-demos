@@ -301,6 +301,22 @@ export const demos: DemoEntry[] = [
     color: '#66aa44',
     component: lazy(() => import('../demos/test-scene')),
   },
+  {
+    name: 'junkyard',
+    title: 'Abandoned Junkyard',
+    description: 'Post-apocalyptic junkyard with rusted vehicles, debris piles, CSG barriers, and scattered rocks',
+    requiresWebGPU: false,
+    color: '#8B6914',
+    component: lazy(() => import('../demos/junkyard')),
+  },
+  {
+    name: 'alien-garden',
+    title: 'Alien Garden',
+    description: 'Bioluminescent alien garden with glowing mushrooms, exotic vegetation, and SDF organic shapes',
+    requiresWebGPU: false,
+    color: '#6622cc',
+    component: lazy(() => import('../demos/alien-garden')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
