@@ -1,4 +1,4 @@
-import { registerPreset } from './index.ts';
+import { registerPreset } from './registry.ts';
 import * as THREE from 'three/webgpu';
 import { color, float, positionLocal, mix, smoothstep } from 'three/tsl';
 import type { PresetFactory } from '../types.ts';
