@@ -122,7 +122,8 @@ export function resolveMaterial(
   if (def.preset) {
     const factory = getPreset(def.preset);
     if (factory) {
-      mat = factory(def.pbr);
+      // Preset factory creates the base material (overrides are applied in step 3)
+      mat = factory();
     } else {
       console.warn(
         `[material-resolver] Unknown preset "${def.preset}" -- using default grey material`,
@@ -135,8 +136,10 @@ export function resolveMaterial(
     mat = new THREE.MeshStandardNodeMaterial();
   }
 
-  // Step 3: pbr -- apply structured PBR overrides (unless already applied via preset factory)
-  if (def.pbr && !def.preset) {
+  // Step 3: pbr -- apply structured PBR overrides on top of whatever base material
+  // exists from steps 1-2. Uses node assignments so PBR values work alongside
+  // TSL node graphs from presets.
+  if (def.pbr) {
     applyPbrOverrides(mat, def.pbr);
   }
 
