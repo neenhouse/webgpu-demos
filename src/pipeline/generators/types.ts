@@ -5,7 +5,7 @@ export interface SceneObject {
   id: string;
   prompt: string;
   style?: string;
-  generator?: string; // hint: 'csg' | 'parametric/terrain' | 'parametric/rock' | 'parametric/vegetation' | 'sdf' | ...
+  generator?: string; // hint: 'csg' | 'parametric/terrain' | 'parametric/rock' | 'parametric/vegetation' | 'parametric/vehicle' | 'parametric/character' | 'parametric/debris' | 'parametric/building' | 'parametric/furniture' | 'parametric/weapon' | 'parametric/organic' | 'sdf' | ...
   params?: Record<string, unknown>;
   material?: {
     shader?: string;

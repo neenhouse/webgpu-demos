@@ -2,11 +2,25 @@ import type { Generator, GeneratorResult, SceneObject } from '../types.ts';
 import { terrainGenerator } from './terrain.ts';
 import { rockGenerator } from './rock.ts';
 import { vegetationGenerator } from './vegetation.ts';
+import { vehicleGenerator } from './vehicle.ts';
+import { characterGenerator } from './character.ts';
+import { debrisGenerator } from './debris.ts';
+import { buildingGenerator } from './building.ts';
+import { furnitureGenerator } from './furniture.ts';
+import { weaponGenerator } from './weapon.ts';
+import { organicGenerator } from './organic.ts';
 
 const parametricGenerators: Generator[] = [
   terrainGenerator,
   rockGenerator,
   vegetationGenerator,
+  vehicleGenerator,
+  characterGenerator,
+  debrisGenerator,
+  buildingGenerator,
+  furnitureGenerator,
+  weaponGenerator,
+  organicGenerator,
 ];
 
 export function registerParametricGenerator(generator: Generator): void {
