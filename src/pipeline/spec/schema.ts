@@ -71,7 +71,7 @@ export const TextureDefSchema = z.object({
   resolution: z.number().default(1024),
   tiling: z.tuple([z.number(), z.number()]).default([1, 1]),
   source: z.enum(['procedural', 'ai-generated', 'file']).default('procedural'),
-  paths: z.record(z.string()).optional(),
+  paths: z.record(z.string(), z.string()).optional(),
 });
 
 // ─── MaterialDef ─────────────────────────────────────────────
@@ -91,7 +91,7 @@ export const MaterialDefSchema = z.object({
   pbr: PbrSchema.optional(),
   shader: z.string().optional(),
   inherit: z.string().optional(),
-  overrides: z.record(z.unknown()).optional(),
+  overrides: z.record(z.string(), z.unknown()).optional(),
   side: z.enum(['front', 'back', 'double']).default('front'),
   transparent: z.boolean().optional(),
   blending: z.enum(['normal', 'additive']).default('normal'),
@@ -112,7 +112,7 @@ const BaseObjectSchema = z.object({
     'realistic', 'stylized', 'cel-shaded', 'low-poly', 'voxel', 'wireframe',
   ]).optional(),
   generator: z.string().optional(),
-  params: z.record(z.unknown()).optional(),
+  params: z.record(z.string(), z.unknown()).optional(),
   transform: TransformSchema.default({
     position: [0, 0, 0],
     rotation: [0, 0, 0],
@@ -205,5 +205,5 @@ export const SceneSchema = z.object({
     lights: [],
   }),
   objects: z.array(ObjectSchema).min(1),
-  prefabs: z.record(PrefabDefSchema).optional(),
+  prefabs: z.record(z.string(), PrefabDefSchema).optional(),
 });
