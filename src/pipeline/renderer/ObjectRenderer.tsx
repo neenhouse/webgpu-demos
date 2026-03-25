@@ -1,9 +1,9 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import * as THREE from 'three/webgpu';
 import { generateObject } from '../generators/index';
 import type { SceneObject as GeneratorSceneObject } from '../generators/types';
 import { resolveMaterial } from '../materials/resolver';
-import type { SceneObject } from '../spec/types';
+import type { SceneObject, Transform } from '../spec/types';
 
 interface ObjectRendererProps {
   object: SceneObject;
@@ -31,6 +31,20 @@ function toGeneratorObject(obj: SceneObject): GeneratorSceneObject {
   };
 }
 
+/**
+ * Build a Matrix4 from a Transform (position, rotation in degrees, scale).
+ */
+function buildMatrix4(transform: Transform): THREE.Matrix4 {
+  const pos = new THREE.Vector3(...transform.position);
+  const rot = transform.rotation.map((d) => (d * Math.PI) / 180);
+  const euler = new THREE.Euler(rot[0], rot[1], rot[2]);
+  const quat = new THREE.Quaternion().setFromEuler(euler);
+  const s = typeof transform.scale === 'number'
+    ? new THREE.Vector3(transform.scale, transform.scale, transform.scale)
+    : new THREE.Vector3(...transform.scale);
+  return new THREE.Matrix4().compose(pos, quat, s);
+}
+
 export default function ObjectRenderer({
   object,
   parentMaterial,
@@ -43,6 +57,8 @@ export default function ObjectRenderer({
   if (!object.visible) {
     return null;
   }
+
+  const hasInstances = object.instances && object.instances.length > 0;
 
   // Generate geometry
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -82,6 +98,31 @@ export default function ObjectRenderer({
     return mat;
   }, [object, result, parentMaterial, resolvedMaterials]);
 
+  // Create instanced mesh when instances are present
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const instancedMesh = useMemo(() => {
+    if (!hasInstances || !object.instances) return null;
+    const mesh = new THREE.InstancedMesh(
+      result.geometry,
+      resolvedMaterial,
+      object.instances.length,
+    );
+    mesh.castShadow = object.castShadow;
+    mesh.receiveShadow = object.receiveShadow;
+    return mesh;
+  }, [hasInstances, object, result.geometry, resolvedMaterial]);
+
+  // Set instance transforms
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (!instancedMesh || !object.instances) return;
+    for (let i = 0; i < object.instances.length; i++) {
+      const matrix = buildMatrix4(object.instances[i]);
+      instancedMesh.setMatrixAt(i, matrix);
+    }
+    instancedMesh.instanceMatrix.needsUpdate = true;
+  }, [instancedMesh, object.instances]);
+
   // Compute transform values
   const position = object.transform.position as [number, number, number];
   const rotation = object.transform.rotation.map(
@@ -94,14 +135,18 @@ export default function ObjectRenderer({
 
   return (
     <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
-      <mesh
-        geometry={result.geometry}
-        material={resolvedMaterial}
-        castShadow={object.castShadow}
-        receiveShadow={object.receiveShadow}
-      />
+      {hasInstances && instancedMesh ? (
+        <primitive object={instancedMesh} />
+      ) : (
+        <mesh
+          geometry={result.geometry}
+          material={resolvedMaterial}
+          castShadow={object.castShadow}
+          receiveShadow={object.receiveShadow}
+        />
+      )}
 
-      {/* Render children recursively */}
+      {/* Render children recursively (children are NOT instanced) */}
       {object.children?.map((child) => (
         <ObjectRenderer
           key={child.id}
