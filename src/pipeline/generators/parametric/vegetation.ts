@@ -122,6 +122,19 @@ function generateFoliageCluster(
 }
 
 /**
+ * Normalize geometry for merging: convert to non-indexed and ensure UVs exist.
+ * mergeGeometries requires all geometries to either be indexed or non-indexed.
+ * We standardize on non-indexed to avoid compatibility issues.
+ */
+function normalizeForMerge(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
+  let geom = geometry;
+  if (geom.index) {
+    geom = geom.toNonIndexed();
+  }
+  return ensureUVs(geom);
+}
+
+/**
  * Ensure a geometry has UV attributes.
  * If none exist, generate simple spherical UVs.
  */
@@ -150,7 +163,7 @@ function generateTree(preset: VegetationPreset, seed: number): THREE.BufferGeome
   const parts: THREE.BufferGeometry[] = [];
 
   // Trunk
-  parts.push(ensureUVs(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
+  parts.push(normalizeForMerge(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
 
   // Branches
   for (let i = 0; i < preset.branchCount; i++) {
@@ -158,7 +171,7 @@ function generateTree(preset: VegetationPreset, seed: number): THREE.BufferGeome
     const angle = (i / preset.branchCount) * Math.PI * 2 + (rng() - 0.5) * 0.3;
     const branchLength = preset.height * 0.25 * (0.7 + rng() * 0.6);
     const branchRadius = preset.trunkRadius * 0.3;
-    parts.push(ensureUVs(generateBranch(
+    parts.push(normalizeForMerge(generateBranch(
       preset.height, heightFrac, angle, preset.branchAngle,
       branchLength, branchRadius,
     )));
@@ -172,7 +185,7 @@ function generateTree(preset: VegetationPreset, seed: number): THREE.BufferGeome
     const fx = Math.cos(angle) * dist;
     const fz = Math.sin(angle) * dist;
     const fy = crownY + (rng() - 0.3) * preset.foliageRadius;
-    parts.push(ensureUVs(generateFoliageCluster(fx, fy, fz, preset.foliageRadius * 0.5, rng)));
+    parts.push(normalizeForMerge(generateFoliageCluster(fx, fy, fz, preset.foliageRadius * 0.5, rng)));
   }
 
   const merged = mergeGeometries(parts, false);
@@ -188,7 +201,7 @@ function generatePine(preset: VegetationPreset, seed: number): THREE.BufferGeome
   const parts: THREE.BufferGeometry[] = [];
 
   // Trunk
-  parts.push(ensureUVs(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
+  parts.push(normalizeForMerge(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
 
   // Stacked cone layers for foliage
   const layers = preset.foliageDensity;
@@ -200,7 +213,7 @@ function generatePine(preset: VegetationPreset, seed: number): THREE.BufferGeome
 
     const cone = new THREE.ConeGeometry(layerRadius, coneHeight, 8);
     cone.translate(0, y, 0);
-    parts.push(ensureUVs(cone));
+    parts.push(normalizeForMerge(cone));
   }
 
   const merged = mergeGeometries(parts, false);
@@ -216,7 +229,7 @@ function generatePalm(preset: VegetationPreset, seed: number): THREE.BufferGeome
   const parts: THREE.BufferGeometry[] = [];
 
   // Trunk (slightly thinner, minimal taper)
-  parts.push(ensureUVs(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
+  parts.push(normalizeForMerge(generateTrunk(preset.height, preset.trunkRadius, preset.trunkTaper)));
 
   // Fan of foliage at top — flattened spheres radiating outward
   const frondCount = preset.foliageDensity;
@@ -235,7 +248,7 @@ function generatePalm(preset: VegetationPreset, seed: number): THREE.BufferGeome
     rotMatrix.makeRotationY(angle);
     frond.applyMatrix4(rotMatrix);
     frond.translate(fx, fy, fz);
-    parts.push(ensureUVs(frond));
+    parts.push(normalizeForMerge(frond));
   }
 
   const merged = mergeGeometries(parts, false);
@@ -252,7 +265,7 @@ function generateBush(preset: VegetationPreset, seed: number): THREE.BufferGeome
 
   // Very short trunk (nearly hidden)
   const trunkHeight = preset.height * 0.2;
-  parts.push(ensureUVs(generateTrunk(trunkHeight, preset.trunkRadius, preset.trunkTaper)));
+  parts.push(normalizeForMerge(generateTrunk(trunkHeight, preset.trunkRadius, preset.trunkTaper)));
 
   // Dense cluster of foliage spheres
   for (let i = 0; i < preset.foliageDensity; i++) {
@@ -262,7 +275,7 @@ function generateBush(preset: VegetationPreset, seed: number): THREE.BufferGeome
     const fz = Math.sin(angle) * dist;
     const fy = trunkHeight + (rng() - 0.2) * preset.foliageRadius * 0.6;
 
-    parts.push(ensureUVs(generateFoliageCluster(
+    parts.push(normalizeForMerge(generateFoliageCluster(
       fx, fy, fz,
       preset.foliageRadius * (0.4 + rng() * 0.3),
       rng,

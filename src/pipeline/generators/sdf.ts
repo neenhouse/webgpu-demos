@@ -16,6 +16,9 @@ import {
 import { sdfSphere, sdfBox, sdfSmoothUnion, sdfNormal } from './sdf-lib.ts';
 import type { Generator, GeneratorResult, SceneObject } from './types.ts';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TslNode = any;
+
 const SDF_KEYWORDS = [
   'organic', 'alien', 'abstract', 'blob', 'morph', 'smooth',
   'melting', 'sci-fi', 'fractal', 'infinite', 'raymarched',
@@ -33,12 +36,14 @@ const SURF_DIST = 0.001;
  * The material renders via raymarching in the fragment shader.
  */
 function buildRaymarchMaterial(
-  sdfFn: (p: THREE.Node) => THREE.Node,
+  sdfFn: (p: TslNode) => TslNode,
   baseColor: THREE.ColorRepresentation = 0x88ccff,
 ): THREE.MeshBasicNodeMaterial {
   const mat = new THREE.MeshBasicNodeMaterial();
   mat.side = THREE.DoubleSide;
   mat.transparent = true;
+
+  const colorObj = new THREE.Color(baseColor);
 
   // Raymarching shader built with TSL
   const raymarch = Fn(() => {
@@ -62,7 +67,7 @@ function buildRaymarchMaterial(
         const lightDir = normalize(vec3(1, 1, 1));
         const diffuse = max(dot(normal, lightDir), float(0.15));
 
-        const col = vec3(new THREE.Color(baseColor)).mul(diffuse);
+        const col = vec3(colorObj.r, colorObj.g, colorObj.b).mul(diffuse);
         hitColor.assign(vec4(col.x, col.y, col.z, 1.0));
         Break();
       });
@@ -78,7 +83,7 @@ function buildRaymarchMaterial(
     return hitColor;
   });
 
-  mat.colorNode = raymarch();
+  mat.colorNode = raymarch() as TslNode;
   mat.alphaTest = 0.01;
 
   return mat;
@@ -88,7 +93,7 @@ function buildRaymarchMaterial(
  * Default SDF scene: smooth union of a sphere and a box.
  * Demonstrates the SDF generator works without custom params.
  */
-function defaultSdfScene(p: THREE.Node): THREE.Node {
+function defaultSdfScene(p: TslNode): TslNode {
   const sphere = sdfSphere(p, float(0.8));
   const box = sdfBox(p.sub(vec3(0.4, 0.4, 0)), vec3(0.5, 0.5, 0.5));
   return sdfSmoothUnion(sphere, box, float(0.3));

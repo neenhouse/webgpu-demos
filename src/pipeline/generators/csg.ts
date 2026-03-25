@@ -81,12 +81,13 @@ function evaluateOperation(evaluator: InstanceType<typeof Evaluator>, operation:
   }
 
   const opConstant = getOperationConstant(opType);
-  let result: THREE.Mesh = brushes[0];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let result: any = brushes[0];
   for (let i = 1; i < brushes.length; i++) {
-    result = evaluator.evaluate(result, brushes[i], opConstant) as THREE.Mesh;
+    result = evaluator.evaluate(result, brushes[i], opConstant);
   }
 
-  return result.geometry;
+  return (result as THREE.Mesh).geometry;
 }
 
 export const csgGenerator: Generator = {
@@ -115,12 +116,13 @@ export const csgGenerator: Generator = {
         geometry = results[0];
       } else {
         // Combine multiple operation results with union
-        let combined: THREE.Mesh = new Brush(results[0]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let combined: any = new Brush(results[0]);
         for (let i = 1; i < results.length; i++) {
           const brush = new Brush(results[i]);
-          combined = evaluator.evaluate(combined, brush, ADDITION as number) as THREE.Mesh;
+          combined = evaluator.evaluate(combined, brush, ADDITION as number);
         }
-        geometry = combined.geometry;
+        geometry = (combined as THREE.Mesh).geometry;
       }
     } else {
       // Fallback: generate a simple box
