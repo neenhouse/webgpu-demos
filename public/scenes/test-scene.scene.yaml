@@ -1,0 +1,118 @@
+version: "1.0"
+
+meta:
+  name: "Test Scene"
+  technique: "parametric + csg"
+  description: "Pipeline integration test with terrain, rocks, and CSG objects"
+
+camera:
+  position: [8, 6, 8]
+  target: [0, 0, 0]
+  fov: 55
+
+environment:
+  background: "#1a1a2e"
+  fog:
+    type: linear
+    color: "#1a1a2e"
+    near: 15
+    far: 40
+  ambient:
+    color: "#404060"
+    intensity: 0.4
+  lights:
+    - type: directional
+      position: [5, 10, 5]
+      intensity: 1.2
+      castShadow: true
+    - type: point
+      position: [-3, 4, -2]
+      color: "#ffaa44"
+      intensity: 0.8
+
+objects:
+  - id: ground
+    prompt: "rolling grassy hills"
+    generator: parametric/terrain
+    params:
+      biome: grassland
+      width: 30
+      depth: 30
+      segments: 64
+      amplitude: 1.5
+    transform:
+      position: [0, -2, 0]
+    material:
+      preset: concrete-weathered
+      pbr:
+        color: "#4a7c3f"
+        roughness: 0.9
+    receiveShadow: true
+    castShadow: false
+
+  - id: boulder-1
+    prompt: "large weathered boulder"
+    generator: parametric/rock
+    params:
+      variant: boulder
+      radius: 1.5
+      detail: 3
+    transform:
+      position: [3, -0.5, 1]
+      rotation: [0, 25, 0]
+    material:
+      preset: rusted-metal
+      pbr:
+        color: "#7a6b5a"
+        roughness: 0.85
+        metalness: 0.1
+    castShadow: true
+
+  - id: archway
+    prompt: "stone archway"
+    generator: csg
+    params:
+      operations:
+        - type: union
+          primitives:
+            - shape: box
+              size: [3, 3, 0.5]
+        - type: subtract
+          primitives:
+            - shape: cylinder
+              radius: 1
+              height: 1
+              position: [0, -0.5, 0]
+              rotation: [90, 0, 0]
+    transform:
+      position: [-2, 0, -1]
+      rotation: [0, -15, 0]
+    material:
+      preset: concrete-weathered
+    castShadow: true
+
+  - id: floating-rock
+    prompt: "small floating rock"
+    generator: parametric/rock
+    params:
+      variant: jagged
+      radius: 0.4
+      detail: 2
+    transform:
+      position: [0, 2, 0]
+    material:
+      pbr:
+        color: "#555555"
+        roughness: 0.7
+        metalness: 0.2
+        emissive: "#2244aa"
+        emissive_intensity: 0.5
+    animation:
+      - property: transform.position.y
+        type: sine
+        speed: 0.3
+        amplitude: 0.5
+      - property: transform.rotation.y
+        type: rotate
+        speed: 0.5
+        amplitude: 1
