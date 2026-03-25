@@ -278,20 +278,45 @@
   justify-content: space-between;
 }
 
-/* WebGPU Badge (Gallery) */
+/* WebGPU Compute Badge (Gallery) */
 .webgpu-badge {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.7);
-  color: var(--accent);
-  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  backdrop-filter: blur(4px);
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.3), inset 0 0 8px rgba(0, 255, 136, 0.1);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.webgpu-badge svg {
+  flex-shrink: 0;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 255, 136, 0.3), inset 0 0 8px rgba(0, 255, 136, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), inset 0 0 12px rgba(0, 255, 136, 0.15); }
+}
+
+/* WebGPU card glow border */
+.demo-card:has(.webgpu-badge) {
+  border-color: rgba(0, 255, 136, 0.25);
+}
+
+.demo-card:has(.webgpu-badge):hover {
+  border-color: #00ff88;
+  box-shadow: 0 8px 30px rgba(0, 255, 136, 0.25), 0 0 40px rgba(0, 255, 136, 0.1);
 }
 
 /* Responsive */

@@ -27,7 +27,12 @@ export default function Gallery() {
                 loading="lazy"
               />
               {demo.requiresWebGPU && (
-                <span className="webgpu-badge">WebGPU</span>
+                <span className="webgpu-badge">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 1L10.5 3.5V8.5L6 11L1.5 8.5V3.5L6 1Z" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="0.8"/>
+                  </svg>
+                  GPU Compute
+                </span>
               )}
             </div>
             <div className="demo-card-info">
