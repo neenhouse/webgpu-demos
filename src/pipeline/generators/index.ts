@@ -81,7 +81,11 @@ function createErrorMarker(object: SceneObject): GeneratorResult {
 import { csgGenerator } from './csg.ts';
 import { sdfGenerator } from './sdf.ts';
 import { parametricGenerator } from './parametric/index.ts';
+import { codegenGenerator } from './codegen.ts';
+import { tripoGenerator } from './tripo.ts';
 
 registerGenerator(csgGenerator);
 registerGenerator(sdfGenerator);
 registerGenerator(parametricGenerator);
+registerGenerator(codegenGenerator);
+registerGenerator(tripoGenerator);
