@@ -1,0 +1,368 @@
+version: "1.0"
+
+meta:
+  name: Gladiator Arena
+  technique: parametric-pbr
+  description: Ancient Roman colosseum floor with gladiators, weapons, and scattered battle debris
+  author: pipeline-showcase
+
+camera:
+  position: [14, 10, 18]
+  target: [0, 1, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Harsh midday sun over a Roman gladiator arena with sandy dust haze
+  background: "#c8b898"
+  fog:
+    type: linear
+    color: "#c8b898"
+    near: 35
+    far: 120
+  ambient:
+    color: "#ddcc99"
+    intensity: 0.5
+  lights:
+    - type: directional
+      position: [5, 30, 10]
+      target: [0, 0, 0]
+      color: "#ffffee"
+      intensity: 1.5
+      castShadow: true
+    - type: directional
+      position: [-10, 15, -5]
+      target: [0, 0, 0]
+      color: "#eeddbb"
+      intensity: 0.4
+
+objects:
+  # ── Terrain: Sandy arena floor ─────────────────
+  - id: arena-floor
+    prompt: sandy arena floor of a Roman colosseum
+    style: realistic
+    generator: parametric/terrain
+    params:
+      biome: desert
+      segments: 48
+      amplitude: 0.15
+      seed: 55
+    transform:
+      position: [0, 0, 0]
+      scale: [25, 1, 25]
+    material:
+      preset: earth-dirt
+      pbr:
+        roughness: 0.95
+        metalness: 0.0
+        color: "#c4a56a"
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # ── Building: Arena walls (oval arrangement) ───
+  - id: arena-wall
+    prompt: curved stone arena wall segment of Roman colosseum
+    style: realistic
+    generator: parametric/building
+    params:
+      type: wall
+      width: 6
+      height: 6
+      depth: 0.6
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.9
+        metalness: 0.05
+        color: "#a89878"
+    register_prefab: true
+    instances:
+      - position: [0, 0, -10]
+        rotation: [0, 0, 0]
+        scale: 1
+      - position: [7, 0, -7]
+        rotation: [0, 45, 0]
+        scale: 1
+      - position: [10, 0, 0]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [7, 0, 7]
+        rotation: [0, 135, 0]
+        scale: 1
+      - position: [0, 0, 10]
+        rotation: [0, 180, 0]
+        scale: 1
+      - position: [-7, 0, 7]
+        rotation: [0, 225, 0]
+        scale: 1
+      - position: [-10, 0, 0]
+        rotation: [0, 270, 0]
+        scale: 1
+      - position: [-7, 0, -7]
+        rotation: [0, 315, 0]
+        scale: 1
+    castShadow: true
+    receiveShadow: true
+
+  # ── Building: Entry archway ────────────────────
+  - id: entry-arch
+    prompt: crumbling Roman arch entry gate to the arena
+    style: realistic
+    generator: parametric/building
+    params:
+      type: ruin
+      width: 4
+      depth: 3
+      height: 5
+      decay: 0.3
+      seed: 12
+    transform:
+      position: [0, 0, -10.5]
+      rotation: [0, 0, 0]
+      scale: 1.2
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.92
+        metalness: 0.03
+        color: "#998870"
+    castShadow: true
+    receiveShadow: true
+
+  # ── Character: Gladiator 1 ─────────────────────
+  - id: gladiator-1
+    prompt: Roman gladiator in combat stance
+    style: realistic
+    generator: parametric/character
+    params:
+      type: human
+      pose: action
+      seed: 1
+    transform:
+      position: [-1.5, 0, 0]
+      rotation: [0, 45, 0]
+      scale: 1.1
+    material:
+      preset: fabric-rough
+      pbr:
+        roughness: 0.85
+        metalness: 0.1
+        color: "#8B6914"
+    castShadow: true
+    receiveShadow: true
+
+  # ── Character: Gladiator 2 ─────────────────────
+  - id: gladiator-2
+    prompt: Roman gladiator facing opponent in combat
+    style: realistic
+    generator: parametric/character
+    params:
+      type: human
+      pose: action
+      seed: 2
+    transform:
+      position: [1.5, 0, 0]
+      rotation: [0, -135, 0]
+      scale: 1.1
+    material:
+      preset: fabric-rough
+      pbr:
+        roughness: 0.85
+        metalness: 0.1
+        color: "#6B3A14"
+    castShadow: true
+    receiveShadow: true
+
+  # ── Weapon: Gladiator 1 sword ──────────────────
+  - id: sword-1
+    prompt: gladius short sword for Roman gladiator
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: sword
+    transform:
+      position: [-2.2, 0.8, 0.5]
+      rotation: [0, 45, -30]
+      scale: 1.0
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.15
+        metalness: 0.95
+        color: "#ccccdd"
+    castShadow: true
+
+  # ── Weapon: Gladiator 1 shield ─────────────────
+  - id: shield-1
+    prompt: round Roman gladiator shield
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: shield
+      shieldRadius: 0.45
+    transform:
+      position: [-1.0, 0.9, -0.3]
+      rotation: [0, 45, 0]
+      scale: 1.0
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.4
+        metalness: 0.7
+        color: "#aa8844"
+    castShadow: true
+
+  # ── Weapon: Gladiator 2 sword ──────────────────
+  - id: sword-2
+    prompt: gladius sword for second gladiator
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: sword
+    transform:
+      position: [2.2, 0.8, -0.5]
+      rotation: [0, -135, -30]
+      scale: 1.0
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.15
+        metalness: 0.95
+        color: "#ccccdd"
+    castShadow: true
+
+  # ── Weapon: Gladiator 2 shield ─────────────────
+  - id: shield-2
+    prompt: round bronze shield for second gladiator
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: shield
+      shieldRadius: 0.45
+    transform:
+      position: [1.0, 0.9, 0.3]
+      rotation: [0, -135, 0]
+      scale: 1.0
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.4
+        metalness: 0.7
+        color: "#887744"
+    castShadow: true
+
+  # ── Rock: Scattered battle rubble ──────────────
+  - id: battle-rubble
+    prompt: scattered stone rubble from prior arena battles
+    style: realistic
+    generator: parametric/rock
+    params:
+      variant: rubble
+      seed: 33
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#998866"
+        roughness: 0.9
+        metalness: 0.05
+    register_prefab: true
+    instances:
+      - position: [4, 0, 3]
+        rotation: [0, 20, 0]
+        scale: 0.5
+      - position: [-3, 0, 4]
+        rotation: [0, 80, 0]
+        scale: 0.4
+      - position: [5, 0, -2]
+        rotation: [0, 150, 0]
+        scale: 0.6
+      - position: [-5, 0, -3]
+        rotation: [0, 200, 0]
+        scale: 0.35
+      - position: [2, 0, -5]
+        rotation: [0, 270, 0]
+        scale: 0.45
+      - position: [-4, 0, 1]
+        rotation: [0, 340, 0]
+        scale: 0.55
+      - position: [6, 0, 5]
+        rotation: [10, 100, 0]
+        scale: 0.3
+      - position: [-6, 0, -5]
+        rotation: [0, 60, 0]
+        scale: 0.4
+    castShadow: true
+
+  # ── Debris: Broken equipment ───────────────────
+  - id: broken-barrel
+    prompt: broken barrel and equipment scattered in arena
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: barrel
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: wood
+      pbr:
+        roughness: 0.9
+        metalness: 0.05
+        color: "#6B4226"
+    register_prefab: true
+    instances:
+      - position: [6, 0, -5]
+        rotation: [0, 30, 0]
+        scale: 0.8
+      - position: [-6, 0, 4]
+        rotation: [25, 60, 0]
+        scale: 0.7
+      - position: [7, 0, 2]
+        rotation: [0, 120, 0]
+        scale: 0.9
+    castShadow: true
+
+  - id: broken-crate
+    prompt: splintered wooden crate
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: crate
+    transform:
+      position: [-7, 0, -2]
+      rotation: [0, 45, 10]
+      scale: 0.7
+    material:
+      preset: wood
+      pbr:
+        roughness: 0.9
+        color: "#7B5B3A"
+    castShadow: true
+
+  # ── Furniture: Throne / judge seat ─────────────
+  - id: judges-throne
+    prompt: ornate stone throne for arena judge on elevated platform
+    style: realistic
+    generator: parametric/furniture
+    params:
+      type: chair
+      width: 1.0
+      height: 0.6
+      depth: 0.8
+      backHeight: 1.0
+    transform:
+      position: [0, 1.5, -9]
+      rotation: [0, 180, 0]
+      scale: 1.5
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.7
+        metalness: 0.15
+        color: "#aaa088"
+    castShadow: true
+    receiveShadow: true
