@@ -317,6 +317,22 @@ export const demos: DemoEntry[] = [
     color: '#6622cc',
     component: lazy(() => import('../demos/alien-garden')),
   },
+  {
+    name: 'medieval-forge',
+    title: 'Medieval Forge',
+    description: 'Blacksmith workshop with forge fire, weapon rack, anvil workbench, and scattered debris',
+    requiresWebGPU: false,
+    color: '#cc6622',
+    component: lazy(() => import('../demos/medieval-forge')),
+  },
+  {
+    name: 'underwater-ruins',
+    title: 'Underwater Ruins',
+    description: 'Submerged ancient temple with broken columns, coral growths, kelp, and bioluminescent lighting',
+    requiresWebGPU: false,
+    color: '#1177aa',
+    component: lazy(() => import('../demos/underwater-ruins')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

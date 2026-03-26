@@ -1,0 +1,286 @@
+version: "1.0"
+
+meta:
+  name: Underwater Ruins
+  technique: parametric-pbr
+  description: Submerged ancient temple with broken columns, coral growths, kelp, and bioluminescent lighting
+  author: pipeline-showcase
+
+camera:
+  position: [10, 6, 14]
+  target: [0, 2, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Deep underwater scene with filtered sunlight, dense blue-green fog, and bioluminescence
+  background: "#040a14"
+  fog:
+    type: exponential
+    color: "#061825"
+    density: 0.035
+  ambient:
+    color: "#1a3355"
+    intensity: 0.4
+  lights:
+    - type: directional
+      position: [5, 30, 5]
+      target: [0, 0, 0]
+      color: "#4488bb"
+      intensity: 0.8
+      castShadow: true
+    - type: point
+      position: [-4, 2, -3]
+      color: "#00ffaa"
+      intensity: 1.2
+      distance: 12
+    - type: point
+      position: [5, 1, 4]
+      color: "#22ccdd"
+      intensity: 1.0
+      distance: 10
+    - type: point
+      position: [0, 3, -5]
+      color: "#0088ff"
+      intensity: 0.8
+      distance: 14
+
+objects:
+  # ── Terrain: Sandy ocean floor ──────────────────────
+  - id: ocean-floor
+    prompt: sandy ocean floor with gentle dunes
+    style: realistic
+    generator: parametric/terrain
+    params:
+      biome: desert
+      segments: 64
+      amplitude: 0.4
+      frequency: 0.06
+      seed: 12
+    transform:
+      position: [0, 0, 0]
+      scale: [30, 1, 30]
+    material:
+      preset: earth-dirt
+      pbr:
+        roughness: 0.9
+        color: "#8b7d5e"
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # ── Building: Ruined temple columns (instanced) ────
+  - id: temple-column
+    prompt: broken ancient stone column submerged underwater
+    style: realistic
+    generator: parametric/building
+    params:
+      type: ruin
+      width: 1.5
+      depth: 1.5
+      height: 6
+      decay: 0.7
+      seed: 10
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.88
+        color: "#7a8070"
+    register_prefab: true
+    instances:
+      - position: [-3, 0, -3]
+        rotation: [0, 0, 3]
+        scale: 1.0
+      - position: [3, 0, -3]
+        rotation: [0, 90, -2]
+        scale: 0.9
+      - position: [-3, 0, 3]
+        rotation: [0, 45, 5]
+        scale: 1.1
+      - position: [3, 0, 3]
+        rotation: [0, 180, -4]
+        scale: 0.85
+      - position: [0, 0, -5]
+        rotation: [0, 30, 6]
+        scale: 0.75
+      - position: [0, -0.3, 5]
+        rotation: [8, 120, 0]
+        scale: 0.95
+    castShadow: true
+    receiveShadow: true
+
+  # ── Rocks: Coral-covered boulders ──────────────────
+  - id: sea-boulder
+    prompt: underwater boulder covered in coral and barnacles
+    style: realistic
+    generator: parametric/rock
+    params:
+      variant: boulder
+      detail: 3
+      seed: 55
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#5a6b5a"
+        roughness: 0.85
+        metalness: 0.05
+    register_prefab: true
+    instances:
+      - position: [6, 0, -2]
+        rotation: [0, 0, 0]
+        scale: 0.8
+      - position: [-6, 0, 1]
+        rotation: [0, 45, 0]
+        scale: 0.6
+      - position: [4, 0, 6]
+        rotation: [0, 90, 0]
+        scale: 0.7
+      - position: [-5, 0, -5]
+        rotation: [0, 120, 0]
+        scale: 0.5
+      - position: [7, 0, 4]
+        rotation: [0, 200, 0]
+        scale: 0.55
+      - position: [-7, 0, 5]
+        rotation: [0, 270, 0]
+        scale: 0.65
+      - position: [2, 0, -7]
+        rotation: [10, 150, 0]
+        scale: 0.45
+      - position: [-2, 0, 7]
+        rotation: [0, 30, 0]
+        scale: 0.7
+      - position: [8, 0, -5]
+        rotation: [0, 60, 0]
+        scale: 0.4
+      - position: [-8, 0, -2]
+        rotation: [0, 310, 0]
+        scale: 0.5
+    castShadow: true
+
+  # ── Organic: Coral growths (instanced) ─────────────
+  - id: coral-growth
+    prompt: branching coral formation on the sea floor
+    style: realistic
+    generator: parametric/organic
+    params:
+      type: coral
+      height: 1.5
+      baseRadius: 0.2
+      branchCount: 8
+      seed: 77
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#cc5544"
+        roughness: 0.6
+        metalness: 0.05
+        emissive: "#331108"
+        emissive_intensity: 0.2
+    register_prefab: true
+    instances:
+      - position: [-2, 0, -1]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [5, 0, -4]
+        rotation: [0, 60, 0]
+        scale: 0.8
+      - position: [-4, 0, 4]
+        rotation: [0, 120, 0]
+        scale: 1.2
+      - position: [1, 0, 5]
+        rotation: [0, 200, 0]
+        scale: 0.7
+      - position: [-6, 0, -4]
+        rotation: [0, 90, 0]
+        scale: 0.9
+      - position: [6, 0, 2]
+        rotation: [0, 270, 0]
+        scale: 0.6
+      - position: [-1, 0, -6]
+        rotation: [0, 150, 0]
+        scale: 1.1
+    castShadow: true
+
+  # ── Vegetation: Kelp / seaweed (instanced) ─────────
+  - id: kelp-seaweed
+    prompt: tall kelp and seaweed swaying in the current
+    style: realistic
+    generator: parametric/vegetation
+    params:
+      type: bush
+      height: 2.5
+      seed: 44
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#1a5533"
+        roughness: 0.65
+        emissive: "#0a2210"
+        emissive_intensity: 0.3
+    register_prefab: true
+    instances:
+      - position: [2, 0, 2]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [-3, 0, 5]
+        rotation: [0, 45, 0]
+        scale: 0.8
+      - position: [5, 0, 0]
+        rotation: [0, 120, 0]
+        scale: 1.1
+      - position: [-5, 0, -2]
+        rotation: [0, 200, 0]
+        scale: 0.9
+      - position: [1, 0, -4]
+        rotation: [0, 90, 0]
+        scale: 0.7
+      - position: [-7, 0, 3]
+        rotation: [0, 300, 0]
+        scale: 1.0
+      - position: [7, 0, -3]
+        rotation: [0, 160, 0]
+        scale: 0.85
+    animation:
+      - property: transform.rotation.z
+        type: sway
+        speed: 0.3
+        amplitude: 5
+    castShadow: true
+
+  # ── Debris: Scattered amphora / barrels ────────────
+  - id: sunken-barrel
+    prompt: ancient amphora and barrels scattered on the seabed
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: barrel
+      seed: 22
+    transform:
+      position: [0, 0, 0]
+    material:
+      pbr:
+        color: "#6b5940"
+        roughness: 0.88
+        metalness: 0.1
+    register_prefab: true
+    instances:
+      - position: [4, 0, 1]
+        rotation: [0, 0, 0]
+        scale: 0.8
+      - position: [4.5, 0, 1.8]
+        rotation: [0, 40, 0]
+        scale: 0.7
+      - position: [-4, 0, -1]
+        rotation: [80, 15, 0]
+        scale: 0.9
+      - position: [-3, 0, 2]
+        rotation: [0, -30, 0]
+        scale: 0.75
+    castShadow: true

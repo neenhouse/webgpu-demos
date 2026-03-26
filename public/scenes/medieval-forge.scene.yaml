@@ -1,0 +1,263 @@
+version: "1.0"
+
+meta:
+  name: Medieval Forge
+  technique: parametric-pbr
+  description: Blacksmith's workshop with anvil, weapon rack, forge fire, and scattered metal scraps
+  author: pipeline-showcase
+
+camera:
+  position: [10, 7, 12]
+  target: [0, 1, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Warm interior of a medieval blacksmith forge with orange firelight and haze
+  background: "#1a1410"
+  fog:
+    type: linear
+    color: "#2a1e14"
+    near: 15
+    far: 60
+  ambient:
+    color: "#553322"
+    intensity: 0.25
+  lights:
+    - type: directional
+      position: [8, 15, 5]
+      target: [0, 0, 0]
+      color: "#ccaa88"
+      intensity: 0.6
+      castShadow: true
+    - type: point
+      position: [0, 2, -1]
+      color: "#ff6622"
+      intensity: 3.0
+      distance: 15
+    - type: point
+      position: [-1, 1.5, -1.5]
+      color: "#ff4400"
+      intensity: 2.0
+      distance: 10
+
+objects:
+  # ── Terrain: Stone floor ─────────────────────────────
+  - id: stone-floor
+    prompt: rough stone floor of a blacksmith workshop
+    style: realistic
+    generator: parametric/terrain
+    params:
+      biome: desert
+      segments: 48
+      amplitude: 0.15
+    transform:
+      position: [0, 0, 0]
+      scale: [15, 1, 15]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.95
+        color: "#555048"
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # ── Building: Forge structure (open-walled ruin) ─────
+  - id: forge-structure
+    prompt: open-walled stone forge building with partial roof
+    style: realistic
+    generator: parametric/building
+    params:
+      type: ruin
+      width: 8
+      depth: 6
+      height: 5
+      decay: 0.4
+      seed: 42
+    transform:
+      position: [0, 0, -2]
+      rotation: [0, 0, 0]
+      scale: 1.0
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.92
+        color: "#6b6055"
+    castShadow: true
+    receiveShadow: true
+    lod: auto
+
+  # ── Furniture: Anvil workbench ───────────────────────
+  - id: anvil-table
+    prompt: heavy wooden workbench for smithing
+    style: realistic
+    generator: parametric/furniture
+    params:
+      type: table
+      width: 1.6
+      height: 0.85
+      depth: 0.9
+      topThickness: 0.08
+      legRadius: 0.05
+      legShape: box
+    transform:
+      position: [0, 0, 0]
+      rotation: [0, 15, 0]
+    material:
+      preset: wood-oak
+      pbr:
+        roughness: 0.85
+        color: "#5a3a20"
+    castShadow: true
+    receiveShadow: true
+
+  # ── Weapons: Sword, Axe, Staff on rack ──────────────
+  - id: forge-sword
+    prompt: forged iron sword displayed upright
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: sword
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: rusted-metal
+      pbr:
+        roughness: 0.55
+        metalness: 0.85
+        color: "#888888"
+    register_prefab: true
+    instances:
+      - position: [3.5, 0.5, -3]
+        rotation: [0, 0, 10]
+        scale: 1.2
+    castShadow: true
+
+  - id: forge-axe
+    prompt: heavy battle axe leaning against wall
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: axe
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: rusted-metal
+      pbr:
+        roughness: 0.6
+        metalness: 0.8
+        color: "#777777"
+    register_prefab: true
+    instances:
+      - position: [3.8, 0.3, -2]
+        rotation: [0, 30, 15]
+        scale: 1.1
+    castShadow: true
+
+  - id: forge-staff
+    prompt: iron-tipped staff leaning on rack
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: staff
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: wood-oak
+      pbr:
+        roughness: 0.75
+        color: "#4a3018"
+    register_prefab: true
+    instances:
+      - position: [3.2, 0.2, -3.8]
+        rotation: [0, -10, 8]
+        scale: 1.0
+    castShadow: true
+
+  # ── Debris: Barrels and crates ──────────────────────
+  - id: forge-barrel
+    prompt: wooden barrel with metal bands near forge
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: barrel
+    transform:
+      position: [-3, 0, 1]
+    material:
+      preset: wood-oak
+      pbr:
+        roughness: 0.8
+        color: "#5e3d1e"
+    register_prefab: true
+    instances:
+      - position: [-3, 0, 1]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [-3.5, 0, 1.8]
+        rotation: [0, 30, 0]
+        scale: 0.9
+    castShadow: true
+
+  - id: forge-crate
+    prompt: wooden supply crate with iron fittings
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: crate
+    transform:
+      position: [-2, 0, 3]
+    material:
+      preset: wood-oak
+      pbr:
+        roughness: 0.85
+        color: "#6b4c2a"
+    register_prefab: true
+    instances:
+      - position: [-2, 0, 3]
+        rotation: [0, 10, 0]
+        scale: 0.8
+      - position: [-1.5, 0.6, 3.2]
+        rotation: [0, 45, 0]
+        scale: 0.7
+    castShadow: true
+
+  # ── Rocks: Foundation stones ────────────────────────
+  - id: foundation-rock
+    prompt: weathered foundation stones around the forge
+    style: realistic
+    generator: parametric/rock
+    params:
+      variant: boulder
+      detail: 2
+      seed: 33
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: concrete-weathered
+      pbr:
+        color: "#5a5550"
+        roughness: 0.92
+        metalness: 0.05
+    register_prefab: true
+    instances:
+      - position: [-4, 0, -3]
+        rotation: [0, 0, 0]
+        scale: 0.7
+      - position: [4.5, 0, -4]
+        rotation: [0, 45, 0]
+        scale: 0.5
+      - position: [-4.5, 0, 2.5]
+        rotation: [0, 120, 0]
+        scale: 0.6
+      - position: [5, 0, 2]
+        rotation: [0, 200, 0]
+        scale: 0.4
+      - position: [-2, 0, -4.5]
+        rotation: [10, 80, 0]
+        scale: 0.55
+      - position: [2, 0, 4]
+        rotation: [0, 260, 0]
+        scale: 0.45
+    castShadow: true
