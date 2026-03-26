@@ -162,9 +162,9 @@ export const rockGenerator: Generator = {
       const displacement = rockNoise(x, y, z, frequency, 3, seed) * roughness * radius;
 
       // Displace along normal
-      let newX = x + nx * displacement;
+      const newX = x + nx * displacement;
       let newY = y + ny * displacement;
-      let newZ = z + nz * displacement;
+      const newZ = z + nz * displacement;
 
       // Apply vertical flattening
       if (flatten > 0) {

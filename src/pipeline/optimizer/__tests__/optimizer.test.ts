@@ -82,8 +82,6 @@ describe('cleanupMesh', () => {
 
   it('preserves valid geometry without corruption', () => {
     const geom = new THREE.BoxGeometry(2, 2, 2);
-    const originalVerts = geom.attributes.position.count;
-
     const cleaned = cleanupMesh(geom);
     // Box has no degenerate faces; should retain all faces
     const faceCount = cleaned.index

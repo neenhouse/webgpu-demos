@@ -61,7 +61,6 @@ describe('parseScene', () => {
     expect(result.errors.length).toBeGreaterThan(0);
 
     // Check that error paths are descriptive
-    const paths = result.errors.map((e) => e.path);
     // meta.technique and meta.description are missing
     // objects.0.prompt is missing
     // PBR values out of range
