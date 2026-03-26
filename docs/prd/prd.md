@@ -17,8 +17,10 @@ A gallery of WebGPU experiments built with Three.js WebGPURenderer. Each demo is
 | 1 | Demo viewer | COMPLETE | PROVEN | WebGPURenderer + R3F Canvas, orbit controls, hash routing, overlay |
 | 2 | Demo gallery | COMPLETE | | Responsive grid with accent-colored cards |
 | 3 | WebGPU detection | COMPLETE | | Auto-fallback to WebGL with notice banner |
-| 4 | Demo templates | COMPLETE | | 5 demos: TSL torus, particle field, terrain, crystal grid, aurora |
-| 5 | Batch generation | COMPLETE | | 2 batches run (20 demos generated), Ralph spec + learnings file mature |
+| 4 | Demo templates | COMPLETE | | 46 demos: 15 original + 20 batch-generated + 3 pipeline test/showcase + 8 scene demos |
+| 5 | Batch generation | COMPLETE | | 2 batches run (20 demos), Ralph spec + learnings file mature |
+| 7 | Model pipeline | COMPLETE | | Scene spec, 5 generator tiers, 14 material presets, prefabs, LOD, optimizer, editor |
+| 8 | Scene demos | COMPLETE | | 10 scene-based demos rendered from YAML via SceneFromYaml pipeline |
 
 ## Active Requirements
 

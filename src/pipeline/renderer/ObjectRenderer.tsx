@@ -66,9 +66,6 @@ export default function ObjectRenderer({
   const result = useMemo(() => {
     const genObj = toGeneratorObject(object);
     const res = generateObject(genObj);
-    console.log(
-      `[ObjectRenderer] ${object.id}: generator=${res.metadata.generator}, time=${res.metadata.generationTime}ms`,
-    );
     return res;
   }, [object]);
 

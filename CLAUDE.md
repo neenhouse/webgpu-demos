@@ -15,6 +15,7 @@ Batch experiments showcasing Three.js WebGPURenderer — procedural scenes, comp
 - `pnpm dev` — Start dev server
 - `pnpm build` — Production build
 - `pnpm preview` — Preview production build
+- `pnpm test` — Run test suite (336 tests via Vitest)
 
 ## Concept
 
@@ -27,13 +28,29 @@ Uses Choo Choo Ralph loops to generate demos in batches, each exploring:
 - Post-processing with compute
 - Procedural terrain and environments
 
-## Demo Structure
+## Demo Types
 
-Each demo is a self-contained scene at /viewer#demo-name with:
-- A WebGPURenderer canvas (falls back to WebGLRenderer if needed)
-- Unique visual effect or technique
-- Camera controls (orbit)
-- A brief description overlay
+### Effect Demos (35)
+Self-contained scenes at `/viewer#demo-name` showcasing individual WebGPU capabilities (TSL materials, compute shaders, SDF, etc.). Each is a single `index.tsx` in `src/demos/<name>/`.
+
+### Scene Demos (11)
+Rendered from YAML scene files via the model pipeline at `/viewer#demo-name`. Each is a thin wrapper calling `<SceneFromYaml scenePath="/scenes/<name>.scene.yaml" />`. Scene YAML files live in `public/scenes/`.
+
+## Model Pipeline
+
+AI-driven 3D model generation pipeline at `src/pipeline/`:
+
+- **`spec/`** — YAML schema (Zod), parser, TypeScript types
+- **`generators/`** — CSG, SDF, 10 parametric generators, codegen loader, Tripo stub
+- **`materials/`** — 14 PBR presets, resolver (6-step resolution), shader compiler
+- **`textures/`** — Procedural texture generators
+- **`renderer/`** — SceneFromYaml, ObjectRenderer, EnvironmentRenderer, animation
+- **`prefabs/`** — Prefab registry with GPU instancing
+- **`lod/`** — Mesh simplification, auto 3-level LOD
+- **`optimizer/`** — Mesh cleanup, material/geometry deduplication
+- **`editor/`** — Read/write/modify scene YAML programmatically
+
+**Extractable spec**: `docs/spec/scene-pipeline-spec-v1.md` (engine-agnostic)
 
 ## Documentation Hierarchy
 
