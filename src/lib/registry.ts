@@ -317,6 +317,22 @@ export const demos: DemoEntry[] = [
     color: '#6622cc',
     component: lazy(() => import('../demos/alien-garden')),
   },
+  {
+    name: 'space-station',
+    title: 'Space Station',
+    description: 'Sci-fi space station corridor with control consoles, conduits, crew member, and alien specimen',
+    requiresWebGPU: false,
+    color: '#0088cc',
+    component: lazy(() => import('../demos/space-station')),
+  },
+  {
+    name: 'gladiator-arena',
+    title: 'Gladiator Arena',
+    description: 'Ancient Roman colosseum floor with dueling gladiators, weapons, and scattered battle debris',
+    requiresWebGPU: false,
+    color: '#cc8822',
+    component: lazy(() => import('../demos/gladiator-arena')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

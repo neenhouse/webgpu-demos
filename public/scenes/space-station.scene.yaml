@@ -1,0 +1,285 @@
+version: "1.0"
+
+meta:
+  name: Space Station
+  technique: parametric-pbr
+  description: Interior of a sci-fi space station corridor with control consoles, conduits, and alien specimen
+  author: pipeline-showcase
+
+camera:
+  position: [0, 4, 12]
+  target: [0, 2, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Cool fluorescent-lit space station corridor with slight blue haze
+  background: "#0a0e1a"
+  fog:
+    type: linear
+    color: "#0a1428"
+    near: 30
+    far: 100
+  ambient:
+    color: "#aabbdd"
+    intensity: 0.4
+  lights:
+    - type: directional
+      position: [0, 10, 5]
+      target: [0, 0, 0]
+      color: "#eeeeff"
+      intensity: 1.2
+      castShadow: true
+    - type: point
+      position: [-3, 3.5, 2]
+      color: "#00ccff"
+      intensity: 1.5
+      distance: 15
+    - type: point
+      position: [3, 3.5, -2]
+      color: "#00ccff"
+      intensity: 1.5
+      distance: 15
+    - type: point
+      position: [0, 3.5, 6]
+      color: "#00aadd"
+      intensity: 1.0
+      distance: 12
+
+objects:
+  # ── Terrain: Metal deck plating ────────────────
+  - id: deck-plating
+    prompt: flat metal deck plating for space station floor
+    style: realistic
+    generator: parametric/terrain
+    params:
+      biome: desert
+      segments: 32
+      amplitude: 0.05
+    transform:
+      position: [0, 0, 0]
+      scale: [20, 1, 30]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.4
+        metalness: 0.9
+        color: "#555566"
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # ── Building: Left corridor wall ───────────────
+  - id: corridor-wall
+    prompt: space station corridor wall segment with metallic panels
+    style: realistic
+    generator: parametric/building
+    params:
+      type: wall
+      width: 8
+      height: 5
+      depth: 0.3
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.35
+        metalness: 0.85
+        color: "#667788"
+    register_prefab: true
+    instances:
+      - position: [-4, 0, 0]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [4, 0, 0]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [0, 0, -4]
+        rotation: [0, 0, 0]
+        scale: 1
+      - position: [0, 5, 0]
+        rotation: [90, 0, 0]
+        scale: [1, 1, 0.6]
+    castShadow: true
+    receiveShadow: true
+
+  # ── Furniture: Control consoles along walls ────
+  - id: control-console
+    prompt: sci-fi control console with holographic display surface
+    style: realistic
+    generator: parametric/furniture
+    params:
+      type: table
+      width: 1.8
+      height: 0.9
+      depth: 0.6
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: plastic-glossy
+      pbr:
+        roughness: 0.3
+        metalness: 0.4
+        color: "#2a2a3a"
+    register_prefab: true
+    instances:
+      - position: [-3.2, 0, -2]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [-3.2, 0, 2]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [3.2, 0, 0]
+        rotation: [0, -90, 0]
+        scale: 1
+    castShadow: true
+    receiveShadow: true
+
+  # ── Holographic display panels on consoles ─────
+  - id: holo-display
+    prompt: holographic display floating above console
+    style: realistic
+    generator: parametric/furniture
+    params:
+      type: table
+      width: 1.2
+      height: 0.02
+      depth: 0.4
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: holographic
+      pbr:
+        color: "#00ffcc"
+        roughness: 0.1
+        metalness: 0.2
+        emissive: "#00ffaa"
+        emissive_intensity: 2.0
+    register_prefab: true
+    instances:
+      - position: [-3.0, 1.4, -2]
+        rotation: [15, 90, 0]
+        scale: 0.8
+      - position: [-3.0, 1.4, 2]
+        rotation: [15, 90, 0]
+        scale: 0.8
+      - position: [3.0, 1.4, 0]
+        rotation: [15, -90, 0]
+        scale: 0.8
+    castShadow: false
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.6
+        amplitude: 1.0
+        range: [1.2, 3.0]
+
+  # ── Debris: Pipes and conduits along ceiling ───
+  - id: conduit-pipe
+    prompt: metal pipe conduit running along space station ceiling
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: pipe
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.3
+        metalness: 0.9
+        color: "#889999"
+    register_prefab: true
+    instances:
+      - position: [-3.5, 4.5, -1]
+        rotation: [0, 0, 0]
+        scale: [0.8, 1, 0.8]
+      - position: [-3.5, 4.5, 3]
+        rotation: [0, 0, 0]
+        scale: [0.8, 1, 0.8]
+      - position: [3.5, 4.5, -1]
+        rotation: [0, 0, 0]
+        scale: [0.8, 1, 0.8]
+      - position: [3.5, 4.5, 3]
+        rotation: [0, 0, 0]
+        scale: [0.8, 1, 0.8]
+      - position: [0, 4.8, -3]
+        rotation: [0, 90, 0]
+        scale: [0.6, 1, 0.6]
+      - position: [0, 4.8, 5]
+        rotation: [0, 90, 0]
+        scale: [0.6, 1, 0.6]
+    castShadow: true
+
+  # ── Character: Crew member near console ────────
+  - id: crew-member
+    prompt: space station crew member in uniform standing near console
+    style: realistic
+    generator: parametric/character
+    params:
+      type: human
+      pose: standing
+    transform:
+      position: [-2.5, 0, -2]
+      rotation: [0, 45, 0]
+      scale: 1.0
+    material:
+      preset: fabric-rough
+      pbr:
+        roughness: 0.8
+        metalness: 0.05
+        color: "#334455"
+    castShadow: true
+    receiveShadow: true
+
+  # ── Organic: Alien specimen in containment ─────
+  - id: alien-specimen
+    prompt: small alien organism in containment unit, organic and pulsing
+    style: realistic
+    generator: parametric/organic
+    params:
+      type: alien_growth
+      height: 0.4
+      baseRadius: 0.15
+      detail: 2
+      noiseFrequency: 3.0
+      noiseAmplitude: 0.1
+      seed: 77
+    transform:
+      position: [3.2, 1.0, 0]
+      scale: 0.8
+    material:
+      preset: organic
+      pbr:
+        color: "#226644"
+        roughness: 0.4
+        metalness: 0.1
+        emissive: "#00ff66"
+        emissive_intensity: 1.5
+    castShadow: true
+    animation:
+      - property: material.pbr.emissive_intensity
+        type: pulse
+        speed: 0.5
+        amplitude: 1.0
+        range: [0.8, 2.5]
+
+  # ── Containment glass around specimen ──────────
+  - id: containment-glass
+    prompt: transparent glass containment cylinder around alien specimen
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: barrel
+    transform:
+      position: [3.2, 0.9, 0]
+      scale: [0.5, 0.6, 0.5]
+    material:
+      preset: glass-clear
+      pbr:
+        color: "#aaddff"
+        roughness: 0.05
+        metalness: 0.1
+    castShadow: false
