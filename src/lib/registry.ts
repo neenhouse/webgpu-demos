@@ -317,6 +317,22 @@ export const demos: DemoEntry[] = [
     color: '#6622cc',
     component: lazy(() => import('../demos/alien-garden')),
   },
+  {
+    name: 'cyberpunk-street',
+    title: 'Cyberpunk Street',
+    description: 'Neon-lit urban street at night with buildings, vehicles, vendors, and dense purple fog',
+    requiresWebGPU: false,
+    color: '#ff1493',
+    component: lazy(() => import('../demos/cyberpunk-street')),
+  },
+  {
+    name: 'desert-outpost',
+    title: 'Desert Outpost',
+    description: 'Remote desert camp with an outpost building, rock formations, scrub vegetation, and supply crates',
+    requiresWebGPU: false,
+    color: '#c4a060',
+    component: lazy(() => import('../demos/desert-outpost')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
