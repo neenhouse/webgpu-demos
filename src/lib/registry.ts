@@ -317,6 +317,22 @@ export const demos: DemoEntry[] = [
     color: '#6622cc',
     component: lazy(() => import('../demos/alien-garden')),
   },
+  {
+    name: 'robot-factory',
+    title: 'Robot Factory',
+    description: 'Automated manufacturing floor with robot workers, workbenches, pipes, and industrial chrome lighting',
+    requiresWebGPU: false,
+    color: '#4488cc',
+    component: lazy(() => import('../demos/robot-factory')),
+  },
+  {
+    name: 'enchanted-forest',
+    title: 'Enchanted Forest',
+    description: 'Magical woodland with glowing mushrooms, ancient ruins, dense trees, and dappled forest light',
+    requiresWebGPU: false,
+    color: '#33aa44',
+    component: lazy(() => import('../demos/enchanted-forest')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {

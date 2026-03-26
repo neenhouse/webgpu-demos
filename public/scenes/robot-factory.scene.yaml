@@ -1,0 +1,264 @@
+version: "1.0"
+
+meta:
+  name: Robot Factory
+  technique: parametric-pbr
+  description: Automated manufacturing floor with robot workers, workbenches, pipes, and industrial lighting
+  author: pipeline-showcase
+
+camera:
+  position: [14, 10, 18]
+  target: [0, 1, 0]
+  fov: 55
+  near: 0.1
+  far: 500
+
+environment:
+  description: Industrial factory interior with bright overhead lights and metallic haze
+  background: "#1a1c22"
+  fog:
+    type: linear
+    color: "#1a1c22"
+    near: 40
+    far: 120
+  ambient:
+    color: "#ccddee"
+    intensity: 0.3
+  lights:
+    - type: directional
+      position: [0, 20, 5]
+      target: [0, 0, 0]
+      color: "#ffffff"
+      intensity: 1.2
+      castShadow: true
+    - type: point
+      position: [-6, 4, -4]
+      color: "#4488ff"
+      intensity: 1.8
+      distance: 18
+    - type: point
+      position: [6, 4, 4]
+      color: "#4488ff"
+      intensity: 1.8
+      distance: 18
+    - type: point
+      position: [0, 3, 0]
+      color: "#6699ff"
+      intensity: 1.2
+      distance: 14
+
+objects:
+  # -- Terrain: Metal factory floor -----------------------
+  - id: factory-floor
+    prompt: flat metal factory floor with subtle roughness
+    style: realistic
+    generator: parametric/terrain
+    params:
+      biome: desert
+      segments: 64
+      amplitude: 0.05
+      seed: 10
+    transform:
+      position: [0, 0, 0]
+      scale: [30, 1, 30]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.8
+        metalness: 0.15
+        color: "#555560"
+    receiveShadow: true
+    castShadow: false
+    lod: auto
+
+  # -- Robot workers (instanced at 3 workstations) --------
+  - id: robot-worker
+    prompt: industrial robot figure at a workstation
+    style: realistic
+    generator: parametric/character
+    params:
+      type: robot
+      pose: action
+      seed: 7
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.2
+        metalness: 0.95
+        color: "#aabbcc"
+    register_prefab: true
+    instances:
+      - position: [-5, 0, -2]
+        rotation: [0, 30, 0]
+        scale: 1.0
+      - position: [0, 0, -2]
+        rotation: [0, 0, 0]
+        scale: 1.1
+      - position: [5, 0, -2]
+        rotation: [0, -25, 0]
+        scale: 0.95
+    castShadow: true
+    receiveShadow: true
+
+  # -- Factory walls (instanced to form enclosure) --------
+  - id: factory-wall
+    prompt: tall industrial factory wall
+    style: realistic
+    generator: parametric/building
+    params:
+      type: wall
+      width: 10
+      height: 5
+      depth: 0.4
+      seed: 3
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: concrete-weathered
+      pbr:
+        roughness: 0.9
+        color: "#666670"
+    register_prefab: true
+    instances:
+      - position: [0, 0, -10]
+        rotation: [0, 0, 0]
+        scale: 1
+      - position: [-10, 0, 0]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [10, 0, 0]
+        rotation: [0, 90, 0]
+        scale: 1
+      - position: [0, 0, 10]
+        rotation: [0, 0, 0]
+        scale: 1
+    castShadow: true
+    receiveShadow: true
+
+  # -- Workbenches (instanced 3x, one per robot) ----------
+  - id: workbench
+    prompt: metal industrial workbench
+    style: realistic
+    generator: parametric/furniture
+    params:
+      type: table
+      width: 1.8
+      height: 0.85
+      depth: 1.0
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.5
+        metalness: 0.7
+        color: "#888890"
+    register_prefab: true
+    instances:
+      - position: [-5, 0, 0]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [0, 0, 0]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [5, 0, 0]
+        rotation: [0, 0, 0]
+        scale: 1.0
+    castShadow: true
+    receiveShadow: true
+
+  # -- Metal pipes (instanced) ----------------------------
+  - id: factory-pipe
+    prompt: industrial metal pipe
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: pipe
+      seed: 20
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.35
+        metalness: 0.85
+        color: "#999999"
+    register_prefab: true
+    instances:
+      - position: [-8, 0, -8]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [-8, 0, -5]
+        rotation: [0, 45, 0]
+        scale: 0.9
+      - position: [8, 0, -8]
+        rotation: [0, 90, 0]
+        scale: 1.1
+      - position: [8, 0, 7]
+        rotation: [0, 180, 0]
+        scale: 0.8
+    castShadow: true
+
+  # -- Barrels (instanced) --------------------------------
+  - id: factory-barrel
+    prompt: industrial barrel with components
+    style: realistic
+    generator: parametric/debris
+    params:
+      type: barrel
+      seed: 15
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: plastic-glossy
+      pbr:
+        roughness: 0.4
+        color: "#2244aa"
+    register_prefab: true
+    instances:
+      - position: [7, 0, -3]
+        rotation: [0, 0, 0]
+        scale: 1.0
+      - position: [7.5, 0, -2]
+        rotation: [0, 30, 0]
+        scale: 1.0
+      - position: [7, 0.9, -2.5]
+        rotation: [0, 60, 0]
+        scale: 1.0
+      - position: [-7, 0, 5]
+        rotation: [0, 15, 0]
+        scale: 1.0
+      - position: [-7.5, 0, 6]
+        rotation: [0, -20, 0]
+        scale: 1.0
+    castShadow: true
+
+  # -- Robot arms / tools (staff weapons as tools) --------
+  - id: robot-tool
+    prompt: robot arm tool mounted near workstation
+    style: realistic
+    generator: parametric/weapon
+    params:
+      type: staff
+    transform:
+      position: [0, 0, 0]
+    material:
+      preset: chrome
+      pbr:
+        roughness: 0.25
+        metalness: 0.9
+        color: "#bbbbcc"
+    register_prefab: true
+    instances:
+      - position: [-4, 0.85, 0.6]
+        rotation: [30, 0, 0]
+        scale: 0.5
+      - position: [1, 0.85, 0.6]
+        rotation: [25, 15, 0]
+        scale: 0.5
+      - position: [6, 0.85, 0.6]
+        rotation: [35, -10, 0]
+        scale: 0.5
+    castShadow: true
