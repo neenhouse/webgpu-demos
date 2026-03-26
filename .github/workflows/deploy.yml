@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -29,4 +32,9 @@ jobs:
         run: pnpm build
 
       - name: Deploy to Cloudflare Pages
-        run: pnpm dlx wrangler pages deploy dist --project-name=webgpu-demos
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            pnpm dlx wrangler pages deploy dist --project-name=webgpu-demos --branch="${{ github.head_ref }}"
+          else
+            pnpm dlx wrangler pages deploy dist --project-name=webgpu-demos
+          fi

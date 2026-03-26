@@ -66,3 +66,16 @@ Do not contradict upstream docs. If a spec conflicts with a PRD, the PRD wins.
 After implementing a feature:
 - Update the PRD feature status (PLANNED -> COMPLETE)
 - Update the spec status (APPROVED -> IMPLEMENTED)
+
+## Key File Locations
+
+| What | Where |
+|------|-------|
+| Demo registry | `src/lib/registry.ts` |
+| Scene YAML files | `public/scenes/*.scene.yaml` |
+| Pipeline spec (portable) | `docs/spec/scene-pipeline-spec-v1.md` |
+| Ralph learnings | `docs/ralph-specs/learnings.md` |
+| Scene editing spec | `docs/ralph-specs/scene-editing.md` |
+| Zod schema (source of truth) | `src/pipeline/spec/schema.ts` |
+| Material presets | `src/pipeline/materials/presets/` |
+| Parametric generators | `src/pipeline/generators/parametric/` |
