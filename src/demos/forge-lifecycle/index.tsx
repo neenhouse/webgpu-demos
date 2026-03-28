@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
@@ -120,48 +120,7 @@ function getPhasePosition(index: number): THREE.Vector3 {
   );
 }
 
-// ── Starfield Background ──
-
-function Starfield() {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const STAR_COUNT = 300;
-
-  const material = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.colorNode = color(0xffffff);
-    const twinkle = oscSine(time.mul(0.8).add(hash(positionLocal.mul(50.0)).mul(6.28)));
-    mat.emissiveNode = vec3(0.7, 0.8, 1.0).mul(twinkle.mul(0.5).add(0.5)).mul(2.0);
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
-
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < STAR_COUNT; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const r = 25 + Math.random() * 15;
-      dummy.position.set(
-        r * Math.sin(phi) * Math.cos(theta),
-        r * Math.sin(phi) * Math.sin(theta),
-        r * Math.cos(phi),
-      );
-      dummy.scale.setScalar(0.03 + Math.random() * 0.06);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  }, []);
-
-  return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, STAR_COUNT]} material={material}>
-      <icosahedronGeometry args={[1, 0]} />
-    </instancedMesh>
-  );
-}
+// (Starfield removed for performance)
 
 // ── Platform Component with TSL materials ──
 
@@ -278,7 +237,48 @@ function PhaseLabel({ index, name, time: t }: { index: number; name: string; tim
   );
 }
 
-// ── Skill Sphere with bloom halo shells ──
+// ── Shared skill sphere material (one per phase, reused) ──
+
+const sharedSkillMaterials = new Map<number, THREE.MeshStandardNodeMaterial>();
+
+function getSharedSkillMaterial(phaseHex: number): THREE.MeshStandardNodeMaterial {
+  if (sharedSkillMaterials.has(phaseHex)) return sharedSkillMaterials.get(phaseHex)!;
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const phaseCol = color(phaseHex);
+  const fresnel = Fn(() => {
+    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
+    return f;
+  })();
+  mat.colorNode = mix(color(0x111122), phaseCol, fresnel.mul(0.6).add(0.4));
+  const pulse = oscSine(time.mul(1.5)).mul(0.4).add(0.6);
+  mat.emissiveNode = phaseCol.mul(fresnel.mul(1.8).add(0.4).mul(pulse).mul(1.2));
+  mat.roughness = 0.2;
+  mat.metalness = 0.3;
+  sharedSkillMaterials.set(phaseHex, mat);
+  return mat;
+}
+
+// Shared halo material for selected skill
+const sharedSkillHaloMaterial = (() => {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+  const fresnel = Fn(() => {
+    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
+    return f;
+  })();
+  const pulse = oscSine(time.mul(1.5)).mul(0.3).add(0.7);
+  mat.opacityNode = fresnel.mul(pulse).mul(0.45);
+  mat.colorNode = color(0xffffff);
+  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse).mul(2.5));
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+  return mat;
+})();
+
+// ── Skill Sphere (shared material, halo only when selected) ──
 
 function SkillSphere({
   phaseIndex,
@@ -313,76 +313,10 @@ function SkillSphere({
   const y = SKILL_Y + floatY + Math.sin(t * 1.2 + skillIndex) * 0.05;
   const z = phasePos.z + Math.sin(angle) * SKILL_ORBIT_RADIUS;
 
-  // TSL core material with fresnel glow
-  const coreMaterial = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    const phaseCol = color(phaseHex);
+  // Shared material per phase color
+  const coreMaterial = useMemo(() => getSharedSkillMaterial(phaseHex), [phaseHex]);
 
-    // Fresnel rim glow
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-      return f;
-    })();
 
-    mat.colorNode = mix(color(0x111122), phaseCol, fresnel.mul(0.6).add(0.4));
-
-    // Pulsing emissive with phase offsets per skill
-    const selectedMul = float(isSelected ? 3.0 : 1.2);
-    const phaseOffset = float(phaseIndex * 1.3 + skillIndex * 0.7);
-    const pulse = oscSine(time.mul(1.5).add(phaseOffset)).mul(0.4).add(0.6);
-    mat.emissiveNode = phaseCol.mul(fresnel.mul(1.8).add(0.4).mul(pulse).mul(selectedMul));
-
-    mat.roughness = 0.2;
-    mat.metalness = 0.3;
-    return mat;
-  }, [phaseHex, phaseIndex, skillIndex, isSelected]);
-
-  // Halo shell materials (BackSide, AdditiveBlending)
-  const haloMat1 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
-
-    const phaseCol = color(phaseHex);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
-      return f;
-    })();
-
-    const phaseOffset = float(phaseIndex * 1.3 + skillIndex * 0.7);
-    const pulse = oscSine(time.mul(1.5).add(phaseOffset)).mul(0.3).add(0.7);
-    mat.opacityNode = fresnel.mul(pulse).mul(0.35);
-    mat.colorNode = phaseCol;
-    mat.emissiveNode = phaseCol.mul(fresnel.mul(pulse).mul(2.0));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, [phaseHex, phaseIndex, skillIndex]);
-
-  const haloMat2 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
-
-    const phaseCol = color(phaseHex);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.5);
-      return f;
-    })();
-
-    const phaseOffset = float(phaseIndex * 1.3 + skillIndex * 0.7 + 1.0);
-    const pulse = oscSine(time.mul(1.2).add(phaseOffset)).mul(0.3).add(0.7);
-    mat.opacityNode = fresnel.mul(pulse).mul(0.2);
-    mat.colorNode = phaseCol;
-    mat.emissiveNode = phaseCol.mul(fresnel.mul(pulse).mul(1.5));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, [phaseHex, phaseIndex, skillIndex]);
 
   return (
     <group position={[x, y, z]}>
@@ -404,15 +338,12 @@ function SkillSphere({
         <sphereGeometry args={[SKILL_SPHERE_RADIUS, 16, 12]} />
       </mesh>
 
-      {/* Halo shell 1 at 1.3x */}
-      <mesh material={haloMat1} scale={[1.3, 1.3, 1.3]}>
-        <sphereGeometry args={[SKILL_SPHERE_RADIUS, 12, 8]} />
-      </mesh>
-
-      {/* Halo shell 2 at 1.6x */}
-      <mesh material={haloMat2} scale={[1.6, 1.6, 1.6]}>
-        <sphereGeometry args={[SKILL_SPHERE_RADIUS, 12, 8]} />
-      </mesh>
+      {/* Halo shell only when selected */}
+      {isSelected && (
+        <mesh material={sharedSkillHaloMaterial} scale={[1.3, 1.3, 1.3]}>
+          <sphereGeometry args={[SKILL_SPHERE_RADIUS, 12, 8]} />
+        </mesh>
+      )}
 
       <pointLight color={phaseColor} intensity={0.5} distance={2.5} />
       {isSelected && (
@@ -503,7 +434,7 @@ function PhaseConnection({
 
 // ── Particles flowing along connections ──
 
-const PARTICLES_PER_CONNECTION = 8;
+const PARTICLES_PER_CONNECTION = 4;
 const TOTAL_CONNECTIONS = 5;
 const TOTAL_PARTICLES = PARTICLES_PER_CONNECTION * TOTAL_CONNECTIONS;
 
@@ -621,69 +552,7 @@ function DriveTorus({
     return mat;
   }, []);
 
-  // Halo ring materials
-  const haloMat1 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
 
-    const pulse = oscSine(time.mul(0.6)).mul(0.3).add(0.7);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.5);
-      return f;
-    })();
-
-    mat.opacityNode = fresnel.mul(pulse).mul(0.3);
-    mat.colorNode = color(0x4488ff);
-    mat.emissiveNode = color(0x4488ff).mul(fresnel.mul(pulse).mul(2.5));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
-
-  const haloMat2 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
-
-    const pulse = oscSine(time.mul(0.4).add(1.0)).mul(0.3).add(0.7);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-      return f;
-    })();
-
-    mat.opacityNode = fresnel.mul(pulse).mul(0.2);
-    mat.colorNode = color(0x22cc88);
-    mat.emissiveNode = color(0x22cc88).mul(fresnel.mul(pulse).mul(2.0));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
-
-  const haloMat3 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
-
-    const pulse = oscSine(time.mul(0.3).add(2.0)).mul(0.3).add(0.7);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.5);
-      return f;
-    })();
-
-    mat.opacityNode = fresnel.mul(pulse).mul(0.15);
-    mat.colorNode = color(0xcc44ff);
-    mat.emissiveNode = color(0xcc44ff).mul(fresnel.mul(pulse).mul(1.5));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
 
   // Drive step sphere material
   const driveSphMaterial = useMemo(() => {
@@ -699,32 +568,7 @@ function DriveTorus({
     return mat;
   }, []);
 
-  // Ghost trail material (additive, translucent)
-  const ghostMat1 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.blending = THREE.AdditiveBlending;
-    mat.depthWrite = false;
-    mat.colorNode = color(0x4466aa);
-    mat.emissiveNode = color(0x4466aa).mul(0.8);
-    mat.opacityNode = float(0.3);
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
 
-  const ghostMat2 = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.blending = THREE.AdditiveBlending;
-    mat.depthWrite = false;
-    mat.colorNode = color(0x334488);
-    mat.emissiveNode = color(0x334488).mul(0.5);
-    mat.opacityNode = float(0.15);
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
 
   return (
     <group>
@@ -747,20 +591,7 @@ function DriveTorus({
         <torusGeometry args={[1.2, 0.15, 16, 48]} />
       </mesh>
 
-      {/* Halo ring 1 */}
-      <mesh rotation={[Math.PI / 4, t * 0.2, 0]} material={haloMat1} scale={[1.15, 1.15, 1.15]}>
-        <torusGeometry args={[1.2, 0.25, 12, 36]} />
-      </mesh>
 
-      {/* Halo ring 2 */}
-      <mesh rotation={[Math.PI / 4, t * 0.2, 0]} material={haloMat2} scale={[1.3, 1.3, 1.3]}>
-        <torusGeometry args={[1.2, 0.3, 12, 36]} />
-      </mesh>
-
-      {/* Halo ring 3 */}
-      <mesh rotation={[Math.PI / 4, t * 0.2, 0]} material={haloMat3} scale={[1.5, 1.5, 1.5]}>
-        <torusGeometry args={[1.2, 0.35, 12, 36]} />
-      </mesh>
 
       {/* 6 drive step spheres orbiting the torus with ghost trails */}
       {DRIVE_STEPS.map((step, i) => {
@@ -773,29 +604,8 @@ function DriveTorus({
         const cy = Math.sin(currentAngle) * orbitRadius * Math.sin(tiltAngle);
         const cz = Math.sin(currentAngle) * orbitRadius * Math.cos(tiltAngle);
 
-        // Ghost 1 (slightly behind)
-        const g1Angle = currentAngle - 0.25;
-        const g1x = Math.cos(g1Angle) * orbitRadius;
-        const g1y = Math.sin(g1Angle) * orbitRadius * Math.sin(tiltAngle);
-        const g1z = Math.sin(g1Angle) * orbitRadius * Math.cos(tiltAngle);
-
-        // Ghost 2 (further behind)
-        const g2Angle = currentAngle - 0.5;
-        const g2x = Math.cos(g2Angle) * orbitRadius;
-        const g2y = Math.sin(g2Angle) * orbitRadius * Math.sin(tiltAngle);
-        const g2z = Math.sin(g2Angle) * orbitRadius * Math.cos(tiltAngle);
-
         return (
           <group key={step}>
-            {/* Ghost 2 */}
-            <mesh position={[g2x, g2y, g2z]} material={ghostMat2}>
-              <sphereGeometry args={[0.06, 8, 6]} />
-            </mesh>
-            {/* Ghost 1 */}
-            <mesh position={[g1x, g1y, g1z]} material={ghostMat1}>
-              <sphereGeometry args={[0.07, 8, 6]} />
-            </mesh>
-            {/* Current */}
             <mesh position={[cx, cy, cz]} material={driveSphMaterial}>
               <sphereGeometry args={[0.08, 12, 8]} />
             </mesh>
@@ -954,8 +764,7 @@ export default function ForgeLifecycle() {
       {/* Camera controller */}
       <CameraController selectedPhase={selectedPhase} />
 
-      {/* Starfield background */}
-      <Starfield />
+      {/* Starfield removed for performance */}
 
       {/* Background click catcher */}
       <mesh

@@ -76,7 +76,7 @@ const PIPES: Pipe[] = [
   { from: 'split', to: 'events', color: '#4466ff', hex: 0x4466ff },
 ];
 
-const PARTICLE_COUNT = 300;
+const PARTICLE_COUNT = 80;
 
 // Build lookup maps
 const nodeMap = new Map(NODES.map(n => [n.id, n]));
@@ -110,8 +110,13 @@ const sourceNodeIds = NODES.filter(n => n.type === 'source').map(n => n.id);
 // Source pipe indices
 const sourcePipeIndices = PIPES.map((p, i) => sourceNodeIds.includes(p.from) ? i : -1).filter(i => i >= 0);
 
-// ── Create TSL material for each node type ──
+// Shared node materials cache by type
+const sharedNodeMaterials = new Map<string, THREE.MeshStandardNodeMaterial>();
+
+// ── Create TSL material for each node type (shared by type) ──
 function makeNodeMaterial(nodeType: string, hex: number, nodeId: string): THREE.MeshStandardNodeMaterial {
+  const cacheKey = `${nodeType}-${nodeId === 'reject' ? 'reject' : 'normal'}`;
+  if (sharedNodeMaterials.has(cacheKey)) return sharedNodeMaterials.get(cacheKey)!;
   const mat = new THREE.MeshStandardNodeMaterial();
   const baseColor = color(hex);
   const fresnel = fresnelNode();
@@ -197,11 +202,12 @@ function makeNodeMaterial(nodeType: string, hex: number, nodeId: string): THREE.
 
   mat.roughness = 0.2;
   mat.metalness = 0.4;
+  sharedNodeMaterials.set(cacheKey, mat);
   return mat;
 }
 
-// ── Halo material for nodes ──
-function makeNodeHaloMaterial(hex: number, nodeId: string): THREE.MeshStandardNodeMaterial {
+// Shared halo material for selected/hovered nodes only
+const sharedPipeNodeHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
@@ -209,16 +215,15 @@ function makeNodeHaloMaterial(hex: number, nodeId: string): THREE.MeshStandardNo
   mat.blending = THREE.AdditiveBlending;
 
   const fresnel = fresnelNode();
-  const glowColor = nodeId === 'reject' ? color(0xff2222) : color(hex);
-  const pulse = float(0.6).add(time.mul(nodeId === 'reject' ? 2.0 : 0.8).sin().mul(0.3));
+  const pulse = float(0.6).add(time.mul(0.8).sin().mul(0.3));
 
   mat.opacityNode = fresnel.mul(pulse).mul(0.45);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel.mul(pulse).mul(3.0));
+  mat.colorNode = color(0xffffff);
+  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse).mul(3.0));
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
-}
+})();
 
 // ── Pipe TSL material with scrolling flow ──
 function makePipeMaterial(hex: number): THREE.MeshStandardNodeMaterial {
@@ -238,23 +243,7 @@ function makePipeMaterial(hex: number): THREE.MeshStandardNodeMaterial {
   return mat;
 }
 
-// ── Pipe halo material ──
-function makePipeHaloMaterial(hex: number): THREE.MeshStandardNodeMaterial {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-  mat.side = THREE.BackSide;
-  mat.depthWrite = false;
-  mat.blending = THREE.AdditiveBlending;
-
-  const pipeColor = color(hex);
-  const flow = smoothstep(0.3, 0.7, fract(positionLocal.y.mul(4.0).sub(time.mul(2.0))));
-  mat.opacityNode = flow.mul(0.12);
-  mat.colorNode = pipeColor;
-  mat.emissiveNode = pipeColor.mul(flow.mul(1.5));
-  mat.roughness = 0.0;
-  mat.metalness = 0.0;
-  return mat;
-}
+// (Pipe halo material removed for performance)
 
 // ── Node shape component ──
 function NodeGeometry({ type }: { type: string }) {
@@ -269,18 +258,7 @@ function NodeGeometry({ type }: { type: string }) {
   }
 }
 
-// ── Halo geometry (bigger version of node shape) ──
-function HaloGeometry({ type }: { type: string }) {
-  switch (type) {
-    case 'source': return <coneGeometry args={[0.75, 1.5, 16]} />;
-    case 'transform': return <boxGeometry args={[1.35, 1.35, 1.35]} />;
-    case 'filter': return <octahedronGeometry args={[0.85]} />;
-    case 'merge': return <sphereGeometry args={[0.75, 20, 20]} />;
-    case 'split': return <icosahedronGeometry args={[0.75, 0]} />;
-    case 'sink': return <cylinderGeometry args={[0.7, 0.7, 1.2, 16]} />;
-    default: return <boxGeometry args={[0.9, 0.9, 0.9]} />;
-  }
-}
+// (HaloGeometry removed — using shared halo material with NodeGeometry at larger scale)
 
 // ── Individual node component ──
 function PipeNodeMesh({
@@ -303,10 +281,8 @@ function PipeNodeMesh({
   onUnhover: () => void;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const haloRef = useRef<THREE.Mesh>(null);
 
   const nodeMat = useMemo(() => makeNodeMaterial(node.type, node.hex, node.id), [node.type, node.hex, node.id]);
-  const haloMat = useMemo(() => makeNodeHaloMaterial(node.hex, node.id), [node.hex, node.id]);
 
   // Suppress unused variable warnings
   void isHighlighted;
@@ -327,16 +303,6 @@ function PipeNodeMesh({
     } else {
       meshRef.current.scale.setScalar(1.0);
     }
-
-    // Halo follows mesh position
-    if (haloRef.current) {
-      haloRef.current.position.y = meshRef.current.position.y;
-      if (node.type === 'source') {
-        haloRef.current.rotation.z = -Math.PI / 2;
-      }
-      const haloScale = isSelected ? 1.8 : 1.0;
-      haloRef.current.scale.setScalar(haloScale);
-    }
   });
 
   return (
@@ -351,10 +317,12 @@ function PipeNodeMesh({
       >
         <NodeGeometry type={node.type} />
       </mesh>
-      {/* Halo shell */}
-      <mesh ref={haloRef} material={haloMat}>
-        <HaloGeometry type={node.type} />
-      </mesh>
+      {/* Halo shell only on selected/hovered */}
+      {(isSelected || isHovered) && (
+        <mesh material={sharedPipeNodeHaloMaterial} scale={1.5}>
+          <NodeGeometry type={node.type} />
+        </mesh>
+      )}
       {/* Point light */}
       <pointLight color={node.color} intensity={isSelected ? 5.0 : isHovered ? 2.5 : 1.5} distance={5} />
       {/* Hover tooltip */}
@@ -406,30 +374,18 @@ function PipeTube({
   const geo = pipeGeoData[pipeIndex];
 
   const pipeMat = useMemo(() => makePipeMaterial(geo.pipe.hex), [geo.pipe.hex]);
-  const pipeHaloMat = useMemo(() => makePipeHaloMaterial(geo.pipe.hex), [geo.pipe.hex]);
 
   // Suppress unused variable warning
   void isHighlighted;
 
   return (
-    <group>
-      {/* Core pipe */}
-      <mesh
-        position={[geo.mid.x, geo.mid.y, geo.mid.z]}
-        quaternion={[geo.quat.x, geo.quat.y, geo.quat.z, geo.quat.w]}
-        material={pipeMat}
-      >
-        <cylinderGeometry args={[0.1, 0.1, geo.length - 0.8, 12]} />
-      </mesh>
-      {/* Halo tube */}
-      <mesh
-        position={[geo.mid.x, geo.mid.y, geo.mid.z]}
-        quaternion={[geo.quat.x, geo.quat.y, geo.quat.z, geo.quat.w]}
-        material={pipeHaloMat}
-      >
-        <cylinderGeometry args={[0.15, 0.15, geo.length - 0.8, 12]} />
-      </mesh>
-    </group>
+    <mesh
+      position={[geo.mid.x, geo.mid.y, geo.mid.z]}
+      quaternion={[geo.quat.x, geo.quat.y, geo.quat.z, geo.quat.w]}
+      material={pipeMat}
+    >
+      <cylinderGeometry args={[0.1, 0.1, geo.length - 0.8, 12]} />
+    </mesh>
   );
 }
 

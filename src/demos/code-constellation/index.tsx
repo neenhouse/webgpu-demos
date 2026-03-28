@@ -146,67 +146,34 @@ function dominantTypeColor(dir: string): string {
   return TYPE_COLORS_STR[maxType] || '#888888';
 }
 
-function dominantTypeColorHex(dir: string): number {
-  const indices = FILES_BY_DIR[dir];
-  if (!indices || indices.length === 0) return 0x888888;
-  const counts: Record<string, number> = {};
-  for (const idx of indices) {
-    const t = FILES[idx].type;
-    counts[t] = (counts[t] || 0) + 1;
-  }
-  let maxType = 'ts';
-  let maxCount = 0;
-  for (const [t, c] of Object.entries(counts)) {
-    if (c > maxCount) {
-      maxCount = c;
-      maxType = t;
-    }
-  }
-  return TYPE_COLORS_HEX[maxType] || 0x888888;
-}
-
-// Compute cluster spread for nebula sizing
-function clusterSpread(dir: string): number {
-  const indices = FILES_BY_DIR[dir];
-  if (!indices || indices.length < 2) return 1.0;
-  const center = DIR_POSITIONS[dir];
-  let maxDist = 0;
-  for (const idx of indices) {
-    const pos = FILE_POSITIONS[idx];
-    const dx = pos[0] - center[0];
-    const dy = pos[1] - center[1];
-    const dz = pos[2] - center[2];
-    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    if (dist > maxDist) maxDist = dist;
-  }
-  return maxDist;
-}
+// (dominantTypeColorHex and clusterSpread removed — nebulae are gone)
 
 // ── TSL Material factories ──
 
-function makeStarCoreMaterial(hexColor: number, fileIndex: number) {
+// Shared star core materials — one per file type
+const sharedStarCoreMaterials = new Map<number, THREE.MeshStandardNodeMaterial>();
+
+function getSharedStarCoreMaterial(hexColor: number): THREE.MeshStandardNodeMaterial {
+  if (sharedStarCoreMaterials.has(hexColor)) return sharedStarCoreMaterials.get(hexColor)!;
+
   const mat = new THREE.MeshStandardNodeMaterial();
 
-  // Per-star twinkle using hash of index for variation
-  const phase = float(fileIndex).mul(1.7);
-  const twinkle = oscSine(time.mul(hash(float(fileIndex)).mul(3.0).add(1.0)).add(phase))
+  // Twinkle using position hash for variation
+  const twinkle = oscSine(time.mul(2.0).add(hash(positionLocal.mul(10.0)).mul(6.28)))
     .mul(0.4)
     .add(0.6);
 
   // Hash noise for surface detail
   const surfaceNoise = hash(positionLocal.mul(30.0)).mul(0.1).add(0.9);
 
-  // Saturated color
   mat.colorNode = color(hexColor).mul(surfaceNoise);
 
-  // Fresnel rim for star edge glow
   const fresnel = Fn(() => {
     const viewDir = cameraPosition.sub(positionWorld).normalize();
     const nDotV = normalWorld.dot(viewDir).saturate();
     return float(1.0).sub(nDotV).pow(2.0);
   });
 
-  // Bright emissive core + white fresnel rim
   const coreEmissive = color(hexColor).mul(twinkle.mul(3.0));
   const rimEmissive = color(0xffffff).mul(fresnel()).mul(twinkle.mul(2.0));
   mat.emissiveNode = coreEmissive.add(rimEmissive);
@@ -214,38 +181,37 @@ function makeStarCoreMaterial(hexColor: number, fileIndex: number) {
   mat.roughness = 0.1;
   mat.metalness = 0.2;
 
+  sharedStarCoreMaterials.set(hexColor, mat);
   return mat;
 }
 
-function makeStarHaloMaterial(hexColor: number, fileIndex: number, layer: number) {
+// (Per-star halo materials removed — shared halo used only on selected)
+
+// Shared halo material for selected star
+const sharedStarHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
 
-  const layerFade = float(1.0).sub(float(layer).mul(0.3));
-  const phase = float(fileIndex).mul(1.7);
-  const twinkle = oscSine(time.mul(hash(float(fileIndex)).mul(3.0).add(1.0)).add(phase))
-    .mul(0.3)
-    .add(0.7);
+  const twinkle = oscSine(time.mul(2.0)).mul(0.3).add(0.7);
 
   const fresnel = Fn(() => {
     const viewDir = cameraPosition.sub(positionWorld).normalize();
     const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(float(1.5).add(float(layer).mul(0.5)));
+    return float(1.0).sub(nDotV).pow(1.5);
   });
 
-  const glowColor = color(hexColor);
-  mat.opacityNode = fresnel().mul(twinkle).mul(layerFade).mul(0.5);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel().mul(twinkle).mul(layerFade).mul(3.5));
+  mat.opacityNode = fresnel().mul(twinkle).mul(0.6);
+  mat.colorNode = color(0xffffff);
+  mat.emissiveNode = color(0xffffff).mul(fresnel().mul(twinkle).mul(4.0));
 
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
   return mat;
-}
+})();
 
 function makeConnectionMaterial(hexColor: number, connIdx: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
@@ -291,62 +257,20 @@ function makeConnectionMaterialHighlighted(hexColor: number, connIdx: number) {
   return mat;
 }
 
-function makeNebulaMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-  mat.side = THREE.BackSide;
-  mat.depthWrite = false;
-  mat.blending = THREE.AdditiveBlending;
-
-  const drift = oscSine(time.mul(0.2).add(positionLocal.x.mul(2.0)))
-    .mul(0.3)
-    .add(0.7);
-
-  const nebulaColor = color(hexColor);
-  mat.colorNode = nebulaColor;
-  mat.emissiveNode = nebulaColor.mul(drift.mul(0.5));
-  mat.opacityNode = float(0.04).mul(drift);
-
-  mat.roughness = 1.0;
-  mat.metalness = 0.0;
-
-  return mat;
-}
+// (Nebula, starfield background, and particle travel materials removed for performance)
 
 function makeBackgroundMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.side = THREE.BackSide;
 
-  // Procedural star field using hash noise — tiny bright dots scattered
-  const starField = hash(positionLocal.mul(80.0));
-  // Only show very bright values as stars
-  const starMask = starField.step(0.985).mul(starField);
-
-  // Dark blue gradient (not pure black)
+  // Simple dark blue gradient (procedural starfield removed)
   const vertGrad = positionLocal.normalize().y.mul(0.5).add(0.5);
   const bgColor = mix(color(0x020210), color(0x060625), vertGrad);
 
-  mat.colorNode = bgColor.add(color(0xffffff).mul(starMask.mul(0.3)));
-  mat.emissiveNode = bgColor.mul(0.05).add(color(0xffffff).mul(starMask.mul(0.5)));
+  mat.colorNode = bgColor;
+  mat.emissiveNode = bgColor.mul(0.05);
 
   mat.roughness = 1.0;
-  mat.metalness = 0.0;
-
-  return mat;
-}
-
-function makeParticleTravelMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-  mat.depthWrite = false;
-  mat.blending = THREE.AdditiveBlending;
-
-  const glow = oscSine(time.mul(4.0)).mul(0.3).add(0.7);
-  mat.colorNode = color(hexColor);
-  mat.emissiveNode = color(hexColor).mul(glow.mul(3.0));
-  mat.opacityNode = float(0.8).mul(glow);
-
-  mat.roughness = 0.0;
   mat.metalness = 0.0;
 
   return mat;
@@ -384,21 +308,13 @@ function StarNode({
   const isInOtherCluster = selectedCluster !== null && selectedCluster !== file.dir;
 
   const coreMat = useMemo(
-    () => makeStarCoreMaterial(hexColor, fileIndex),
-    [hexColor, fileIndex],
+    () => getSharedStarCoreMaterial(hexColor),
+    [hexColor],
   );
 
-  // 1-2 halo shells based on star size (bigger files get 2)
-  const haloCount = file.lines > 200 ? 2 : 1;
-  const haloMats = useMemo(() => {
-    const mats = [makeStarHaloMaterial(hexColor, fileIndex, 0)];
-    if (haloCount > 1) {
-      mats.push(makeStarHaloMaterial(hexColor, fileIndex, 1));
-    }
-    return mats;
-  }, [hexColor, fileIndex, haloCount]);
+  // Halo only shown on selected star (see JSX)
 
-  const haloScales = haloCount > 1 ? [1.4, 1.7] : [1.3];
+  // haloScales removed
 
   useFrame(({ clock }) => {
     const group = groupRef.current;
@@ -428,22 +344,9 @@ function StarNode({
     if (isInOtherCluster) {
       coreMat.opacity = 0.2;
       coreMat.transparent = true;
-      for (const h of haloMats) {
-        h.opacity = 0.1;
-      }
-    } else if (isInSelectedCluster) {
-      // Brighten stars in selected cluster
-      coreMat.opacity = 1.0;
-      coreMat.transparent = false;
-      for (const h of haloMats) {
-        h.opacity = 1.2;
-      }
     } else {
       coreMat.opacity = 1.0;
       coreMat.transparent = false;
-      for (const h of haloMats) {
-        h.opacity = 0.7;
-      }
     }
 
     // Scale pulse when selected
@@ -473,12 +376,12 @@ function StarNode({
         <icosahedronGeometry args={[starSize, 3]} />
       </mesh>
 
-      {/* Halo shells */}
-      {haloMats.map((mat, i) => (
-        <mesh key={i} material={mat} scale={haloScales[i]} raycast={() => null}>
+      {/* Halo shell only on selected star */}
+      {isSelected && (
+        <mesh material={sharedStarHaloMaterial} scale={1.4} raycast={() => null}>
           <icosahedronGeometry args={[starSize, 2]} />
         </mesh>
-      ))}
+      )}
 
       {/* Popup on select */}
       {isSelected && (
@@ -543,7 +446,6 @@ function ImportConnection({
   hovered: number | null;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const particleRefs = useRef<(THREE.Mesh | null)[]>([]);
   const isHighlighted = hovered === fromIdx || hovered === toIdx;
 
   const blendedHex = useMemo(() => {
@@ -562,26 +464,13 @@ function ImportConnection({
     [blendedHex, connIdx],
   );
 
-  const particleMat = useMemo(
-    () => makeParticleTravelMaterial(blendedHex),
-    [blendedHex],
-  );
-
-  // 2-3 traveling particles per connection
-  const particleCount = 2 + (connIdx % 2);
-  const particleOffsets = useMemo(
-    () => Array.from({ length: particleCount }, (_, i) => i / particleCount),
-    [particleCount],
-  );
-
-  useFrame(({ clock }) => {
+  useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
     const from = FILE_POSITIONS[fromIdx];
     const to = FILE_POSITIONS[toIdx];
 
-    // Position and orient the cylinder
     const mx = (from[0] + to[0]) / 2;
     const my = (from[1] + to[1]) / 2;
     const mz = (from[2] + to[2]) / 2;
@@ -603,64 +492,16 @@ function ImportConnection({
     if (mesh.material !== targetMat) {
       mesh.material = targetMat;
     }
-
-    // Animate traveling particles
-    const t = clock.getElapsedTime();
-    const speed = isHighlighted ? 0.8 : 0.4;
-    for (let i = 0; i < particleCount; i++) {
-      const p = particleRefs.current[i];
-      if (!p) continue;
-      const progress = ((t * speed + particleOffsets[i]) % 1.0);
-      p.position.set(
-        from[0] + dx * progress,
-        from[1] + dy * progress,
-        from[2] + dz * progress,
-      );
-      p.visible = isHighlighted || Math.random() > 0.3; // only consistently visible when highlighted
-    }
   });
 
   return (
-    <>
-      <mesh ref={meshRef} material={normalMat} raycast={() => null}>
-        <cylinderGeometry args={[0.008, 0.008, 1, 4, 1]} />
-      </mesh>
-      {/* Traveling particles */}
-      {particleOffsets.map((_, i) => (
-        <mesh
-          key={`particle-${connIdx}-${i}`}
-          ref={(el) => {
-            particleRefs.current[i] = el;
-          }}
-          material={particleMat}
-          raycast={() => null}
-          visible={false}
-        >
-          <icosahedronGeometry args={[0.015, 0]} />
-        </mesh>
-      ))}
-    </>
-  );
-}
-
-function ClusterNebula({ dir }: { dir: string }) {
-  const center = DIR_POSITIONS[dir];
-  const spread = clusterSpread(dir);
-  const nebulaRadius = Math.max(spread * 1.5, 1.2);
-  const hexColor = dominantTypeColorHex(dir);
-
-  const mat = useMemo(() => makeNebulaMaterial(hexColor), [hexColor]);
-
-  return (
-    <mesh
-      position={center}
-      material={mat}
-      raycast={() => null}
-    >
-      <sphereGeometry args={[nebulaRadius, 16, 16]} />
+    <mesh ref={meshRef} material={normalMat} raycast={() => null}>
+      <cylinderGeometry args={[0.008, 0.008, 1, 4, 1]} />
     </mesh>
   );
 }
+
+// (ClusterNebula removed for performance)
 
 function ClusterLabel({
   dir,
@@ -832,11 +673,6 @@ export default function CodeConstellation() {
       </mesh>
 
       <group ref={groupRef}>
-        {/* Cluster nebulae */}
-        {DIRECTORIES.map((dir) => (
-          <ClusterNebula key={`nebula-${dir}`} dir={dir} />
-        ))}
-
         {/* Import connections */}
         {IMPORTS.map(([from, to], i) => (
           <ImportConnection

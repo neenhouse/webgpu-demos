@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
+import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
@@ -302,83 +302,26 @@ function getPathToNode(targetId: string, nodes: LayoutNode[]): string[] {
   return path;
 }
 
-// ── Ambient floating particles ──
 
-function AmbientParticles() {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const PARTICLE_COUNT = 30;
-
-  const material = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.blending = THREE.AdditiveBlending;
-    mat.depthWrite = false;
-
-    const twinkle = oscSine(time.mul(0.6).add(hash(positionLocal.mul(30.0)).mul(6.28)));
-    mat.colorNode = color(0x6688aa);
-    mat.emissiveNode = vec3(0.3, 0.4, 0.6).mul(twinkle.mul(0.5).add(0.5)).mul(1.5);
-    mat.opacityNode = twinkle.mul(0.3).add(0.2);
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
-
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    const dummy = new THREE.Object3D();
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      dummy.position.set(
-        (Math.random() - 0.5) * 16,
-        (Math.random() - 0.5) * 14,
-        (Math.random() - 0.5) * 4,
-      );
-      dummy.scale.setScalar(0.02 + Math.random() * 0.03);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  }, []);
-
-  // Gentle drift
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const positions = useRef<THREE.Vector3[]>([]);
-
-  useEffect(() => {
-    positions.current = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      positions.current.push(new THREE.Vector3(
-        (Math.random() - 0.5) * 16,
-        (Math.random() - 0.5) * 14,
-        (Math.random() - 0.5) * 4,
-      ));
-    }
-  }, []);
-
-  useFrame((state) => {
-    const mesh = meshRef.current;
-    if (!mesh || positions.current.length === 0) return;
-    const t = state.clock.elapsedTime;
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const p = positions.current[i];
-      dummy.position.set(
-        p.x + Math.sin(t * 0.15 + i * 2.1) * 0.3,
-        p.y + Math.cos(t * 0.12 + i * 1.7) * 0.2,
-        p.z + Math.sin(t * 0.1 + i * 3.3) * 0.15,
-      );
-      dummy.scale.setScalar(0.02 + Math.sin(t * 0.5 + i) * 0.01);
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  });
-
-  return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]} material={material}>
-      <icosahedronGeometry args={[1, 0]} />
-    </instancedMesh>
-  );
-}
+// ── Shared halo material for selected/hovered nodes ──
+const sharedDecisionHaloMaterial = (() => {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+  const fresnel = Fn(() => {
+    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
+    return f;
+  })();
+  const pulse = oscSine(time.mul(1.0)).mul(0.3).add(0.7);
+  mat.opacityNode = fresnel.mul(pulse.mul(0.3).add(0.5)).mul(0.45);
+  mat.colorNode = color(0xffffff);
+  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse.mul(0.3).add(0.7)).mul(2.5));
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+  return mat;
+})();
 
 // ── Node Component with TSL materials ──
 
@@ -460,32 +403,7 @@ function DecisionNode({
     return mat;
   }, [node.hex, node.index, isRoot, isDimmed, isOnPath, isHovered]);
 
-  // Leaf halo shell material
-  const haloMaterial = useMemo(() => {
-    if (!node.isLeaf && !isRoot) return null;
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
 
-    const nodeCol = color(node.hex);
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
-      return f;
-    })();
-
-    const pulse = oscSine(time.mul(1.0).add(float(node.index).mul(0.8)));
-    const dimFactor = float(isDimmed ? 0.05 : 1.0);
-    const pathBoost = float(isOnPath ? 1.5 : 1.0);
-
-    mat.opacityNode = fresnel.mul(pulse.mul(0.3).add(0.5)).mul(0.35).mul(dimFactor).mul(pathBoost);
-    mat.colorNode = nodeCol;
-    mat.emissiveNode = nodeCol.mul(fresnel.mul(pulse.mul(0.3).add(0.7)).mul(2.0).mul(dimFactor).mul(pathBoost));
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, [node.isLeaf, isRoot, node.hex, node.index, isDimmed, isOnPath]);
 
   return (
     <group position={[node.position.x, node.position.y + floatY, node.position.z]}>
@@ -515,13 +433,15 @@ function DecisionNode({
         )}
       </mesh>
 
-      {/* Halo shell for leaf and root nodes */}
-      {haloMaterial && (
-        <mesh material={haloMaterial} scale={[1.4, 1.4, 1.4]}>
+      {/* Halo shell only on hovered/selected */}
+      {(isHovered || isOnPath) && (
+        <mesh material={sharedDecisionHaloMaterial} scale={[1.4, 1.4, 1.4]}>
           {isRoot ? (
             <sphereGeometry args={[radius, 16, 12]} />
-          ) : (
+          ) : node.isLeaf ? (
             <icosahedronGeometry args={[radius, 1]} />
+          ) : (
+            <octahedronGeometry args={[radius, 0]} />
           )}
         </mesh>
       )}
@@ -648,9 +568,8 @@ function EdgeParticles({
   time: number;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const haloRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const particlesPerEdge = 4;
+  const particlesPerEdge = 1;
   const totalParticles = edges.length * particlesPerEdge;
 
   // Core particle material
@@ -669,26 +588,10 @@ function EdgeParticles({
     return mat;
   }, []);
 
-  // Halo material for outer glow
-  const haloMaterial = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.side = THREE.BackSide;
-    mat.depthWrite = false;
-    mat.blending = THREE.AdditiveBlending;
 
-    const pulse = oscSine(time.mul(1.5).add(hash(positionLocal.mul(15.0)).mul(6.28)));
-    mat.colorNode = color(0x88aaff);
-    mat.emissiveNode = vec3(0.4, 0.5, 1.0).mul(pulse.mul(0.4).add(0.6));
-    mat.opacityNode = pulse.mul(0.15).add(0.1);
-    mat.roughness = 0.0;
-    mat.metalness = 0.0;
-    return mat;
-  }, []);
 
   useFrame(() => {
     const mesh = meshRef.current;
-    const halo = haloRef.current;
     if (!mesh) return;
 
     let idx = 0;
@@ -718,28 +621,17 @@ function EdgeParticles({
         dummy.updateMatrix();
         mesh.setMatrixAt(idx, dummy.matrix);
 
-        // Halo at 1.8x scale
-        if (halo) {
-          dummy.scale.setScalar(scale * 1.8);
-          dummy.updateMatrix();
-          halo.setMatrixAt(idx, dummy.matrix);
-        }
+
         idx++;
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
-    if (halo) halo.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <>
-      <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]} material={coreMaterial}>
-        <sphereGeometry args={[1, 8, 6]} />
-      </instancedMesh>
-      <instancedMesh ref={haloRef} args={[undefined, undefined, totalParticles]} material={haloMaterial}>
-        <sphereGeometry args={[1, 6, 4]} />
-      </instancedMesh>
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]} material={coreMaterial}>
+      <sphereGeometry args={[1, 8, 6]} />
+    </instancedMesh>
   );
 }
 
@@ -844,8 +736,7 @@ export default function DecisionForest() {
       {/* Background gradient */}
       <BackgroundSphere />
 
-      {/* Ambient floating particles */}
-      <AmbientParticles />
+
 
       {/* Background click to reset */}
       <mesh

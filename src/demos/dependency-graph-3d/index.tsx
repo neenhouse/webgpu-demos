@@ -148,77 +148,66 @@ function makeNodeCoreMaterial(hexColor: number, phase: number) {
   return mat;
 }
 
-function makeNodeHaloMaterial(hexColor: number, phase: number, layer: number) {
+// Shared halo material for selected/hovered node
+const sharedGraphHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
 
-  const layerFade = float(1.0).sub(float(layer).mul(0.3));
-  const pulse = oscSine(time.mul(0.8).add(float(phase))).mul(0.3).add(0.7);
+  const pulse = oscSine(time.mul(0.8)).mul(0.3).add(0.7);
 
   const fresnel = Fn(() => {
     const viewDir = cameraPosition.sub(positionWorld).normalize();
     const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(float(1.5).add(float(layer).mul(0.5)));
+    return float(1.0).sub(nDotV).pow(1.5);
   });
 
-  const glowColor = color(hexColor);
-  mat.opacityNode = fresnel().mul(pulse).mul(layerFade).mul(0.5);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel().mul(pulse).mul(layerFade).mul(3.0));
+  mat.opacityNode = fresnel().mul(pulse).mul(0.5);
+  mat.colorNode = color(0xffffff);
+  mat.emissiveNode = color(0xffffff).mul(fresnel().mul(pulse).mul(3.0));
 
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
   return mat;
-}
+})();
 
-function makeEdgeMaterial(hexColor: number, _edgeIdx: number) {
+// Shared edge materials: one normal, one highlighted
+const sharedEdgeNormalMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.depthWrite = false;
 
-  // Flowing brightness pattern along the edge
-  const flow = oscSine(
-    positionLocal.y.mul(3.0).add(time.mul(2.0)).add(float(_edgeIdx).mul(0.5)),
-  )
+  const flow = oscSine(positionLocal.y.mul(3.0).add(time.mul(2.0)))
     .mul(0.5)
     .add(0.5);
 
-  const baseColor = color(hexColor);
-  mat.colorNode = baseColor;
-  mat.emissiveNode = baseColor.mul(flow.mul(2.5));
+  mat.colorNode = color(0x6688aa);
+  mat.emissiveNode = color(0x6688aa).mul(flow.mul(2.5));
   mat.opacityNode = float(0.15);
-
   mat.roughness = 0.3;
   mat.metalness = 0.1;
-
   return mat;
-}
+})();
 
-function makeEdgeMaterialHighlighted(hexColor: number, _edgeIdx: number) {
+const sharedEdgeHighlightMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.depthWrite = false;
 
-  const flow = oscSine(
-    positionLocal.y.mul(4.0).add(time.mul(3.0)).add(float(_edgeIdx).mul(0.5)),
-  )
+  const flow = oscSine(positionLocal.y.mul(4.0).add(time.mul(3.0)))
     .mul(0.5)
     .add(0.5);
 
-  const baseColor = color(hexColor);
-  mat.colorNode = baseColor;
-  mat.emissiveNode = baseColor.mul(flow.mul(4.0).add(1.0));
+  mat.colorNode = color(0x88bbff);
+  mat.emissiveNode = color(0x88bbff).mul(flow.mul(4.0).add(1.0));
   mat.opacityNode = float(0.9);
-
   mat.roughness = 0.2;
   mat.metalness = 0.2;
-
   return mat;
-}
+})();
 
 function makeBackgroundMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
@@ -236,41 +225,7 @@ function makeBackgroundMaterial() {
   return mat;
 }
 
-function makeParticleMaterial() {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-  mat.depthWrite = false;
-  mat.blending = THREE.AdditiveBlending;
-
-  const drift = oscSine(time.mul(0.5).add(positionLocal.x.mul(10.0)))
-    .mul(0.4)
-    .add(0.6);
-  mat.colorNode = color(0x4466aa);
-  mat.emissiveNode = color(0x4466aa).mul(drift.mul(1.5));
-  mat.opacityNode = float(0.25).mul(drift);
-
-  mat.roughness = 0.0;
-  mat.metalness = 0.0;
-
-  return mat;
-}
-
-function makeShockwaveMaterial() {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-  mat.depthWrite = false;
-  mat.blending = THREE.AdditiveBlending;
-  mat.side = THREE.DoubleSide;
-
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(2.0);
-  mat.opacityNode = float(0.6);
-
-  mat.roughness = 0.0;
-  mat.metalness = 0.0;
-
-  return mat;
-}
+// (makeParticleMaterial and makeShockwaveMaterial removed for performance)
 
 // ── Edge cylinder helpers ──
 
@@ -358,16 +313,7 @@ function GraphNode({
     return makeNodeCoreMaterial(hexColor, phase);
   }, [hexColor, phase]);
 
-  // Halo materials: root gets 2 shells, others get 1
-  const haloMats = useMemo(() => {
-    const mats = [makeNodeHaloMaterial(hexColor, phase, 0)];
-    if (isRoot) {
-      mats.push(makeNodeHaloMaterial(hexColor, phase, 1));
-    }
-    return mats;
-  }, [hexColor, phase, isRoot]);
-
-  const haloScales = isRoot ? [1.4, 1.7] : [1.3];
+  // Halo only on selected/hovered (shared material)
 
   useFrame(({ clock }) => {
     const group = groupRef.current;
@@ -386,29 +332,6 @@ function GraphNode({
       group.scale.setScalar(1);
     }
 
-    // Adjust emissive intensity dynamically
-    const intensity = isSelected
-      ? 6.0
-      : isHovered
-        ? 4.0
-        : isConnectedToSelected
-          ? 2.5
-          : 1.0;
-
-    // Update core material emissive multiplier via uniform-like approach
-    // We scale the entire halo opacity to reflect selection state
-    for (const hMat of haloMats) {
-      const opacityMul = isSelected
-        ? 1.8
-        : isHovered
-          ? 1.4
-          : isConnectedToSelected
-            ? 1.0
-            : 0.6;
-      // We can't change TSL nodes at runtime, so we use the material's opacity property
-      hMat.opacity = opacityMul;
-    }
-
     // Dim non-connected nodes when something is selected
     if (selected !== null && !isSelected && !isConnectedToSelected) {
       coreMat.opacity = 0.4;
@@ -417,8 +340,6 @@ function GraphNode({
       coreMat.opacity = 1.0;
       coreMat.transparent = false;
     }
-
-    void intensity; // intensity is baked into TSL; dynamic dimming via opacity
   });
 
   return (
@@ -439,12 +360,12 @@ function GraphNode({
         <icosahedronGeometry args={[baseRadius, 3]} />
       </mesh>
 
-      {/* Halo shells */}
-      {haloMats.map((mat, i) => (
-        <mesh key={i} material={mat} scale={haloScales[i]} raycast={() => null}>
+      {/* Halo shell only on selected/hovered */}
+      {(isSelected || isHovered) && (
+        <mesh material={sharedGraphHaloMaterial} scale={1.4} raycast={() => null}>
           <icosahedronGeometry args={[baseRadius, 2]} />
         </mesh>
-      ))}
+      )}
 
       {/* Show label on hover or select */}
       {(isSelected || isHovered) && (
@@ -476,7 +397,7 @@ function GraphNode({
 
 function GraphEdge({
   edge,
-  edgeIndex,
+  edgeIndex: _edgeIndex,
   positions,
   selected,
   hovered,
@@ -487,6 +408,7 @@ function GraphEdge({
   selected: string | null;
   hovered: string | null;
 }) {
+  void _edgeIndex;
   const meshRef = useRef<THREE.Mesh>(null);
   const fromIdx = NODE_INDEX.get(edge.from)!;
   const toIdx = NODE_INDEX.get(edge.to)!;
@@ -497,24 +419,7 @@ function GraphEdge({
     hovered === edge.from ||
     hovered === edge.to;
 
-  // Blend source and target colors
-  const blendedHex = useMemo(() => {
-    const fromGroup = NODES[fromIdx].group;
-    const toGroup = NODES[toIdx].group;
-    const c1 = new THREE.Color(GROUP_COLORS[fromGroup] || '#888888');
-    const c2 = new THREE.Color(GROUP_COLORS[toGroup] || '#888888');
-    c1.lerp(c2, 0.5);
-    return c1.getHex();
-  }, [fromIdx, toIdx]);
-
-  const normalMat = useMemo(
-    () => makeEdgeMaterial(blendedHex, edgeIndex),
-    [blendedHex, edgeIndex],
-  );
-  const highlightMat = useMemo(
-    () => makeEdgeMaterialHighlighted(blendedHex, edgeIndex),
-    [blendedHex, edgeIndex],
-  );
+  // Shared edge materials (no per-edge allocation)
 
   useFrame(() => {
     const mesh = meshRef.current;
@@ -531,121 +436,20 @@ function GraphEdge({
     positionEdgeCylinder(mesh, sx, sy, sz, tx, ty, tz, radiusScale);
 
     // Swap material based on highlight state
-    const targetMat = isHighlighted ? highlightMat : normalMat;
+    const targetMat = isHighlighted ? sharedEdgeHighlightMaterial : sharedEdgeNormalMaterial;
     if (mesh.material !== targetMat) {
       mesh.material = targetMat;
     }
   });
 
   return (
-    <mesh ref={meshRef} material={normalMat} raycast={() => null}>
+    <mesh ref={meshRef} material={sharedEdgeNormalMaterial} raycast={() => null}>
       <cylinderGeometry args={[0.015, 0.015, 1, 6, 1]} />
     </mesh>
   );
 }
 
-function ShockwaveRing({
-  position,
-  active,
-}: {
-  position: THREE.Vector3;
-  active: boolean;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const startTimeRef = useRef(0);
-  const isActiveRef = useRef(false);
-
-  const mat = useMemo(() => makeShockwaveMaterial(), []);
-
-  useFrame(({ clock }) => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-
-    if (active && !isActiveRef.current) {
-      // Trigger new shockwave
-      isActiveRef.current = true;
-      startTimeRef.current = clock.getElapsedTime();
-    }
-    if (!active) {
-      isActiveRef.current = false;
-      mesh.visible = false;
-      return;
-    }
-
-    const elapsed = clock.getElapsedTime() - startTimeRef.current;
-    const duration = 0.8;
-
-    if (elapsed > duration) {
-      mesh.visible = false;
-      return;
-    }
-
-    const progress = elapsed / duration;
-    const scale = 0.1 + progress * 3.0;
-    mesh.visible = true;
-    mesh.position.copy(position);
-    mesh.scale.set(scale, scale, scale);
-    mat.opacity = (1.0 - progress) * 0.6;
-  });
-
-  return (
-    <mesh ref={meshRef} material={mat} visible={false} raycast={() => null}>
-      <torusGeometry args={[0.5, 0.03, 8, 32]} />
-    </mesh>
-  );
-}
-
-function AmbientParticles() {
-  const particleMat = useMemo(() => makeParticleMaterial(), []);
-  const particleData = useMemo(() => {
-    const data: { pos: [number, number, number]; speed: number }[] = [];
-    for (let i = 0; i < 35; i++) {
-      data.push({
-        pos: [
-          (Math.random() - 0.5) * 16,
-          (Math.random() - 0.5) * 16,
-          (Math.random() - 0.5) * 16,
-        ],
-        speed: 0.1 + Math.random() * 0.3,
-      });
-    }
-    return data;
-  }, []);
-
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
-
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-    for (let i = 0; i < particleData.length; i++) {
-      const mesh = meshRefs.current[i];
-      if (!mesh) continue;
-      const p = particleData[i];
-      mesh.position.set(
-        p.pos[0] + Math.sin(t * p.speed + i) * 0.5,
-        p.pos[1] + Math.cos(t * p.speed * 0.7 + i * 2) * 0.5,
-        p.pos[2] + Math.sin(t * p.speed * 0.5 + i * 3) * 0.5,
-      );
-    }
-  });
-
-  return (
-    <>
-      {particleData.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => {
-            meshRefs.current[i] = el;
-          }}
-          position={p.pos}
-          material={particleMat}
-          raycast={() => null}
-        >
-          <icosahedronGeometry args={[0.02, 0]} />
-        </mesh>
-      ))}
-    </>
-  );
-}
+// (ShockwaveRing and AmbientParticles removed for performance)
 
 function GroupClusterLights({ positions }: { positions: Float32Array }) {
   // Compute average position per group for cluster lights
@@ -702,10 +506,6 @@ export default function DependencyGraph3D() {
   const cameraTarget = useRef(new THREE.Vector3(0, 3, 8));
   const cameraLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
-  // Shockwave state
-  const shockwavePos = useRef(new THREE.Vector3(0, 0, 0));
-  const [shockwaveActive, setShockwaveActive] = useState(false);
-
   // Background material
   const bgMat = useMemo(() => makeBackgroundMaterial(), []);
 
@@ -713,7 +513,6 @@ export default function DependencyGraph3D() {
     (id: string) => {
       if (selected === id) {
         setSelected(null);
-        setShockwaveActive(false);
         cameraTarget.current.set(0, 3, 8);
         cameraLookAt.current.set(0, 0, 0);
       } else {
@@ -723,11 +522,6 @@ export default function DependencyGraph3D() {
         const nx = pos[idx * 3];
         const ny = pos[idx * 3 + 1];
         const nz = pos[idx * 3 + 2];
-        // Trigger shockwave
-        shockwavePos.current.set(nx, ny, nz);
-        setShockwaveActive(false);
-        // Force re-trigger by toggling
-        requestAnimationFrame(() => setShockwaveActive(true));
         // Position camera 3 units back from node
         const dir = new THREE.Vector3(nx, ny, nz).normalize();
         cameraTarget.current.set(
@@ -751,7 +545,6 @@ export default function DependencyGraph3D() {
 
   const handleMiss = useCallback(() => {
     setSelected(null);
-    setShockwaveActive(false);
     cameraTarget.current.set(0, 3, 8);
     cameraLookAt.current.set(0, 0, 0);
   }, []);
@@ -860,9 +653,6 @@ export default function DependencyGraph3D() {
         <sphereGeometry args={[40, 32, 32]} />
       </mesh>
 
-      {/* Ambient floating particles */}
-      <AmbientParticles />
-
       {/* Background plane for click-to-deselect */}
       <mesh
         position={[0, 0, -15]}
@@ -871,9 +661,6 @@ export default function DependencyGraph3D() {
       >
         <planeGeometry args={[100, 100]} />
       </mesh>
-
-      {/* Shockwave ring */}
-      <ShockwaveRing position={shockwavePos.current} active={shockwaveActive} />
 
       <group ref={groupRef}>
         {/* Cluster lights */}
