@@ -381,6 +381,22 @@ export const demos: DemoEntry[] = [
     color: '#bb8844',
     component: lazy(() => import('../demos/gladiator-arena')),
   },
+  {
+    name: 'lava-planet',
+    title: 'Lava Planet',
+    description: 'Molten planet with hash-noise lava cracks, pulsing emissive pools, 3 atmospheric halo shells, and 250 orbiting debris rocks',
+    requiresWebGPU: false,
+    color: '#ff3300',
+    component: lazy(() => import('../demos/lava-planet')),
+  },
+  {
+    name: 'cyber-tunnel',
+    title: 'Cyber Tunnel',
+    description: 'Infinite hexagonal tunnel fly-through with SDF raymarching, neon ring lights, cycling colors, and radial speed lines',
+    requiresWebGPU: false,
+    color: '#ff22cc',
+    component: lazy(() => import('../demos/cyber-tunnel')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
