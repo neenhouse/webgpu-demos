@@ -381,6 +381,22 @@ export const demos: DemoEntry[] = [
     color: '#bb8844',
     component: lazy(() => import('../demos/gladiator-arena')),
   },
+  {
+    name: 'cosmic-jellyfish',
+    title: 'Cosmic Jellyfish',
+    description: 'Bioluminescent space jellyfish with bone-animated tentacles, volumetric dome, bloom halos, and compute-driven particle trails',
+    requiresWebGPU: true,
+    color: '#00eebb',
+    component: lazy(() => import('../demos/cosmic-jellyfish')),
+  },
+  {
+    name: 'digital-storm',
+    title: 'Digital Storm',
+    description: 'Full-viewport storm with compute wind-driven rain, fractal lightning branches, SDF cloud layer, and ambient flash bloom',
+    requiresWebGPU: true,
+    color: '#5533bb',
+    component: lazy(() => import('../demos/digital-storm')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
