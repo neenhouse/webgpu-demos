@@ -30,11 +30,14 @@ Uses Choo Choo Ralph loops to generate demos in batches, each exploring:
 
 ## Demo Types
 
-### Effect Demos (35)
-Self-contained scenes at `/viewer#demo-name` showcasing individual WebGPU capabilities (TSL materials, compute shaders, SDF, etc.). Each is a single `index.tsx` in `src/demos/<name>/`.
+### Effect Demos (55)
+Self-contained scenes at `/viewer#demo-name` showcasing individual WebGPU capabilities (TSL materials, compute shaders, SDF, emergent simulations). Each is a single `index.tsx` in `src/demos/<name>/`.
 
 ### Scene Demos (11)
 Rendered from YAML scene files via the model pipeline at `/viewer#demo-name`. Each is a thin wrapper calling `<SceneFromYaml scenePath="/scenes/<name>.scene.yaml" />`. Scene YAML files live in `public/scenes/`.
+
+### Interactive Data Viz Demos (10)
+Structured data rendered as interactive 3D scenes with click-to-navigate, camera transitions, Html overlays, and sidebar UI. Use simple property-based materials (no TSL Fn() overhead) for fast loading. Pattern: forge-lifecycle, architecture-blueprint, etc.
 
 ## Model Pipeline
 

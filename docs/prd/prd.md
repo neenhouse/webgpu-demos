@@ -1,26 +1,30 @@
 ---
 title: WebGPU Demos Product Requirements
 status: ACTIVE
-last_updated: 2026-03-24
+last_updated: 2026-03-28
 ---
 
 # WebGPU Demos — Product Requirements
 
 ## Executive Summary
 
-A gallery of WebGPU experiments built with Three.js WebGPURenderer. Each demo is a self-contained scene showcasing a single WebGPU capability — compute shaders, TSL materials, GPU particles, procedural terrain. The project is at concept stage: scaffold and CI are in place, but no demos or gallery UI exist yet. Priority is proving the WebGPURenderer + R3F integration works, then building the gallery shell and first batch of demos.
+A gallery of 76 WebGPU experiments built with Three.js WebGPURenderer. Each demo is a self-contained scene showcasing WebGPU capabilities — compute shaders, TSL materials, GPU particles, procedural worlds, emergent simulations, and interactive data visualizations. Five batch generation cycles complete, plus a scene pipeline for YAML-driven demos. CI deploys to Cloudflare Pages.
 
 ## Feature Inventory
 
 | # | Feature | Status | Prove-First | Notes |
 |---|---------|--------|-------------|-------|
 | 1 | Demo viewer | COMPLETE | PROVEN | WebGPURenderer + R3F Canvas, orbit controls, hash routing, overlay |
-| 2 | Demo gallery | COMPLETE | | Responsive grid with accent-colored cards |
+| 2 | Demo gallery | COMPLETE | | Responsive grid with accent-colored cards, scrollable |
 | 3 | WebGPU detection | COMPLETE | | Auto-fallback to WebGL with notice banner |
-| 4 | Demo templates | COMPLETE | | 46 demos: 15 original + 20 batch-generated + 3 pipeline test/showcase + 8 scene demos |
-| 5 | Batch generation | COMPLETE | | 2 batches run (20 demos), Ralph spec + learnings file mature |
+| 4 | Demo templates | COMPLETE | | 76 demos across 5 batches + scene pipeline demos |
+| 5 | Batch generation | COMPLETE | | 5 batches run, Ralph spec + learnings file mature |
+| 6 | Extractable scene spec | COMPLETE | | Engine-agnostic YAML scene pipeline spec v1.0 |
 | 7 | Model pipeline | COMPLETE | | Scene spec, 5 generator tiers, 14 material presets, prefabs, LOD, optimizer, editor |
-| 8 | Scene demos | COMPLETE | | 10 scene-based demos rendered from YAML via SceneFromYaml pipeline |
+| 8 | Scene demos | COMPLETE | | 11 scene-based demos rendered from YAML via SceneFromYaml pipeline |
+| 9 | Emergent systems (Batch 4) | COMPLETE | | 10 demos: boids, reaction-diffusion, cellular automata, terrain erosion, gravitational orbits, etc. |
+| 10 | Interactive data viz (Batch 5) | COMPLETE | | 10 demos: forge-lifecycle, architecture-blueprint, decision-forest, neural-pipeline, state-machine, etc. |
+| 11 | Interactive UI overlays | COMPLETE | | Instructions panel + clickable sidebar on all data viz demos |
 
 ## Active Requirements
 
@@ -68,12 +72,40 @@ Detect WebGPU support and gracefully fall back to WebGL.
 - [x] **REQ-11**: Per-demo compatibility `COMPLETE`
   - AC: Demos that require compute shaders show "Requires WebGPU" when running in WebGL mode
 
-| 6 | Extractable scene spec | COMPLETE | | Engine-agnostic YAML scene pipeline spec v1.0 at `docs/spec/scene-pipeline-spec-v1.md` |
+### 9. Emergent Systems — Batch 4 (2026-03-28)
+
+10 demos exploring simulation, emergent behavior, and advanced compute:
+
+- [x] **REQ-12**: GPU compute simulations (reaction-diffusion, cellular-life, terrain-erosion) `COMPLETE`
+- [x] **REQ-13**: Flocking/N-body (boids-murmuration, gravitational-orbits) `COMPLETE`
+- [x] **REQ-14**: Pure TSL effects (interference-waves, voronoi-shatter, sdf-morphscape) `COMPLETE`
+- [x] **REQ-15**: Physics visualization (pendulum-wave, smoke-tendrils) `COMPLETE`
+
+### 10. Interactive Data Visualization — Batch 5 (2026-03-28)
+
+10 demos rendering structured data as interactive 3D scenes — first demos with click handling:
+
+- [x] **REQ-16**: Click-to-navigate interactivity (onClick, onPointerOver mesh events) `COMPLETE`
+- [x] **REQ-17**: Smooth camera transitions (camera.position.lerp in useFrame) `COMPLETE`
+- [x] **REQ-18**: drei Html overlays for labels and UI panels `COMPLETE`
+- [x] **REQ-19**: Structured data → 3D layout (graphs, trees, pipelines, timelines, terrain) `COMPLETE`
+- [x] **REQ-20**: Instructions + sidebar UI on all data viz demos `COMPLETE`
+- [x] **REQ-21**: Customer request trace animation (architecture-blueprint) `COMPLETE`
+
+**Demos**: forge-lifecycle, decision-forest, dependency-graph-3d, code-constellation, neural-pipeline-flow, data-flow-pipes, state-machine-3d, architecture-blueprint, timeline-helix, metric-terrain
+
+### 11. Performance Optimization (2026-03-28)
+
+- [x] **REQ-22**: Simple property-based materials for data viz demos (no TSL Fn() overhead) `COMPLETE`
+  - AC: Data viz demos use .color/.emissive/.emissiveIntensity — zero shader compilation
+  - Learning: TSL complexity is for shader art demos, not data viz. Halos on every node kill performance.
 
 ## Intent Backlog
 
-- **Demo templates (5+ types)**: Compute particle systems, TSL custom materials, GPU-driven terrain, post-processing with compute, instanced geometry. Each template is a self-contained demo that can be batch-generated with variations.
-- **Batch generation workflow**: Choo Choo Ralph spec for autonomous demo creation. Given a demo type and variation parameters, generates a new demo directory with scene, metadata, and thumbnail.
+- **Thumbnails/screenshots**: Auto-capture preview images for gallery cards
+- **Search/filter**: Tag-based filtering in gallery (by technique: TSL, compute, interactive, etc.)
+- **Per-demo parameter controls**: Sliders for speed, color, density in shader demos
+- **Performance dashboard**: FPS/GPU timing overlay comparing WebGPU vs WebGL
 
 ## Technical Reference
 
