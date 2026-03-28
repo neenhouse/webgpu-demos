@@ -17,6 +17,7 @@ import {
   vec3,
   vec4,
   uv,
+  sin,
 } from 'three/tsl';
 
 /**
@@ -90,13 +91,17 @@ function makeAccretionDiskMaterial() {
   const c2 = mix(c1, midHot, smoothstep(0.25, 0.55, innerFactor));
   const c3 = mix(c2, innerHot, smoothstep(0.5, 0.85, innerFactor));
 
-  // Modulate color by turbulence for variation
-  const diskColor = mix(c3, c3.mul(turb.mul(0.5).add(0.7)), 0.4);
+  // Concentric ring bands — domain repetition for orbital structure
+  const ringWave = sin(meshUV.x.mul(20.0).sub(time.mul(2.0)));
+  const ringBands = smoothstep(-0.2, 0.3, ringWave).mul(0.5).add(0.5);
+
+  // Modulate color by turbulence and ring bands for variation
+  const diskColor = mix(c3, c3.mul(turb.mul(0.5).add(0.7)), 0.4).mul(ringBands);
 
   mat.colorNode = diskColor;
 
-  // Emissive: strong glow, brighter at inner edge
-  const emissiveStrength = innerFactor.mul(3.0).add(0.5).mul(turb.mul(0.4).add(0.6));
+  // Emissive: strong glow, brighter at inner edge, modulated by ring bands
+  const emissiveStrength = innerFactor.mul(3.0).add(0.5).mul(turb.mul(0.4).add(0.6)).mul(ringBands);
   mat.emissiveNode = diskColor.mul(emissiveStrength);
 
   // Opacity: brightest near equator of tube cross-section (top/bottom visible parts)
