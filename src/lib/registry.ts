@@ -366,6 +366,14 @@ export const demos: DemoEntry[] = [
     component: lazy(() => import('../demos/crystal-cavern')),
   },
   {
+    name: 'time-vortex',
+    title: 'Time Vortex',
+    description: 'Spiraling temporal distortion with SDF vortex funnel, compute-driven particles, clock elements, gravitational UV warping, and bloom halos',
+    requiresWebGPU: true,
+    color: '#ddaa33',
+    component: lazy(() => import('../demos/time-vortex')),
+  },
+  {
     name: 'enchanted-forest',
     title: 'Enchanted Forest',
     description: 'Magical woodland with giant glowing mushrooms, dense trees, mossy boulders, and ancient stone arch',
