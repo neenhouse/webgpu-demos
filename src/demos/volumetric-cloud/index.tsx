@@ -44,8 +44,10 @@ function makeShellMaterial(layer: number, totalLayers: number) {
   const layerNorm = layer / (totalLayers - 1); // 0 = innermost, 1 = outermost
   const layerF = float(layerNorm);
 
-  // Animated time offset per layer for swirling
-  const timeOffset = time.mul(0.25).add(float(layer).mul(0.3));
+  // Per-octave time multipliers for turbulent, non-repetitive cloud evolution
+  const t1 = time.mul(0.8).add(float(layer).mul(0.3));
+  const t2 = time.mul(0.6).add(float(layer).mul(0.5));
+  const t3 = time.mul(1.1).add(float(layer).mul(0.2));
 
   // Multi-octave noise function for cloud density via Fn()
   const cloudDensity = Fn(() => {
@@ -53,10 +55,10 @@ function makeShellMaterial(layer: number, totalLayers: number) {
     const freq = float(4.0 + layer * 2.5);
     const p = positionWorld.mul(freq);
 
-    // Three octaves of hash noise with animated offsets
-    const offset1 = vec3(timeOffset, timeOffset.mul(0.7), timeOffset.mul(1.3));
-    const offset2 = vec3(timeOffset.mul(1.4), float(5.0), timeOffset.mul(0.8));
-    const offset3 = vec3(float(10.0), timeOffset.mul(1.8), timeOffset.mul(0.5));
+    // Three octaves of hash noise with independent per-octave time offsets
+    const offset1 = vec3(t1, t1.mul(0.7), t1.mul(1.3));
+    const offset2 = vec3(t2.mul(1.4), float(5.0), t2.mul(0.8));
+    const offset3 = vec3(float(10.0), t3.mul(1.8), t3.mul(0.5));
 
     const n1 = hash(p.add(offset1));
     const n2 = hash(p.mul(2.3).add(offset2));
