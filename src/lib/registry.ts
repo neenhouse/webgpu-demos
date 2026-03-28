@@ -381,6 +381,22 @@ export const demos: DemoEntry[] = [
     color: '#bb8844',
     component: lazy(() => import('../demos/gladiator-arena')),
   },
+  {
+    name: 'quantum-field',
+    title: 'Quantum Field',
+    description: '8000 compute-driven particles forming a probability cloud with periodic wave function collapse, volumetric density shells, and screen-space measurement grid',
+    requiresWebGPU: true,
+    color: '#3366ff',
+    component: lazy(() => import('../demos/quantum-field')),
+  },
+  {
+    name: 'phoenix-rising',
+    title: 'Phoenix Rising',
+    description: 'Flaming phoenix with bone-animated wings, hash noise dissolve fire, 1500 instanced fire particles, falling ash, and bloom halo shells',
+    requiresWebGPU: false,
+    color: '#ff4400',
+    component: lazy(() => import('../demos/phoenix-rising')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
