@@ -358,6 +358,22 @@ export const demos: DemoEntry[] = [
     component: lazy(() => import('../demos/robot-factory')),
   },
   {
+    name: 'crystal-cavern',
+    title: 'Crystal Cavern',
+    description: 'Underground cave with glowing crystal clusters, hash-noise cave walls, fresnel refraction, bloom halos, and colored point lights',
+    requiresWebGPU: false,
+    color: '#9944cc',
+    component: lazy(() => import('../demos/crystal-cavern')),
+  },
+  {
+    name: 'time-vortex',
+    title: 'Time Vortex',
+    description: 'Spiraling temporal distortion with SDF vortex funnel, compute-driven particles, clock elements, gravitational UV warping, and bloom halos',
+    requiresWebGPU: true,
+    color: '#ddaa33',
+    component: lazy(() => import('../demos/time-vortex')),
+  },
+  {
     name: 'enchanted-forest',
     title: 'Enchanted Forest',
     description: 'Magical woodland with giant glowing mushrooms, dense trees, mossy boulders, and ancient stone arch',
