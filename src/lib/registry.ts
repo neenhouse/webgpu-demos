@@ -358,6 +358,14 @@ export const demos: DemoEntry[] = [
     component: lazy(() => import('../demos/robot-factory')),
   },
   {
+    name: 'crystal-cavern',
+    title: 'Crystal Cavern',
+    description: 'Underground cave with glowing crystal clusters, hash-noise cave walls, fresnel refraction, bloom halos, and colored point lights',
+    requiresWebGPU: false,
+    color: '#9944cc',
+    component: lazy(() => import('../demos/crystal-cavern')),
+  },
+  {
     name: 'enchanted-forest',
     title: 'Enchanted Forest',
     description: 'Magical woodland with giant glowing mushrooms, dense trees, mossy boulders, and ancient stone arch',
