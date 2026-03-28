@@ -2,19 +2,7 @@ import { useState, useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import { Html } from '@react-three/drei';
-import {
-  color,
-  float,
-  time,
-  oscSine,
-  normalWorld,
-  cameraPosition,
-  positionWorld,
-  positionLocal,
-  Fn,
-  hash,
-  mix,
-} from 'three/tsl';
+// TSL imports removed — simple property-based materials used for performance
 
 /**
  * Code Constellation
@@ -157,27 +145,9 @@ function getSharedStarCoreMaterial(hexColor: number): THREE.MeshStandardNodeMate
   if (sharedStarCoreMaterials.has(hexColor)) return sharedStarCoreMaterials.get(hexColor)!;
 
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  // Twinkle using position hash for variation
-  const twinkle = oscSine(time.mul(2.0).add(hash(positionLocal.mul(10.0)).mul(6.28)))
-    .mul(0.4)
-    .add(0.6);
-
-  // Hash noise for surface detail
-  const surfaceNoise = hash(positionLocal.mul(30.0)).mul(0.1).add(0.9);
-
-  mat.colorNode = color(hexColor).mul(surfaceNoise);
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  const coreEmissive = color(hexColor).mul(twinkle.mul(3.0));
-  const rimEmissive = color(0xffffff).mul(fresnel()).mul(twinkle.mul(2.0));
-  mat.emissiveNode = coreEmissive.add(rimEmissive);
-
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 1.5;
   mat.roughness = 0.1;
   mat.metalness = 0.2;
 
@@ -191,69 +161,41 @@ function getSharedStarCoreMaterial(hexColor: number): THREE.MeshStandardNodeMate
 const sharedStarHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.4;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const twinkle = oscSine(time.mul(2.0)).mul(0.3).add(0.7);
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(1.5);
-  });
-
-  mat.opacityNode = fresnel().mul(twinkle).mul(0.6);
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(fresnel().mul(twinkle).mul(4.0));
-
+  mat.color = new THREE.Color(0xffffff);
+  mat.emissive = new THREE.Color(0xffffff);
+  mat.emissiveIntensity = 3.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
-
   return mat;
 })();
 
-function makeConnectionMaterial(hexColor: number, connIdx: number) {
+function makeConnectionMaterial(hexColor: number, _connIdx: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.12;
   mat.depthWrite = false;
-
-  const flow = oscSine(
-    positionLocal.y.mul(4.0).add(time.mul(2.5)).add(float(connIdx).mul(0.7)),
-  )
-    .mul(0.5)
-    .add(0.5);
-
-  const baseColor = color(hexColor);
-  mat.colorNode = baseColor;
-  mat.emissiveNode = baseColor.mul(flow.mul(2.0));
-  mat.opacityNode = float(0.12);
-
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 0.5;
   mat.roughness = 0.3;
   mat.metalness = 0.1;
-
   return mat;
 }
 
-function makeConnectionMaterialHighlighted(hexColor: number, connIdx: number) {
+function makeConnectionMaterialHighlighted(hexColor: number, _connIdx: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.7;
   mat.depthWrite = false;
-
-  const flow = oscSine(
-    positionLocal.y.mul(5.0).add(time.mul(3.5)).add(float(connIdx).mul(0.7)),
-  )
-    .mul(0.5)
-    .add(0.5);
-
-  const baseColor = color(hexColor);
-  mat.colorNode = baseColor;
-  mat.emissiveNode = baseColor.mul(flow.mul(5.0).add(1.5));
-  mat.opacityNode = float(0.7).add(flow.mul(0.25));
-
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 3.0;
   mat.roughness = 0.2;
   mat.metalness = 0.2;
-
   return mat;
 }
 
@@ -262,17 +204,11 @@ function makeConnectionMaterialHighlighted(hexColor: number, connIdx: number) {
 function makeBackgroundMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.side = THREE.BackSide;
-
-  // Simple dark blue gradient (procedural starfield removed)
-  const vertGrad = positionLocal.normalize().y.mul(0.5).add(0.5);
-  const bgColor = mix(color(0x020210), color(0x060625), vertGrad);
-
-  mat.colorNode = bgColor;
-  mat.emissiveNode = bgColor.mul(0.05);
-
+  mat.color = new THREE.Color(0x040418);
+  mat.emissive = new THREE.Color(0x020210);
+  mat.emissiveIntensity = 0.05;
   mat.roughness = 1.0;
   mat.metalness = 0.0;
-
   return mat;
 }
 

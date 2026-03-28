@@ -2,21 +2,6 @@ import { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  color,
-  float,
-  mix,
-  smoothstep,
-  time,
-  positionLocal,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  oscSine,
-  vec3,
-} from 'three/tsl';
 
 /**
  * State Machine 3D
@@ -112,43 +97,23 @@ function sampleBezier(
   return points;
 }
 
-// ── TSL Material Factories ──
+// ── Simple Material Factories ──
 
 function makePlatformMaterial(hexColor: number, mode: 'active' | 'reachable' | 'dim') {
   const mat = new THREE.MeshStandardNodeMaterial();
 
-  const baseCol = color(hexColor);
-
-  // Fresnel rim glow
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  // Animated hash noise energy field on the surface
-  const noisePattern = Fn(() => {
-    const n1 = hash(positionLocal.mul(8.0).add(time.mul(0.3)));
-    const n2 = hash(positionLocal.mul(16.0).sub(time.mul(0.5)));
-    return n1.mul(0.6).add(n2.mul(0.4));
-  });
-
   if (mode === 'active') {
-    // Bright pulsing emissive with noise field
-    const pulse = oscSine(time.mul(1.5)).mul(0.4).add(0.8);
-    mat.colorNode = mix(baseCol.mul(0.4), baseCol, noisePattern().mul(0.5).add(0.5));
-    const rimEmissive = baseCol.mul(fresnel()).mul(3.0);
-    const coreEmissive = baseCol.mul(pulse).mul(2.5);
-    const noiseEmissive = baseCol.mul(noisePattern()).mul(pulse).mul(0.8);
-    mat.emissiveNode = coreEmissive.add(rimEmissive).add(noiseEmissive);
+    mat.color = new THREE.Color(hexColor);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 1.5;
   } else if (mode === 'reachable') {
-    mat.colorNode = mix(baseCol.mul(0.2), baseCol, noisePattern().mul(0.3));
-    const rimEmissive = baseCol.mul(fresnel()).mul(1.5);
-    const coreEmissive = baseCol.mul(0.5);
-    mat.emissiveNode = coreEmissive.add(rimEmissive);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.5);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 0.5;
   } else {
-    mat.colorNode = baseCol.mul(0.1);
-    mat.emissiveNode = baseCol.mul(0.1);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.1);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 0.1;
     mat.transparent = true;
     mat.opacity = 0.6;
   }
@@ -166,19 +131,11 @@ function makeHaloShellMaterial(hexColor: number, layer: number) {
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
 
-  const layerFade = float(1.0).sub(float(layer).mul(0.35));
-  const pulse = oscSine(time.mul(1.2).add(float(layer).mul(0.5))).mul(0.3).add(0.7);
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(float(1.5).add(float(layer).mul(0.5)));
-  });
-
-  const glowColor = color(hexColor);
-  mat.opacityNode = fresnel().mul(pulse).mul(layerFade).mul(0.5);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel().mul(pulse).mul(layerFade).mul(3.0));
+  const layerFade = 1.0 - layer * 0.35;
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 1.5 * layerFade;
+  mat.opacity = 0.25 * layerFade;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -189,23 +146,16 @@ function makeArrowMaterial(hexColor: number, isReachable: boolean) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
 
-  const baseCol = color(hexColor);
-
   if (isReachable) {
-    // Scrolling flow pattern along the arrow
-    const flow = Fn(() => {
-      const scroll = positionLocal.y.mul(4.0).sub(time.mul(2.0));
-      const pattern = smoothstep(float(0.3), float(0.7), hash(scroll.floor()));
-      return pattern;
-    });
-
-    mat.colorNode = baseCol.mul(0.5);
-    mat.emissiveNode = baseCol.mul(flow()).mul(1.5).add(baseCol.mul(0.5));
-    mat.opacityNode = float(0.7);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.5);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 0.8;
+    mat.opacity = 0.7;
   } else {
-    mat.colorNode = baseCol.mul(0.05);
-    mat.emissiveNode = baseCol.mul(0.05);
-    mat.opacityNode = float(0.08);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.05);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 0.05;
+    mat.opacity = 0.08;
   }
 
   mat.roughness = 0.4;
@@ -216,18 +166,9 @@ function makeArrowMaterial(hexColor: number, isReachable: boolean) {
 
 function makeOrbitalRingMaterial(hexColor: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  const pulse = oscSine(time.mul(2.0)).mul(0.3).add(0.7);
-  const baseCol = color(hexColor);
-
-  mat.colorNode = baseCol;
-  mat.emissiveNode = baseCol.mul(pulse).mul(3.0).add(baseCol.mul(fresnel()).mul(2.0));
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 2.0;
   mat.transparent = true;
   mat.opacity = 0.9;
   mat.roughness = 0.0;
@@ -242,17 +183,10 @@ function makeOrbitalHaloMaterial(hexColor: number) {
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(1.5);
-  });
-
-  const glowColor = color(hexColor);
-  mat.opacityNode = fresnel().mul(0.4);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel()).mul(3.0);
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.25;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -265,10 +199,9 @@ function makeShockwaveMaterial(hexColor: number) {
   mat.side = THREE.DoubleSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const baseCol = color(hexColor);
-  mat.colorNode = baseCol;
-  mat.emissiveNode = baseCol.mul(4.0);
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 4.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -280,11 +213,9 @@ function makeParticleMaterial(hexColor: number) {
   mat.transparent = true;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const baseCol = color(hexColor);
-  const pulse = oscSine(time.mul(4.0)).mul(0.3).add(0.7);
-  mat.colorNode = baseCol;
-  mat.emissiveNode = baseCol.mul(pulse).mul(4.0);
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 3.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -293,19 +224,9 @@ function makeParticleMaterial(hexColor: number) {
 
 function makeGridFloorMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const gridPattern = Fn(() => {
-    const scale = float(0.5);
-    const gx = smoothstep(float(0.92), float(0.95), positionLocal.x.mul(scale).fract());
-    const gy = smoothstep(float(0.92), float(0.95), positionLocal.y.mul(scale).fract());
-    return gx.add(gy).clamp(0.0, 1.0);
-  });
-
-  const base = vec3(0.01, 0.01, 0.03);
-  const gridCol = vec3(0.04, 0.06, 0.12);
-
-  mat.colorNode = mix(base, gridCol, gridPattern().mul(0.4));
-  mat.emissiveNode = mix(vec3(0, 0, 0), gridCol, gridPattern().mul(0.2));
+  mat.color = new THREE.Color(0x020208);
+  mat.emissive = new THREE.Color(0x0a0f1e);
+  mat.emissiveIntensity = 0.2;
   mat.roughness = 0.8;
   mat.metalness = 0.2;
 
@@ -368,15 +289,10 @@ function TransitionArrow({
     if (!arrow.isReachable) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    const baseCol = color(arrow.colorHex);
-    const flow = Fn(() => {
-      const scroll = positionLocal.y.mul(4.0).sub(time.mul(2.0));
-      const pattern = smoothstep(float(0.3), float(0.7), hash(scroll.floor()));
-      return pattern;
-    });
-    mat.colorNode = baseCol;
-    mat.emissiveNode = baseCol.mul(flow()).mul(3.0).add(baseCol.mul(1.5));
-    mat.opacityNode = float(1.0);
+    mat.color = new THREE.Color(arrow.colorHex);
+    mat.emissive = new THREE.Color(arrow.colorHex);
+    mat.emissiveIntensity = 2.0;
+    mat.opacity = 1.0;
     mat.roughness = 0.2;
     mat.metalness = 0.3;
     return mat;
@@ -464,10 +380,10 @@ function SelfLoopArrow({
     if (!isReachable) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    const baseCol = color(state.hex);
-    mat.colorNode = baseCol;
-    mat.emissiveNode = baseCol.mul(3.0);
-    mat.opacityNode = float(1.0);
+    mat.color = new THREE.Color(state.hex);
+    mat.emissive = new THREE.Color(state.hex);
+    mat.emissiveIntensity = 3.0;
+    mat.opacity = 1.0;
     mat.roughness = 0.2;
     mat.metalness = 0.3;
     return mat;
@@ -770,9 +686,9 @@ function AmbientFlowParticles({ arrows, time: currentTime }: { arrows: ArrowData
       mat.transparent = true;
       mat.depthWrite = false;
       mat.blending = THREE.AdditiveBlending;
-      const baseCol = color(arrow.colorHex);
-      mat.colorNode = baseCol;
-      mat.emissiveNode = baseCol.mul(2.5);
+      mat.color = new THREE.Color(arrow.colorHex);
+      mat.emissive = new THREE.Color(arrow.colorHex);
+      mat.emissiveIntensity = 2.5;
       mat.roughness = 0.0;
       mat.metalness = 0.0;
       return mat;
@@ -820,10 +736,10 @@ function GridFloor({ states, activeState }: { states: State[]; activeState: stri
           mat.transparent = true;
           mat.depthWrite = false;
           mat.blending = THREE.AdditiveBlending;
-          const baseCol = color(state.hex);
           const intensity = isActiveState ? 0.15 : 0.03;
-          mat.colorNode = baseCol.mul(intensity);
-          mat.emissiveNode = baseCol.mul(intensity * 0.5);
+          mat.color = new THREE.Color(state.hex).multiplyScalar(intensity);
+          mat.emissive = new THREE.Color(state.hex).multiplyScalar(intensity * 0.5);
+          mat.emissiveIntensity = 1.0;
           mat.roughness = 0.9;
           mat.metalness = 0.0;
           return mat;
@@ -991,17 +907,11 @@ export default function StateMachine3D() {
 
   const activeStateData = stateMap.get(activeState)!;
 
-  // Background gradient material
+  // Simple dark background material
   const bgMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
     mat.side = THREE.BackSide;
-    const bgColor = Fn(() => {
-      const bottom = vec3(0.02, 0.0, 0.06);
-      const top = vec3(0.0, 0.0, 0.01);
-      const yFactor = positionLocal.y.add(1.0).mul(0.5).clamp(0.0, 1.0);
-      return mix(bottom, top, yFactor);
-    });
-    mat.colorNode = bgColor();
+    mat.color = new THREE.Color(0x010003);
     return mat;
   }, []);
 

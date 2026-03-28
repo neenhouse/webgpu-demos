@@ -2,20 +2,6 @@ import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  color,
-  float,
-  time,
-  oscSine,
-  positionLocal,
-  normalWorld,
-  positionWorld,
-  cameraPosition,
-  Fn,
-  mix,
-  smoothstep,
-  fract,
-} from 'three/tsl';
 
 /**
  * Metric Terrain
@@ -100,13 +86,6 @@ function findPeaks(data: number[][]): PeakInfo[] {
   return peaks;
 }
 
-// ── TSL helper: fresnel ──
-
-const fresnelNode = Fn(() => {
-  const viewDir = cameraPosition.sub(positionWorld).normalize();
-  const nDotV = normalWorld.dot(viewDir).saturate();
-  return float(1.0).sub(nDotV).pow(2.0);
-});
 
 // ── Terrain mesh builder ──
 
@@ -151,57 +130,47 @@ function buildTerrainGeometry(data: number[][]): THREE.BufferGeometry {
     heights[i] = value;
   }
 
+  // Compute vertex colors based on height for terrain coloring (replacing TSL gradient)
+  const vertColors = new Float32Array(vertexCount * 3);
+  const stops = [
+    { h: 0.0, r: 0.04, g: 0.23, b: 0.16 },
+    { h: 0.25, r: 0.13, g: 0.67, b: 0.27 },
+    { h: 0.5, r: 0.87, g: 0.80, b: 0.13 },
+    { h: 0.75, r: 1.0, g: 0.40, b: 0.13 },
+    { h: 1.0, r: 1.0, g: 0.93, b: 0.80 },
+  ];
+  for (let i = 0; i < vertexCount; i++) {
+    const h = Math.max(0, Math.min(1, heights[i]));
+    let si = 0;
+    for (let s = 0; s < stops.length - 1; s++) {
+      if (h >= stops[s].h && h <= stops[s + 1].h) { si = s; break; }
+    }
+    const t = (h - stops[si].h) / (stops[si + 1].h - stops[si].h || 1);
+    vertColors[i * 3] = stops[si].r + (stops[si + 1].r - stops[si].r) * t;
+    vertColors[i * 3 + 1] = stops[si].g + (stops[si + 1].g - stops[si].g) * t;
+    vertColors[i * 3 + 2] = stops[si].b + (stops[si + 1].b - stops[si].b) * t;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(vertColors, 3));
+
   posAttr.needsUpdate = true;
   geo.computeVertexNormals();
 
   return geo;
 }
 
-// ── Terrain TSL Material ──
+// ── Simple Terrain Material with vertex colors ──
 
 function makeTerrainMaterial(): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.side = THREE.DoubleSide;
-
-  // 5-stop height gradient based on world-space Y position
-  // Height ranges from 0 to MAX_HEIGHT (4.0)
-  const heightColor = Fn(() => {
-    const h = positionLocal.y.div(MAX_HEIGHT).saturate();
-
-    // 5 gradient stops
-    const deepBlueGreen = color(0x0a3a2a);
-    const green = color(0x22aa44);
-    const yellow = color(0xddcc22);
-    const orangeRed = color(0xff6622);
-    const peak = color(0xffeecc);
-
-    // Chain mix/smoothstep
-    const t1 = smoothstep(float(0.0), float(0.25), h);
-    const t2 = smoothstep(float(0.25), float(0.5), h);
-    const t3 = smoothstep(float(0.5), float(0.75), h);
-    const t4 = smoothstep(float(0.75), float(1.0), h);
-
-    const c = mix(deepBlueGreen, green, t1);
-    const c2 = mix(c, yellow, t2);
-    const c3 = mix(c2, orangeRed, t3);
-    const c4 = mix(c3, peak, t4);
-
-    return c4;
-  });
-
-  mat.colorNode = heightColor();
-
-  // Emissive: peaks glow subtly
-  const emissiveGlow = Fn(() => {
-    const h = positionLocal.y.div(MAX_HEIGHT).saturate();
-    const glowStrength = smoothstep(float(0.5), float(1.0), h).mul(0.8);
-    return color(0xffeecc).mul(glowStrength);
-  });
-
-  mat.emissiveNode = emissiveGlow();
-
+  // Use a mid-range terrain color since we no longer have per-vertex TSL gradient
+  mat.color = new THREE.Color(0x44aa55);
+  mat.emissive = new THREE.Color(0x44aa55);
+  mat.emissiveIntensity = 0.2;
   mat.roughness = 0.5;
   mat.metalness = 0.1;
+  // Enable vertex colors for height-based coloring
+  mat.vertexColors = true;
 
   return mat;
 }
@@ -217,20 +186,10 @@ function TimeCursor() {
     mat.side = THREE.DoubleSide;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
-
-    // Scan-line effect: bright horizontal bands scrolling
-    const scanLine = fract(positionLocal.y.mul(8.0).sub(time.mul(2.0)));
-    const scanBand = smoothstep(float(0.0), float(0.15), scanLine).mul(
-      smoothstep(float(1.0), float(0.85), scanLine),
-    );
-
-    // Fresnel edge glow on the plane
-    const rim = fresnelNode();
-
-    mat.colorNode = color(0x44aaff);
-    mat.emissiveNode = color(0x44aaff).mul(scanBand.mul(2.0).add(rim.mul(3.0)));
-    mat.opacityNode = float(0.15).add(scanBand.mul(0.2)).add(rim.mul(0.4));
-
+    mat.color = new THREE.Color(0x44aaff);
+    mat.emissive = new THREE.Color(0x44aaff);
+    mat.emissiveIntensity = 1.5;
+    mat.opacity = 0.25;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
 
@@ -270,7 +229,7 @@ function TimeCursorLine({ data }: { data: number[][] }) {
 
   const lineMat = useMemo(() => {
     const mat = new THREE.LineBasicNodeMaterial();
-    mat.colorNode = color(0x88ccff);
+    mat.color = new THREE.Color(0x88ccff);
     return mat;
   }, []);
 
@@ -312,31 +271,16 @@ function TimeCursorLine({ data }: { data: number[][] }) {
   );
 }
 
-// ── Grid floor with TSL pattern ──
+// ── Simple dark grid floor ──
 
 function GridFloor() {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-
-    // Faint grid pattern using fract
-    const gridPattern = Fn(() => {
-      const scale = float(0.5);
-      const gx = fract(positionLocal.x.mul(scale));
-      const gz = fract(positionLocal.y.mul(scale)); // Y because plane is rotated
-      const lineX = smoothstep(float(0.02), float(0.0), gx).add(smoothstep(float(0.98), float(1.0), gx));
-      const lineZ = smoothstep(float(0.02), float(0.0), gz).add(smoothstep(float(0.98), float(1.0), gz));
-      return lineX.add(lineZ).saturate();
-    });
-
-    const grid = gridPattern();
-    const baseColor = color(0x0a0a1a);
-    const lineColor = color(0x1a1a3a);
-
-    mat.colorNode = mix(baseColor, lineColor, grid);
-    mat.emissiveNode = color(0x0a0a2a).mul(grid.mul(0.5));
+    mat.color = new THREE.Color(0x0a0a1a);
+    mat.emissive = new THREE.Color(0x0a0a2a);
+    mat.emissiveIntensity = 0.15;
     mat.roughness = 0.9;
     mat.metalness = 0.1;
-
     return mat;
   }, []);
 
@@ -361,9 +305,10 @@ function TimeTickLines() {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    mat.colorNode = color(0x222244);
-    mat.emissiveNode = color(0x111133);
-    mat.opacityNode = float(0.3);
+    mat.color = new THREE.Color(0x222244);
+    mat.emissive = new THREE.Color(0x111133);
+    mat.emissiveIntensity = 1.0;
+    mat.opacity = 0.3;
     mat.roughness = 0.8;
     mat.metalness = 0.0;
     return mat;
@@ -414,33 +359,27 @@ function TimeLabels() {
 
 // ── Peak marker with halo and light beam ──
 
-function makePeakCoreMaterial(colorHex: number, metricIndex: number) {
+function makePeakCoreMaterial(colorHex: number, _metricIndex: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const rim = fresnelNode();
-  const pulse = oscSine(time.mul(2.0).add(float(metricIndex).mul(1.5))).mul(0.4).add(0.6);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(pulse.mul(2.5)).add(color(0xffffff).mul(rim.mul(pulse).mul(2.0)));
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.5;
   mat.roughness = 0.15;
   mat.metalness = 0.5;
 
   return mat;
 }
 
-function makePeakHaloMaterial(colorHex: number, metricIndex: number) {
+function makePeakHaloMaterial(colorHex: number, _metricIndex: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const rim = fresnelNode();
-  const pulse = oscSine(time.mul(2.0).add(float(metricIndex).mul(1.5))).mul(0.3).add(0.7);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(rim.mul(pulse).mul(3.5));
-  mat.opacityNode = rim.mul(pulse).mul(0.5);
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.2;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -452,14 +391,10 @@ function makeBeamMaterial(colorHex: number) {
   mat.transparent = true;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  // Fading upward
-  const fadeUp = smoothstep(float(-0.5), float(0.5), positionLocal.y).oneMinus().mul(0.15);
-  const pulse = oscSine(time.mul(1.5)).mul(0.3).add(0.7);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(pulse.mul(1.5));
-  mat.opacityNode = fadeUp.mul(pulse);
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.15;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 

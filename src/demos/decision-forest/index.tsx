@@ -2,19 +2,7 @@ import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  color,
-  float,
-  mix,
-  smoothstep,
-  time,
-  positionLocal,
-  normalLocal,
-  hash,
-  oscSine,
-  vec3,
-} from 'three/tsl';
+// TSL imports removed — simple property-based materials used for performance
 
 /**
  * Decision Forest — Forge drive's decision tree rendered as a 3D branching structure.
@@ -307,17 +295,13 @@ function getPathToNode(targetId: string, nodes: LayoutNode[]): string[] {
 const sharedDecisionHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.35;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-  const fresnel = Fn(() => {
-    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
-    return f;
-  })();
-  const pulse = oscSine(time.mul(1.0)).mul(0.3).add(0.7);
-  mat.opacityNode = fresnel.mul(pulse.mul(0.3).add(0.5)).mul(0.45);
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse.mul(0.3).add(0.7)).mul(2.5));
+  mat.color = new THREE.Color(0xffffff);
+  mat.emissive = new THREE.Color(0xffffff);
+  mat.emissiveIntensity = 2.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
@@ -353,55 +337,26 @@ function DecisionNode({
 
   const radius = isRoot ? 0.5 : node.isLeaf ? 0.25 : 0.3;
 
-  // TSL core material
+  // Simple property-based core material (no shader compilation)
   const coreMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
+    mat.color = new THREE.Color(node.hex);
+    mat.emissive = new THREE.Color(node.hex);
 
-    const nodeCol = color(node.hex);
-
-    // Fresnel rim glow
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-      return f;
-    })();
-
-    // Root node: rainbow fresnel via position-based color variation
     if (isRoot) {
-      const rainbowColor = Fn(() => {
-        const px = positionLocal.x.mul(2.0).add(time.mul(0.3));
-        const py = positionLocal.y.mul(2.0).add(time.mul(0.2));
-        const r = px.sin().mul(0.5).add(0.5);
-        const g = py.sin().mul(0.5).add(0.5);
-        const b = px.add(py).sin().mul(0.5).add(0.5);
-        return vec3(r, g, b);
-      })();
-      mat.colorNode = mix(color(0x222233), rainbowColor, fresnel.mul(0.7).add(0.3));
-      mat.emissiveNode = rainbowColor.mul(fresnel.mul(2.5).add(0.8));
+      mat.emissiveIntensity = 1.2;
     } else {
-      // Animated interior shimmer (hash noise * time)
-      const shimmer = Fn(() => {
-        const n = hash(positionLocal.mul(15.0).add(vec3(time.mul(0.5), float(0.0), float(0.0))));
-        return n;
-      })();
-
-      const dimFactor = float(isDimmed ? 0.15 : 1.0);
-      const pathBrightness = float(isOnPath ? 2.5 : isHovered ? 1.8 : 0.8);
-
-      mat.colorNode = mix(color(0x111122), nodeCol, shimmer.mul(0.4).add(fresnel.mul(0.5)).add(0.1));
-
-      // Pulsing emissive
-      const pulse = oscSine(time.mul(1.2).add(float(node.index).mul(0.6)));
-      mat.emissiveNode = nodeCol.mul(
-        fresnel.mul(1.5).add(shimmer.mul(0.3)).add(0.2).mul(pulse.mul(0.3).add(0.7)).mul(pathBrightness).mul(dimFactor),
-      );
-      mat.opacityNode = isDimmed ? float(0.2) : float(1.0);
+      const brightness = isOnPath ? 1.5 : isHovered ? 1.0 : 0.5;
+      const dimFactor = isDimmed ? 0.15 : 1.0;
+      mat.emissiveIntensity = brightness * dimFactor;
+      mat.opacity = isDimmed ? 0.2 : 1.0;
     }
 
     mat.roughness = 0.2;
     mat.metalness = 0.4;
     return mat;
-  }, [node.hex, node.index, isRoot, isDimmed, isOnPath, isHovered]);
+  }, [node.hex, isRoot, isDimmed, isOnPath, isHovered]);
 
 
 
@@ -485,7 +440,7 @@ function DecisionNode({
 
 function TreeEdge({
   edge,
-  edgeIndex,
+  edgeIndex: _edgeIndex,
   isOnPath,
   isDimmed,
 }: {
@@ -503,35 +458,21 @@ function TreeEdge({
     return { midpoint: mid, length: len, quat: q };
   }, [edge.from, edge.to]);
 
-  // TSL material with scrolling brightness pattern
+  // Simple transparent edge material (no shader compilation)
   const edgeMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
 
-    const fromCol = color(edge.fromHex);
-    const toCol = color(edge.toHex);
-    const avgColor = mix(fromCol, toCol, float(0.5));
+    const avgColor = new THREE.Color(edge.fromHex).lerp(new THREE.Color(edge.toHex), 0.5);
+    mat.color = avgColor;
+    mat.emissive = avgColor.clone();
 
-    // Scrolling energy flow pattern
-    const flowSpeed = float(isOnPath ? 3.0 : 1.0);
-    const flowPattern = Fn(() => {
-      const scroll = positionLocal.y.mul(4.0).add(time.mul(flowSpeed).add(float(edgeIndex).mul(0.5)));
-      const wave = scroll.sin().mul(0.5).add(0.5);
-      const detail = positionLocal.y.mul(10.0).add(time.mul(flowSpeed.mul(2.0))).sin().mul(0.2).add(0.8);
-      return wave.mul(detail);
-    })();
-
-    const dimFactor = float(isDimmed ? 0.08 : 1.0);
-    const pathBoost = float(isOnPath ? 2.5 : 1.0);
+    const dimFactor = isDimmed ? 0.08 : 1.0;
+    const pathBoost = isOnPath ? 2.0 : 0.5;
     const thickness = isOnPath ? 0.03 : 0.015;
 
-    mat.colorNode = avgColor;
-    mat.emissiveNode = avgColor.mul(flowPattern.mul(pathBoost).add(0.2).mul(dimFactor));
-    mat.opacityNode = isDimmed
-      ? float(0.08)
-      : isOnPath
-        ? flowPattern.mul(0.5).add(0.5)
-        : flowPattern.mul(0.25).add(0.2);
+    mat.emissiveIntensity = pathBoost * dimFactor;
+    mat.opacity = isDimmed ? 0.08 : isOnPath ? 0.7 : 0.3;
 
     mat.roughness = 0.2;
     mat.metalness = 0.4;
@@ -539,7 +480,7 @@ function TreeEdge({
     // Store thickness for geometry
     (mat as unknown as Record<string, number>)._thickness = thickness;
     return mat;
-  }, [edge.fromHex, edge.toHex, edgeIndex, isOnPath, isDimmed]);
+  }, [edge.fromHex, edge.toHex, isOnPath, isDimmed]);
 
   const thickness = (edgeMaterial as unknown as Record<string, number>)._thickness || 0.015;
 
@@ -572,17 +513,16 @@ function EdgeParticles({
   const particlesPerEdge = 1;
   const totalParticles = edges.length * particlesPerEdge;
 
-  // Core particle material
+  // Simple additive particle material (no shader compilation)
   const coreMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
+    mat.opacity = 0.8;
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-
-    const pulse = oscSine(time.mul(2.0).add(hash(positionLocal.mul(20.0)).mul(6.28)));
-    mat.colorNode = color(0xffffff);
-    mat.emissiveNode = vec3(1.0, 0.9, 0.8).mul(pulse.mul(0.5).add(1.5));
-    mat.opacityNode = pulse.mul(0.3).add(0.7);
+    mat.color = new THREE.Color(0xffffff);
+    mat.emissive = new THREE.Color(0xffeedd);
+    mat.emissiveIntensity = 1.5;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
     return mat;
@@ -655,17 +595,9 @@ function BackgroundSphere() {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.side = THREE.BackSide;
-
-    // Dark gradient: deep blue at top, near-black at bottom
-    const gradient = Fn(() => {
-      const y = positionLocal.normalize().y;
-      const topCol = vec3(0.02, 0.03, 0.08);
-      const bottomCol = vec3(0.005, 0.005, 0.015);
-      return mix(bottomCol, topCol, smoothstep(-1.0, 1.0, y));
-    })();
-
-    mat.colorNode = gradient;
-    mat.emissiveNode = gradient.mul(0.5);
+    mat.color = new THREE.Color(0x050814);
+    mat.emissive = new THREE.Color(0x030510);
+    mat.emissiveIntensity = 0.5;
     mat.roughness = 1.0;
     mat.metalness = 0.0;
     return mat;

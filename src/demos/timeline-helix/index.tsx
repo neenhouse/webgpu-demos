@@ -2,20 +2,6 @@ import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  color,
-  float,
-  time,
-  oscSine,
-  positionLocal,
-  normalWorld,
-  positionWorld,
-  cameraPosition,
-  Fn,
-  mix,
-  smoothstep,
-  fract,
-} from 'three/tsl';
 
 /**
  * Timeline Helix
@@ -122,40 +108,16 @@ function generateStrandPoints(strandOffset: number, count: number): THREE.Vector
   return points;
 }
 
-// ── TSL helper: fresnel ──
+// ── Simple strand material (for backbone strands) ──
 
-const fresnelNode = Fn(() => {
-  const viewDir = cameraPosition.sub(positionWorld).normalize();
-  const nDotV = normalWorld.dot(viewDir).saturate();
-  return float(1.0).sub(nDotV).pow(2.0);
-});
-
-// ── Energy Tube Material (for backbone strands) ──
-
-function makeStrandMaterial(baseHex: number, accentHex: number, flowSpeed: number) {
+function makeStrandMaterial(baseHex: number, _accentHex: number, _flowSpeed: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.DoubleSide;
-
-  // Scrolling flow pattern along local Y
-  const flow = fract(positionLocal.y.mul(3.0).sub(time.mul(flowSpeed)));
-  const flowBand = smoothstep(float(0.0), float(0.3), flow).mul(
-    smoothstep(float(1.0), float(0.7), flow),
-  );
-
-  // Fresnel rim
-  const rim = fresnelNode();
-
-  // Base color with shimmer
-  const shimmer = oscSine(time.mul(1.5).add(positionLocal.y.mul(2.0))).mul(0.15).add(0.85);
-  mat.colorNode = mix(color(baseHex), color(accentHex), rim.mul(0.6)).mul(shimmer);
-
-  // Emissive: flow energy + rim glow
-  const flowGlow = color(accentHex).mul(flowBand.mul(2.5));
-  const rimGlow = color(0xffffff).mul(rim.mul(1.5));
-  mat.emissiveNode = flowGlow.add(rimGlow);
-
-  mat.opacityNode = float(0.6).add(flowBand.mul(0.3)).add(rim.mul(0.1));
+  mat.color = new THREE.Color(baseHex);
+  mat.emissive = new THREE.Color(baseHex);
+  mat.emissiveIntensity = 0.8;
+  mat.opacity = 0.7;
   mat.roughness = 0.3;
   mat.metalness = 0.4;
 
@@ -184,18 +146,10 @@ function StrandBackbone({ offset, variant }: { offset: number; variant: 'silver'
 function makeRungMaterial(colorHex: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
-
-  // Flow pattern along the rung length (using local Y since cylinder is Y-oriented)
-  const flow = fract(positionLocal.y.mul(5.0).sub(time.mul(1.2)));
-  const flowBand = smoothstep(float(0.0), float(0.2), flow).mul(
-    smoothstep(float(1.0), float(0.8), flow),
-  );
-
-  const rim = fresnelNode();
-
-  mat.colorNode = color(colorHex).mul(float(1.2));
-  mat.emissiveNode = color(colorHex).mul(flowBand.mul(3.0).add(rim.mul(2.0)));
-  mat.opacityNode = float(0.7).add(flowBand.mul(0.3));
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.8;
   mat.roughness = 0.2;
   mat.metalness = 0.3;
 
@@ -264,11 +218,10 @@ function TravelingParticles() {
     mat.transparent = true;
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-
-    const rim = fresnelNode();
-    mat.colorNode = color(0xaaddff);
-    mat.emissiveNode = color(0xaaddff).mul(float(3.0)).add(color(0xffffff).mul(rim.mul(2.0)));
-    mat.opacityNode = float(0.9);
+    mat.color = new THREE.Color(0xaaddff);
+    mat.emissive = new THREE.Color(0xaaddff);
+    mat.emissiveIntensity = 3.0;
+    mat.opacity = 0.9;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
 
@@ -310,34 +263,27 @@ function TravelingParticles() {
 
 // ── Event Sphere with Halo Shells ──
 
-function makeEventCoreMaterial(colorHex: number, phaseOffset: number, isBatch: boolean) {
+function makeEventCoreMaterial(colorHex: number, _phaseOffset: number, _isBatch: boolean) {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const rim = fresnelNode();
-  const pulseSpeed = isBatch ? 4.0 : 2.0;
-  const pulse = oscSine(time.mul(pulseSpeed).add(phaseOffset)).mul(0.4).add(0.6);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(pulse.mul(2.0)).add(color(0xffffff).mul(rim.mul(pulse).mul(1.5)));
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.2;
   mat.roughness = 0.2;
   mat.metalness = 0.4;
 
   return mat;
 }
 
-function makeHaloMaterial(colorHex: number, phaseOffset: number) {
+function makeHaloMaterial(colorHex: number, _phaseOffset: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const rim = fresnelNode();
-  const pulse = oscSine(time.mul(2.0).add(phaseOffset)).mul(0.3).add(0.7);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(rim.mul(pulse).mul(3.0));
-  mat.opacityNode = rim.mul(pulse).mul(0.5);
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.2;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -484,13 +430,10 @@ function makeOrbitalRingMaterial(colorHex: number) {
   mat.transparent = true;
   mat.blending = THREE.AdditiveBlending;
   mat.depthWrite = false;
-
-  const rim = fresnelNode();
-  const pulse = oscSine(time.mul(3.0)).mul(0.3).add(0.7);
-
-  mat.colorNode = color(colorHex);
-  mat.emissiveNode = color(colorHex).mul(pulse.mul(3.0)).add(color(0xffffff).mul(rim.mul(1.5)));
-  mat.opacityNode = float(0.8).mul(pulse);
+  mat.color = new THREE.Color(colorHex);
+  mat.emissive = new THREE.Color(colorHex);
+  mat.emissiveIntensity = 2.5;
+  mat.opacity = 0.7;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 
@@ -539,10 +482,10 @@ function AmbientParticles() {
     mat.transparent = true;
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-
-    mat.colorNode = color(0x445588);
-    mat.emissiveNode = color(0x334477).mul(float(2.0));
-    mat.opacityNode = float(0.3);
+    mat.color = new THREE.Color(0x445588);
+    mat.emissive = new THREE.Color(0x334477);
+    mat.emissiveIntensity = 2.0;
+    mat.opacity = 0.3;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
 

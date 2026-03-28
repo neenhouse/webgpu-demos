@@ -2,20 +2,7 @@ import { useState, useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import { Html } from '@react-three/drei';
-import {
-  color,
-  float,
-  time,
-  oscSine,
-  normalWorld,
-  cameraPosition,
-  positionWorld,
-  positionLocal,
-  normalLocal,
-  Fn,
-  hash,
-  mix,
-} from 'three/tsl';
+// TSL imports removed — simple property-based materials used for performance
 
 /**
  * Dependency Graph 3D
@@ -116,35 +103,13 @@ NODES.forEach((n, i) => NODE_INDEX.set(n.id, i));
 
 // ── TSL Material factories ──
 
-function makeNodeCoreMaterial(hexColor: number, phase: number) {
+function makeNodeCoreMaterial(hexColor: number, _phase: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const pulse = oscSine(time.mul(0.8).add(float(phase))).mul(0.3).add(0.7);
-
-  // Hash noise shimmer on surface
-  const shimmer = hash(positionLocal.mul(25.0)).mul(0.15).add(0.85);
-
-  mat.colorNode = color(hexColor).mul(shimmer);
-
-  // Fresnel rim glow
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  const coreEmissive = color(hexColor).mul(pulse.mul(2.0));
-  const rimEmissive = color(0xffffff).mul(fresnel()).mul(pulse.mul(1.5));
-  mat.emissiveNode = coreEmissive.add(rimEmissive);
-
-  // Subtle breathing displacement
-  mat.positionNode = positionLocal.add(
-    normalLocal.mul(oscSine(time.mul(1.0).add(float(phase))).mul(0.01)),
-  );
-
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 1.0;
   mat.roughness = 0.15;
   mat.metalness = 0.3;
-
   return mat;
 }
 
@@ -152,25 +117,15 @@ function makeNodeCoreMaterial(hexColor: number, phase: number) {
 const sharedGraphHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.35;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const pulse = oscSine(time.mul(0.8)).mul(0.3).add(0.7);
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(1.5);
-  });
-
-  mat.opacityNode = fresnel().mul(pulse).mul(0.5);
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(fresnel().mul(pulse).mul(3.0));
-
+  mat.color = new THREE.Color(0xffffff);
+  mat.emissive = new THREE.Color(0xffffff);
+  mat.emissiveIntensity = 2.5;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
-
   return mat;
 })();
 
@@ -178,15 +133,11 @@ const sharedGraphHaloMaterial = (() => {
 const sharedEdgeNormalMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.15;
   mat.depthWrite = false;
-
-  const flow = oscSine(positionLocal.y.mul(3.0).add(time.mul(2.0)))
-    .mul(0.5)
-    .add(0.5);
-
-  mat.colorNode = color(0x6688aa);
-  mat.emissiveNode = color(0x6688aa).mul(flow.mul(2.5));
-  mat.opacityNode = float(0.15);
+  mat.color = new THREE.Color(0x6688aa);
+  mat.emissive = new THREE.Color(0x6688aa);
+  mat.emissiveIntensity = 0.8;
   mat.roughness = 0.3;
   mat.metalness = 0.1;
   return mat;
@@ -195,15 +146,11 @@ const sharedEdgeNormalMaterial = (() => {
 const sharedEdgeHighlightMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.9;
   mat.depthWrite = false;
-
-  const flow = oscSine(positionLocal.y.mul(4.0).add(time.mul(3.0)))
-    .mul(0.5)
-    .add(0.5);
-
-  mat.colorNode = color(0x88bbff);
-  mat.emissiveNode = color(0x88bbff).mul(flow.mul(4.0).add(1.0));
-  mat.opacityNode = float(0.9);
+  mat.color = new THREE.Color(0x88bbff);
+  mat.emissive = new THREE.Color(0x88bbff);
+  mat.emissiveIntensity = 2.5;
   mat.roughness = 0.2;
   mat.metalness = 0.2;
   return mat;
@@ -212,16 +159,11 @@ const sharedEdgeHighlightMaterial = (() => {
 function makeBackgroundMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.side = THREE.BackSide;
-
-  // Radial dark gradient using positionLocal
-  const dist = positionLocal.normalize().y.abs();
-  const gradient = mix(color(0x020210), color(0x080830), dist.mul(0.5));
-
-  mat.colorNode = gradient;
-  mat.emissiveNode = gradient.mul(0.1);
+  mat.color = new THREE.Color(0x050520);
+  mat.emissive = new THREE.Color(0x030315);
+  mat.emissiveIntensity = 0.1;
   mat.roughness = 1.0;
   mat.metalness = 0.0;
-
   return mat;
 }
 

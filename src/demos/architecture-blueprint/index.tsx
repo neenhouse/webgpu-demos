@@ -3,21 +3,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
 import {
-  Fn,
-  color,
-  float,
   mix,
-  smoothstep,
-  time,
-  positionLocal,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  oscSine,
-  vec3,
   screenUV,
-  atan,
+  vec3,
 } from 'three/tsl';
 
 /**
@@ -104,247 +92,54 @@ function getTypeColor(type: Service['type']): string {
   }
 }
 
-// ── TSL Material Factories ──
+// ── Simple Material Factories ──
 
-/** Frontend (box): scan lines scrolling down the surface */
-function makeFrontendMaterial(hexColor: number) {
+/** Simple service material: just color + emissive, no TSL */
+function makeSimpleServiceMaterial(hexColor: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const scanLines = Fn(() => {
-    const scan = positionLocal.y.mul(20.0).add(time.mul(1.5)).fract();
-    const line = smoothstep(float(0.4), float(0.5), scan).mul(smoothstep(float(0.6), float(0.5), scan));
-    return line;
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.15), baseCol.mul(0.5), scanLines());
-  mat.emissiveNode = baseCol.mul(scanLines()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 0.6;
   mat.roughness = 0.3;
   mat.metalness = 0.5;
-
   return mat;
 }
 
-/** Backend (tall box): horizontal server rack bands with hash noise */
-function makeBackendMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const rackBands = Fn(() => {
-    const band = positionLocal.y.mul(8.0).floor();
-    const noise = hash(band.mul(17.3).add(positionLocal.x.mul(5.0)));
-    const bandLine = smoothstep(float(0.85), float(0.9), positionLocal.y.mul(8.0).fract());
-    return noise.mul(0.5).add(bandLine.mul(0.5));
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.4), rackBands());
-  mat.emissiveNode = baseCol.mul(rackBands()).mul(1.0).add(baseCol.mul(fresnel()).mul(1.8)).add(baseCol.mul(0.2));
-  mat.roughness = 0.4;
-  mat.metalness = 0.6;
-
-  return mat;
-}
-
-/** Database (cylinder): rotating angular ring pattern */
-function makeDatabaseMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const ringPattern = Fn(() => {
-    // Horizontal bands that subtly rotate
-    const angle = atan(positionLocal.x, positionLocal.z).add(time.mul(0.5));
-    const angularBands = angle.mul(3.0).fract();
-    const ring = smoothstep(float(0.3), float(0.35), angularBands).mul(smoothstep(float(0.7), float(0.65), angularBands));
-    const yBands = smoothstep(float(0.85), float(0.9), positionLocal.y.mul(6.0).fract());
-    return ring.mul(0.6).add(yBands.mul(0.4));
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), ringPattern());
-  mat.emissiveNode = baseCol.mul(ringPattern()).mul(1.2).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.2));
-  mat.roughness = 0.3;
-  mat.metalness = 0.5;
-
-  return mat;
-}
-
-/** Cache (octahedron): fast flickering hash noise */
-function makeCacheMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const flickerNoise = Fn(() => {
-    const n1 = hash(positionLocal.mul(12.0).add(time.mul(8.0)));
-    const n2 = hash(positionLocal.mul(6.0).sub(time.mul(5.0)));
-    return n1.mul(0.6).add(n2.mul(0.4));
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.15), baseCol.mul(0.6), flickerNoise());
-  mat.emissiveNode = baseCol.mul(flickerNoise()).mul(1.8).add(baseCol.mul(fresnel()).mul(2.2)).add(baseCol.mul(0.3));
-  mat.roughness = 0.2;
-  mat.metalness = 0.4;
-
-  return mat;
-}
-
-/** CDN (disc): concentric radial pulses */
-function makeCdnMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const radialPulse = Fn(() => {
-    const dist = positionLocal.x.mul(positionLocal.x).add(positionLocal.z.mul(positionLocal.z)).sqrt();
-    const pulse = dist.mul(6.0).sub(time.mul(2.0)).fract();
-    const ring = smoothstep(float(0.3), float(0.4), pulse).mul(smoothstep(float(0.6), float(0.5), pulse));
-    return ring;
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), radialPulse());
-  mat.emissiveNode = baseCol.mul(radialPulse()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
-  mat.roughness = 0.3;
-  mat.metalness = 0.4;
-
-  return mat;
-}
-
-/** Queue (torus): spinning circular flow */
-function makeQueueMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const spinFlow = Fn(() => {
-    const angle = atan(positionLocal.x, positionLocal.z);
-    const flow = angle.div(Math.PI).add(time.mul(1.5)).fract();
-    const band = smoothstep(float(0.2), float(0.3), flow).mul(smoothstep(float(0.8), float(0.7), flow));
-    return band;
-  });
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.0);
-  });
-
-  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), spinFlow());
-  mat.emissiveNode = baseCol.mul(spinFlow()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
-  mat.roughness = 0.2;
-  mat.metalness = 0.5;
-
-  return mat;
-}
-
-/** External (icosahedron): mysterious deep glow with strong fresnel */
-function makeExternalMaterial(hexColor: number) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  const baseCol = color(hexColor);
-
-  const pulse = oscSine(time.mul(0.8)).mul(0.3).add(0.7);
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(2.5);
-  });
-
-  const noise = Fn(() => {
-    return hash(positionLocal.mul(5.0).add(time.mul(0.4)));
-  });
-
-  mat.colorNode = baseCol.mul(0.15).add(baseCol.mul(noise()).mul(0.15));
-  mat.emissiveNode = baseCol.mul(fresnel()).mul(3.5).add(baseCol.mul(pulse).mul(0.6));
-  mat.roughness = 0.1;
-  mat.metalness = 0.3;
-
-  return mat;
-}
-
-/** Create a halo shell for any service node */
+/** Simple halo shell for any service node */
 function makeServiceHaloMaterial(hexColor: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(1.8);
-  });
-
-  const pulse = oscSine(time.mul(0.9)).mul(0.2).add(0.8);
-  const glowColor = color(hexColor);
-
-  mat.opacityNode = fresnel().mul(pulse).mul(0.4);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel().mul(pulse).mul(3.0));
+  mat.color = new THREE.Color(hexColor);
+  mat.emissive = new THREE.Color(hexColor);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.2;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
-
   return mat;
 }
 
-function makeServiceMaterial(type: Service['type'], hexColor: number) {
-  switch (type) {
-    case 'frontend': return makeFrontendMaterial(hexColor);
-    case 'backend': return makeBackendMaterial(hexColor);
-    case 'database': return makeDatabaseMaterial(hexColor);
-    case 'cache': return makeCacheMaterial(hexColor);
-    case 'cdn': return makeCdnMaterial(hexColor);
-    case 'queue': return makeQueueMaterial(hexColor);
-    case 'external': return makeExternalMaterial(hexColor);
-  }
+function makeServiceMaterial(_type: Service['type'], hexColor: number) {
+  return makeSimpleServiceMaterial(hexColor);
 }
 
-/** Connection tube material with scrolling brightness */
+/** Simple connection tube material */
 function makeConnectionMaterial(hexColor: number, isHighlighted: boolean) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
-  const baseCol = color(hexColor);
 
   if (isHighlighted) {
-    const scroll = Fn(() => {
-      const flow = positionLocal.y.mul(3.0).sub(time.mul(2.0)).fract();
-      const band = smoothstep(float(0.3), float(0.5), flow).mul(smoothstep(float(0.7), float(0.5), flow));
-      return band.mul(0.6).add(0.4);
-    });
-
-    mat.colorNode = baseCol.mul(0.3);
-    mat.emissiveNode = baseCol.mul(scroll()).mul(2.0);
-    mat.opacityNode = float(0.6);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.3);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 1.0;
+    mat.opacity = 0.6;
   } else {
-    mat.colorNode = baseCol.mul(0.08);
-    mat.emissiveNode = baseCol.mul(0.15);
-    mat.opacityNode = float(0.15);
+    mat.color = new THREE.Color(hexColor).multiplyScalar(0.08);
+    mat.emissive = new THREE.Color(hexColor);
+    mat.emissiveIntensity = 0.15;
+    mat.opacity = 0.15;
   }
 
   mat.roughness = 0.3;
@@ -353,22 +148,12 @@ function makeConnectionMaterial(hexColor: number, isHighlighted: boolean) {
   return mat;
 }
 
-/** Blueprint grid floor material */
+/** Simple dark blueprint grid floor material */
 function makeBlueprintGridMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
-
-  const gridPattern = Fn(() => {
-    const scale = float(0.3);
-    const gx = smoothstep(float(0.92), float(0.96), positionLocal.x.mul(scale).fract());
-    const gy = smoothstep(float(0.92), float(0.96), positionLocal.y.mul(scale).fract());
-    return gx.add(gy).clamp(0.0, 1.0);
-  });
-
-  const base = vec3(0.005, 0.008, 0.025);
-  const gridCol = vec3(0.02, 0.05, 0.12);
-
-  mat.colorNode = mix(base, gridCol, gridPattern().mul(0.5));
-  mat.emissiveNode = mix(vec3(0, 0, 0), vec3(0.01, 0.03, 0.08), gridPattern().mul(0.3));
+  mat.color = new THREE.Color(0x010206);
+  mat.emissive = new THREE.Color(0x030814);
+  mat.emissiveIntensity = 0.3;
   mat.roughness = 0.8;
   mat.metalness = 0.3;
 
@@ -427,10 +212,10 @@ function ServiceNode({
     if (!isDimmed) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    const baseCol = color(service.hex);
-    mat.colorNode = baseCol.mul(0.05);
-    mat.emissiveNode = baseCol.mul(0.05);
-    mat.opacityNode = float(0.4);
+    mat.color = new THREE.Color(service.hex).multiplyScalar(0.05);
+    mat.emissive = new THREE.Color(service.hex);
+    mat.emissiveIntensity = 0.05;
+    mat.opacity = 0.4;
     mat.roughness = 0.8;
     mat.metalness = 0.2;
     return mat;
@@ -595,16 +380,15 @@ function FlowParticles({
     mesh.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
   }, [flowData]);
 
-  // Particle material using TSL for additive glow
+  // Simple particle material: additive glow
   const particleMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
-
-    const pulse = oscSine(time.mul(3.0)).mul(0.3).add(0.7);
-    mat.colorNode = color(0xffffff);
-    mat.emissiveNode = color(0xffffff).mul(pulse).mul(3.0);
+    mat.color = new THREE.Color(0xffffff);
+    mat.emissive = new THREE.Color(0xffffff);
+    mat.emissiveIntensity = 2.5;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
 
@@ -723,9 +507,9 @@ function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; tra
     m.transparent = true;
     m.depthWrite = false;
     m.blending = THREE.AdditiveBlending;
-    const pulse = oscSine(time.mul(6.0)).mul(0.3).add(1.0);
-    m.colorNode = color(0xffee44);
-    m.emissiveNode = color(0xffee44).mul(pulse).mul(4.0);
+    m.color = new THREE.Color(0xffee44);
+    m.emissive = new THREE.Color(0xffee44);
+    m.emissiveIntensity = 4.0;
     return m;
   }, []);
 
@@ -735,9 +519,10 @@ function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; tra
     m.side = THREE.BackSide;
     m.depthWrite = false;
     m.blending = THREE.AdditiveBlending;
-    m.colorNode = color(0xffcc22);
-    m.emissiveNode = color(0xffcc22).mul(2.0);
-    m.opacityNode = float(0.3);
+    m.color = new THREE.Color(0xffcc22);
+    m.emissive = new THREE.Color(0xffcc22);
+    m.emissiveIntensity = 2.0;
+    m.opacity = 0.3;
     return m;
   }, []);
 
@@ -864,27 +649,19 @@ export default function ArchitectureBlueprint() {
   const activeContext = hoveredService ?? selectedService;
   const shouldDim = activeContext !== null;
 
-  // Background material
+  // Background material (exception: simple screenUV gradient allowed)
   const bgMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
     mat.side = THREE.BackSide;
-    const bgColor = Fn(() => {
-      const bottom = vec3(0.01, 0.015, 0.04);
-      const top = vec3(0.0, 0.0, 0.015);
-      const mid = vec3(0.02, 0.01, 0.05);
-      const yFactor = screenUV.y;
-      const base = mix(bottom, top, yFactor);
-      const glowBand = smoothstep(float(0.2), float(0.4), yFactor).mul(smoothstep(float(0.6), float(0.4), yFactor));
-      return mix(base, mid, glowBand.mul(0.3));
-    });
-    mat.colorNode = bgColor();
+    const bottom = vec3(0.01, 0.015, 0.04);
+    const top = vec3(0.0, 0.0, 0.015);
+    mat.colorNode = mix(bottom, top, screenUV.y);
     return mat;
   }, []);
 
   // Background click plane material
   const bgClickMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
-    mat.colorNode = color(0x000000);
     mat.transparent = true;
     mat.opacity = 0.0;
     return mat;

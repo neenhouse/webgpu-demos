@@ -2,19 +2,7 @@ import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  color,
-  float,
-  mix,
-  smoothstep,
-  time,
-  positionLocal,
-  normalLocal,
-  hash,
-  oscSine,
-  vec3,
-} from 'three/tsl';
+// TSL imports removed — simple property-based materials used for performance
 
 /**
  * Forge Lifecycle — Interactive 3D visualization of the Forge developer workflow.
@@ -142,53 +130,18 @@ function PhasePlatform({
 
   const floatY = Math.sin(t * 0.8 + index * 1.2) * 0.1;
 
-  // TSL-powered hexagonal platform material
+  // Simple property-based platform material (no shader compilation)
   const platformMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-
-    const phaseCol = color(phase.hex);
-    const darkCol = color(0x111122);
-
-    // Fresnel rim glow
-    const fresnel = Fn(() => {
-      const f = normalLocal.dot(vec3(0, 1, 0)).abs().oneMinus().pow(2.0);
-      return f;
-    })();
-
-    // Animated hash noise flowing energy on surface
-    const noisePattern = Fn(() => {
-      const p = positionLocal.mul(8.0);
-      const t1 = time.mul(0.4);
-      const n1 = hash(p.add(vec3(t1, t1.mul(0.7), float(0.0))));
-      const n2 = hash(p.mul(2.3).add(vec3(float(3.0), t1.mul(1.1), t1.mul(0.4))));
-      return n1.mul(0.6).add(n2.mul(0.4));
-    })();
-
-    // Color with noise variation
-    mat.colorNode = mix(darkCol, phaseCol, noisePattern.mul(0.6).add(fresnel.mul(0.4)));
-
-    // Pulsing emissive that intensifies when selected
-    const selectedMul = float(isSelected ? 2.5 : 1.0);
-    const pulse = oscSine(time.mul(1.2).add(float(index).mul(0.8))).mul(0.3).add(0.7);
-    mat.emissiveNode = phaseCol.mul(
-      fresnel.mul(1.5).add(noisePattern.mul(0.5)).mul(pulse).mul(selectedMul),
-    );
-
-    // Slight vertex displacement along normals for organic feel
-    mat.positionNode = positionLocal.add(
-      normalLocal.mul(
-        hash(positionLocal.mul(12.0).add(vec3(time.mul(0.3), float(0.0), float(0.0))))
-          .mul(0.03)
-          .sub(0.015),
-      ),
-    );
-
-    mat.opacityNode = float(0.9);
+    mat.opacity = 0.9;
+    mat.color = new THREE.Color(phase.hex);
+    mat.emissive = new THREE.Color(phase.hex);
+    mat.emissiveIntensity = isSelected ? 1.2 : 0.4;
     mat.roughness = 0.3;
     mat.metalness = 0.4;
     return mat;
-  }, [phase.hex, index, isSelected]);
+  }, [phase.hex, isSelected]);
 
   return (
     <mesh
@@ -244,14 +197,9 @@ const sharedSkillMaterials = new Map<number, THREE.MeshStandardNodeMaterial>();
 function getSharedSkillMaterial(phaseHex: number): THREE.MeshStandardNodeMaterial {
   if (sharedSkillMaterials.has(phaseHex)) return sharedSkillMaterials.get(phaseHex)!;
   const mat = new THREE.MeshStandardNodeMaterial();
-  const phaseCol = color(phaseHex);
-  const fresnel = Fn(() => {
-    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-    return f;
-  })();
-  mat.colorNode = mix(color(0x111122), phaseCol, fresnel.mul(0.6).add(0.4));
-  const pulse = oscSine(time.mul(1.5)).mul(0.4).add(0.6);
-  mat.emissiveNode = phaseCol.mul(fresnel.mul(1.8).add(0.4).mul(pulse).mul(1.2));
+  mat.color = new THREE.Color(phaseHex);
+  mat.emissive = new THREE.Color(phaseHex);
+  mat.emissiveIntensity = 0.6;
   mat.roughness = 0.2;
   mat.metalness = 0.3;
   sharedSkillMaterials.set(phaseHex, mat);
@@ -262,17 +210,13 @@ function getSharedSkillMaterial(phaseHex: number): THREE.MeshStandardNodeMateria
 const sharedSkillHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.35;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-  const fresnel = Fn(() => {
-    const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
-    return f;
-  })();
-  const pulse = oscSine(time.mul(1.5)).mul(0.3).add(0.7);
-  mat.opacityNode = fresnel.mul(pulse).mul(0.45);
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse).mul(2.5));
+  mat.color = new THREE.Color(0xffffff);
+  mat.emissive = new THREE.Color(0xffffff);
+  mat.emissiveIntensity = 2.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
@@ -392,29 +336,17 @@ function PhaseConnection({
     return { midpoint: mid, length: len, quat: q };
   }, [fromIndex, toIndex]);
 
-  // TSL material with scrolling energy pattern
+  // Simple transparent emissive conduit material (no shader compilation)
   const conduitMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-
-    const edgeIdx = float(fromIndex);
+    mat.opacity = 0.5;
     const phaseColors = [0x22cc88, 0x4488ff, 0xffaa22, 0xcc44ff, 0xff4466];
-    const col1 = color(phaseColors[fromIndex % 5]);
-    const col2 = color(phaseColors[toIndex % 5]);
-
-    // Scrolling energy pattern along Y (tube length)
-    const scrollPattern = Fn(() => {
-      const scroll = positionLocal.y.mul(3.0).add(time.mul(1.5).add(edgeIdx));
-      // Create a pulsing brightness wave
-      const wave = scroll.sin().mul(0.5).add(0.5);
-      const detail = positionLocal.y.mul(12.0).add(time.mul(3.0)).sin().mul(0.3).add(0.7);
-      return wave.mul(detail);
-    })();
-
-    mat.colorNode = mix(col1, col2, positionLocal.y.add(0.5));
-    mat.emissiveNode = mix(col1, col2, positionLocal.y.add(0.5))
-      .mul(scrollPattern.mul(2.5).add(0.5));
-    mat.opacityNode = scrollPattern.mul(0.5).add(0.3);
+    const blended = new THREE.Color(phaseColors[fromIndex % 5]);
+    blended.lerp(new THREE.Color(phaseColors[toIndex % 5]), 0.5);
+    mat.color = blended;
+    mat.emissive = blended;
+    mat.emissiveIntensity = 1.0;
     mat.roughness = 0.1;
     mat.metalness = 0.6;
     return mat;
@@ -442,17 +374,16 @@ function FlowParticles({ time: t }: { time: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  // TSL additive glow material for particles
+  // Simple additive particle material (no shader compilation)
   const particleMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
+    mat.opacity = 0.7;
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-
-    const pulse = oscSine(time.mul(2.0).add(hash(positionLocal.mul(10.0)).mul(6.28)));
-    mat.colorNode = color(0x88ccff);
-    mat.emissiveNode = vec3(0.5, 0.8, 1.0).mul(pulse.mul(0.5).add(1.5));
-    mat.opacityNode = pulse.mul(0.3).add(0.6);
+    mat.color = new THREE.Color(0x88ccff);
+    mat.emissive = new THREE.Color(0x88ccff);
+    mat.emissiveIntensity = 1.5;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
     return mat;
@@ -514,39 +445,14 @@ function DriveTorus({
 }) {
   const torusRef = useRef<THREE.Mesh>(null);
 
-  // TSL material with multi-color cycling through phase colors
+  // Simple torus material — color updated in useFrame for cycling
   const torusMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-
-    // Cycle through phase colors using time
-    const phase = time.mul(0.2);
-    const c1 = color(0x22cc88);
-    const c2 = color(0x4488ff);
-    const c3 = color(0xffaa22);
-    const c4 = color(0xcc44ff);
-    const c5 = color(0xff4466);
-
-    const blend = Fn(() => {
-      const t1 = smoothstep(0.0, 0.2, phase.fract());
-      const t2 = smoothstep(0.2, 0.4, phase.fract());
-      const t3 = smoothstep(0.4, 0.6, phase.fract());
-      const t4 = smoothstep(0.6, 0.8, phase.fract());
-      const col = mix(c1, c2, t1);
-      const col2 = mix(col, c3, t2);
-      const col3 = mix(col2, c4, t3);
-      return mix(col3, c5, t4);
-    })();
-
-    // Fresnel for rim glow
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-      return f;
-    })();
-
-    mat.colorNode = blend;
-    mat.emissiveNode = blend.mul(fresnel.mul(2.0).add(1.0)).mul(1.5);
-    mat.opacityNode = float(0.92);
+    mat.opacity = 0.92;
+    mat.color = new THREE.Color(0x22cc88);
+    mat.emissive = new THREE.Color(0x22cc88);
+    mat.emissiveIntensity = 1.5;
     mat.roughness = 0.15;
     mat.metalness = 0.6;
     return mat;
@@ -554,21 +460,28 @@ function DriveTorus({
 
 
 
-  // Drive step sphere material
+  // Simple drive step sphere material (no shader compilation)
   const driveSphMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    const fresnel = Fn(() => {
-      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
-      return f;
-    })();
-    mat.colorNode = color(0x66aaff);
-    mat.emissiveNode = color(0x66aaff).mul(fresnel.mul(2.0).add(1.5));
+    mat.color = new THREE.Color(0x66aaff);
+    mat.emissive = new THREE.Color(0x66aaff);
+    mat.emissiveIntensity = 1.5;
     mat.roughness = 0.1;
     mat.metalness = 0.3;
     return mat;
   }, []);
 
-
+  // Cycle torus color through phase colors over time
+  const phaseHexColors = useMemo(() => [0x22cc88, 0x4488ff, 0xffaa22, 0xcc44ff, 0xff4466], []);
+  useFrame(({ clock }) => {
+    const elapsed = clock.getElapsedTime();
+    const idx = Math.floor((elapsed * 0.2) % phaseHexColors.length);
+    const nextIdx = (idx + 1) % phaseHexColors.length;
+    const frac = (elapsed * 0.2) % 1;
+    const c = new THREE.Color(phaseHexColors[idx]).lerp(new THREE.Color(phaseHexColors[nextIdx]), frac);
+    torusMaterial.color.copy(c);
+    torusMaterial.emissive.copy(c);
+  });
 
   return (
     <group>
@@ -625,24 +538,11 @@ function GroundGrid() {
   const gridMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
+    mat.opacity = 0.15;
     mat.side = THREE.DoubleSide;
-
-    // Subtle grid pattern using fract
-    const gridPattern = Fn(() => {
-      const scale = float(2.0);
-      const px = positionLocal.x.mul(scale);
-      const py = positionLocal.y.mul(scale);
-      // Create grid lines using fract
-      const fx = px.fract().sub(0.5).abs().mul(2.0);
-      const fy = py.fract().sub(0.5).abs().mul(2.0);
-      const lineX = smoothstep(0.92, 0.98, fx);
-      const lineY = smoothstep(0.92, 0.98, fy);
-      return lineX.add(lineY).clamp(0.0, 1.0);
-    })();
-
-    mat.colorNode = color(0x223344);
-    mat.emissiveNode = color(0x334466).mul(gridPattern.mul(0.5));
-    mat.opacityNode = gridPattern.mul(0.15).add(float(0.03));
+    mat.color = new THREE.Color(0x223344);
+    mat.emissive = new THREE.Color(0x334466);
+    mat.emissiveIntensity = 0.3;
     mat.roughness = 0.8;
     mat.metalness = 0.3;
     return mat;

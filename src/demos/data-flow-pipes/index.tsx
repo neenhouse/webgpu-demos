@@ -2,20 +2,7 @@ import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  color,
-  float,
-  mix,
-  smoothstep,
-  time,
-  positionLocal,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  fract,
-} from 'three/tsl';
+// TSL imports removed — simple property-based materials used for performance
 
 /**
  * Data Flow Pipes
@@ -26,12 +13,7 @@ import {
  * fresnel glow halos. Click nodes for details; hover to highlight connections.
  */
 
-// ── Fresnel helper ──
-const fresnelNode = Fn(() => {
-  const viewDir = cameraPosition.sub(positionWorld).normalize();
-  const nDotV = normalWorld.dot(viewDir).saturate();
-  return float(1.0).sub(nDotV).pow(2.0);
-});
+// Fresnel TSL helper removed — using simple property-based materials
 
 // ── Node definitions ──
 interface PipeNode {
@@ -113,91 +95,20 @@ const sourcePipeIndices = PIPES.map((p, i) => sourceNodeIds.includes(p.from) ? i
 // Shared node materials cache by type
 const sharedNodeMaterials = new Map<string, THREE.MeshStandardNodeMaterial>();
 
-// ── Create TSL material for each node type (shared by type) ──
-function makeNodeMaterial(nodeType: string, hex: number, nodeId: string): THREE.MeshStandardNodeMaterial {
-  const cacheKey = `${nodeType}-${nodeId === 'reject' ? 'reject' : 'normal'}`;
+// ── Simple property-based material for each node type (no shader compilation) ──
+function makeNodeMaterial(_nodeType: string, hex: number, nodeId: string): THREE.MeshStandardNodeMaterial {
+  const cacheKey = `${_nodeType}-${nodeId === 'reject' ? 'reject' : 'normal'}`;
   if (sharedNodeMaterials.has(cacheKey)) return sharedNodeMaterials.get(cacheKey)!;
   const mat = new THREE.MeshStandardNodeMaterial();
-  const baseColor = color(hex);
-  const fresnel = fresnelNode();
 
-  switch (nodeType) {
-    case 'source': {
-      // Pulsing emissive with outward energy feel
-      const pulse = float(0.7).add(time.mul(2.0).sin().mul(0.3));
-      mat.colorNode = baseColor.mul(pulse);
-      mat.emissiveNode = baseColor.mul(pulse.mul(2.5)).add(baseColor.mul(fresnel.mul(2.0)));
-      break;
-    }
-    case 'transform': {
-      // Circuit-board grid pattern
-      const gridX = fract(positionLocal.x.mul(6.0));
-      const gridY = fract(positionLocal.y.mul(6.0));
-      const gridZ = fract(positionLocal.z.mul(6.0));
-      const lineX = smoothstep(0.42, 0.48, gridX).sub(smoothstep(0.52, 0.58, gridX));
-      const lineY = smoothstep(0.42, 0.48, gridY).sub(smoothstep(0.52, 0.58, gridY));
-      const lineZ = smoothstep(0.42, 0.48, gridZ).sub(smoothstep(0.52, 0.58, gridZ));
-      const gridPattern = lineX.add(lineY).add(lineZ).clamp(0.0, 1.0);
-      mat.colorNode = mix(baseColor.mul(0.3), baseColor.mul(1.8), gridPattern.mul(0.7));
-      mat.emissiveNode = mix(baseColor.mul(0.2), baseColor.mul(2.5), gridPattern.mul(0.5)).add(
-        baseColor.mul(fresnel.mul(1.5))
-      );
-      break;
-    }
-    case 'filter': {
-      // Alternating bright/dark facets via hash noise
-      const noiseVal = hash(positionLocal.mul(12.0));
-      const brightFacet = smoothstep(0.4, 0.6, noiseVal);
-      mat.colorNode = mix(baseColor.mul(0.3), baseColor.mul(1.5), brightFacet);
-      mat.emissiveNode = mix(baseColor.mul(0.2), baseColor.mul(2.0), brightFacet).add(
-        baseColor.mul(fresnel.mul(1.8))
-      );
-      break;
-    }
-    case 'merge': {
-      // Swirling multi-color blend
-      const swirl = hash(positionLocal.mul(5.0).add(time.mul(0.4)));
-      const accentColor = color(0xff8844);
-      mat.colorNode = mix(baseColor, accentColor, swirl.mul(0.5));
-      mat.emissiveNode = mix(baseColor.mul(0.5), accentColor.mul(2.0), swirl.mul(0.4)).add(
-        baseColor.mul(fresnel.mul(2.0))
-      );
-      break;
-    }
-    case 'split': {
-      // Rainbow facets
-      const rainbowNoise = hash(positionLocal.mul(10.0));
-      const col1 = color(0xffcc22);
-      const col2 = color(0xff44aa);
-      const col3 = color(0x44ffaa);
-      const lowerMix = mix(col1, col2, smoothstep(0.0, 0.5, rainbowNoise));
-      const fullRainbow = mix(lowerMix, col3, smoothstep(0.5, 1.0, rainbowNoise));
-      mat.colorNode = fullRainbow;
-      mat.emissiveNode = fullRainbow.mul(float(1.5).add(fresnel.mul(2.0)));
-      break;
-    }
-    case 'sink': {
-      if (nodeId === 'reject') {
-        // Dead letter: aggressive red pulsing
-        const aggressivePulse = float(0.5).add(time.mul(3.0).sin().mul(0.5));
-        const darkRed = color(0x440000);
-        const brightRed = color(0xff2222);
-        mat.colorNode = mix(darkRed, brightRed, aggressivePulse);
-        mat.emissiveNode = mix(darkRed.mul(0.5), brightRed.mul(3.0), aggressivePulse).add(
-          color(0xff0000).mul(fresnel.mul(2.5))
-        );
-      } else {
-        // Normal sinks: deep color with subtle inner glow
-        const innerGlow = float(0.6).add(time.mul(0.8).sin().mul(0.2));
-        mat.colorNode = baseColor.mul(0.6);
-        mat.emissiveNode = baseColor.mul(innerGlow.mul(1.5)).add(baseColor.mul(fresnel.mul(1.5)));
-      }
-      break;
-    }
-    default: {
-      mat.colorNode = baseColor;
-      mat.emissiveNode = baseColor.mul(0.5);
-    }
+  if (nodeId === 'reject') {
+    mat.color = new THREE.Color(0xff2222);
+    mat.emissive = new THREE.Color(0xff2222);
+    mat.emissiveIntensity = 1.5;
+  } else {
+    mat.color = new THREE.Color(hex);
+    mat.emissive = new THREE.Color(hex);
+    mat.emissiveIntensity = 0.8;
   }
 
   mat.roughness = 0.2;
@@ -210,34 +121,26 @@ function makeNodeMaterial(nodeType: string, hex: number, nodeId: string): THREE.
 const sharedPipeNodeHaloMaterial = (() => {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
+  mat.opacity = 0.35;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const fresnel = fresnelNode();
-  const pulse = float(0.6).add(time.mul(0.8).sin().mul(0.3));
-
-  mat.opacityNode = fresnel.mul(pulse).mul(0.45);
-  mat.colorNode = color(0xffffff);
-  mat.emissiveNode = color(0xffffff).mul(fresnel.mul(pulse).mul(3.0));
+  mat.color = new THREE.Color(0xffffff);
+  mat.emissive = new THREE.Color(0xffffff);
+  mat.emissiveIntensity = 2.5;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
 })();
 
-// ── Pipe TSL material with scrolling flow ──
+// ── Simple transparent pipe material (no shader compilation) ──
 function makePipeMaterial(hex: number): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
-
-  const pipeColor = color(hex);
-  const flow = smoothstep(0.3, 0.7, fract(positionLocal.y.mul(4.0).sub(time.mul(2.0))));
-  const darkBase = pipeColor.mul(0.15);
-  const brightFlow = pipeColor.mul(1.2);
-
-  mat.colorNode = mix(darkBase, brightFlow, flow.mul(0.6));
-  mat.emissiveNode = mix(pipeColor.mul(0.05), pipeColor.mul(1.0), flow.mul(0.5));
-  mat.opacityNode = float(0.3).add(flow.mul(0.25));
+  mat.opacity = 0.4;
+  mat.color = new THREE.Color(hex);
+  mat.emissive = new THREE.Color(hex);
+  mat.emissiveIntensity = 0.5;
   mat.roughness = 0.3;
   mat.metalness = 0.1;
   return mat;
@@ -393,17 +296,16 @@ function PipeTube({
 function FlowParticles({ selectedNode: _selectedNode }: { selectedNode: string | null }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  // Bright additive particle material
+  // Simple additive particle material (no shader compilation)
   const particleMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
+    mat.opacity = 0.9;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
-
-    const glow = color(0xffffff);
-    mat.colorNode = glow;
-    mat.emissiveNode = glow.mul(3.0);
-    mat.opacityNode = float(0.9);
+    mat.color = new THREE.Color(0xffffff);
+    mat.emissive = new THREE.Color(0xffffff);
+    mat.emissiveIntensity = 3.0;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
     return mat;
@@ -551,16 +453,10 @@ function GridFloor() {
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
     m.transparent = true;
-
-    const gridX = fract(positionLocal.x.mul(1.5));
-    const gridZ = fract(positionLocal.z.mul(1.5));
-    const lineX = smoothstep(0.46, 0.49, gridX).sub(smoothstep(0.51, 0.54, gridX));
-    const lineZ = smoothstep(0.46, 0.49, gridZ).sub(smoothstep(0.51, 0.54, gridZ));
-    const gridPattern = lineX.add(lineZ).clamp(0.0, 1.0);
-
-    m.colorNode = color(0x0e1520);
-    m.emissiveNode = color(0x1a2535).mul(gridPattern.mul(0.3));
-    m.opacityNode = float(0.4).add(gridPattern.mul(0.2));
+    m.opacity = 0.4;
+    m.color = new THREE.Color(0x0e1520);
+    m.emissive = new THREE.Color(0x1a2535);
+    m.emissiveIntensity = 0.2;
     m.roughness = 0.8;
     m.metalness = 0.1;
     return m;
@@ -578,11 +474,9 @@ function BackgroundSphere() {
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
     m.side = THREE.BackSide;
-    const yGrad = positionLocal.y.mul(0.02).add(0.5).clamp(0.0, 1.0);
-    const bottomColor = color(0x080c16);
-    const topColor = color(0x040406);
-    m.colorNode = mix(bottomColor, topColor, yGrad);
-    m.emissiveNode = mix(color(0x050810), color(0x020203), yGrad);
+    m.color = new THREE.Color(0x060910);
+    m.emissive = new THREE.Color(0x040608);
+    m.emissiveIntensity = 0.5;
     m.roughness = 1.0;
     m.metalness = 0.0;
     return m;
@@ -656,7 +550,7 @@ export default function DataFlowPipes() {
   // Background click catcher material
   const bgClickMat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
-    m.colorNode = color(0x0a0a12);
+    m.color = new THREE.Color(0x0a0a12);
     m.roughness = 1.0;
     m.metalness = 0.0;
     return m;

@@ -2,21 +2,6 @@ import { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  color,
-  float,
-  mix,
-  smoothstep,
-  time,
-  positionLocal,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  fract,
-  atan,
-} from 'three/tsl';
 
 /**
  * Neural Pipeline Flow
@@ -42,13 +27,6 @@ const STAGES = [
 
 const PARTICLE_COUNT = 300;
 
-// ── Fresnel helper ──
-const fresnelNode = Fn(() => {
-  const viewDir = cameraPosition.sub(positionWorld).normalize();
-  const nDotV = normalWorld.dot(viewDir).saturate();
-  return float(1.0).sub(nDotV).pow(2.0);
-});
-
 // ── Helper: get color at progress along pipeline ──
 function getColorAtProgress(progress: number, tmpColor: THREE.Color): THREE.Color {
   const t = Math.max(0, Math.min(1, progress));
@@ -61,153 +39,57 @@ function getColorAtProgress(progress: number, tmpColor: THREE.Color): THREE.Colo
   return tmpColor;
 }
 
-// ── Create TSL material for each stage type ──
-function makeStageMaterial(stageId: string, hex: number): THREE.MeshStandardNodeMaterial {
+// ── Simple material for each stage ──
+function makeStageMaterial(_stageId: string, hex: number): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
-  const baseColor = color(hex);
-  const fresnel = fresnelNode();
-
-  switch (stageId) {
-    case 'input':
-    case 'ffn1':
-    case 'ffn2': {
-      // Box stages: scanline / circuit-board pattern
-      const isFfn = stageId !== 'input';
-      if (isFfn) {
-        // FFN: grid / circuit-board pattern
-        const gridX = fract(positionLocal.x.mul(8.0));
-        const gridY = fract(positionLocal.y.mul(8.0));
-        const gridZ = fract(positionLocal.z.mul(8.0));
-        const lineX = smoothstep(0.42, 0.48, gridX).sub(smoothstep(0.52, 0.58, gridX));
-        const lineY = smoothstep(0.42, 0.48, gridY).sub(smoothstep(0.52, 0.58, gridY));
-        const lineZ = smoothstep(0.42, 0.48, gridZ).sub(smoothstep(0.52, 0.58, gridZ));
-        const gridPattern = lineX.add(lineY).add(lineZ).clamp(0.0, 1.0);
-        const darkBase = baseColor.mul(0.3);
-        const brightLine = baseColor.mul(2.0);
-        mat.colorNode = mix(darkBase, brightLine, gridPattern.mul(0.7));
-        mat.emissiveNode = mix(baseColor.mul(0.3), baseColor.mul(2.5), gridPattern.mul(0.6)).add(
-          baseColor.mul(fresnel.mul(1.5))
-        );
-      } else {
-        // Input: scanline scrolling upward
-        const scanline = smoothstep(0.4, 0.6, fract(positionLocal.y.mul(10.0).add(time.mul(0.8))));
-        mat.colorNode = mix(baseColor.mul(0.4), baseColor.mul(1.5), scanline);
-        mat.emissiveNode = mix(baseColor.mul(0.2), baseColor.mul(2.0), scanline).add(
-          baseColor.mul(fresnel.mul(1.5))
-        );
-      }
-      break;
-    }
-    case 'embed': {
-      // Cylinder: rotating vertical color bands
-      const angle = atan(positionLocal.x, positionLocal.z);
-      const bandPattern = fract(angle.mul(3.0 / (Math.PI * 2)).add(time.mul(0.3)));
-      const band = smoothstep(0.3, 0.5, bandPattern).sub(smoothstep(0.5, 0.7, bandPattern));
-      const warmShift = color(0xffdd44);
-      mat.colorNode = mix(baseColor.mul(0.5), warmShift, band.mul(0.6));
-      mat.emissiveNode = mix(baseColor.mul(0.4), warmShift.mul(2.0), band.mul(0.5)).add(
-        baseColor.mul(fresnel.mul(1.8))
-      );
-      break;
-    }
-    case 'attn1':
-    case 'attn2': {
-      // Torus: multi-color swirling hash noise
-      const noiseVal = hash(positionLocal.mul(5.0).add(time.mul(0.5)));
-      const warmColor = color(stageId === 'attn1' ? 0x44aaff : 0x4488ff);
-      const accentColor = color(stageId === 'attn1' ? 0xff88cc : 0x88ffcc);
-      mat.colorNode = mix(warmColor, accentColor, noiseVal.mul(0.6));
-      mat.emissiveNode = mix(warmColor.mul(0.5), accentColor.mul(2.0), noiseVal.mul(0.4)).add(
-        warmColor.mul(fresnel.mul(2.0))
-      );
-      break;
-    }
-    case 'norm': {
-      // Sphere: smooth pulsing gradient + fresnel color shift
-      const yGrad = smoothstep(-0.6, 0.6, positionLocal.y);
-      const pulse = float(0.5).add(time.mul(1.5).sin().mul(0.3));
-      const bottomColor = color(0x8822cc);
-      const topColor = color(0xff66ff);
-      mat.colorNode = mix(bottomColor, topColor, yGrad.mul(pulse));
-      mat.emissiveNode = mix(bottomColor.mul(0.5), topColor.mul(2.5), yGrad.mul(pulse)).add(
-        baseColor.mul(fresnel.mul(2.0))
-      );
-      break;
-    }
-    case 'output': {
-      // Octahedron: rainbow fresnel via vertical gradient
-      const yNorm = positionLocal.y.mul(1.5).add(0.5).clamp(0.0, 1.0);
-      const rainbowLow = color(0xff4488);
-      const rainbowMid = color(0xffaa44);
-      const rainbowHigh = color(0x44ffaa);
-      const lowerMix = mix(rainbowLow, rainbowMid, smoothstep(0.0, 0.5, yNorm));
-      const fullRainbow = mix(lowerMix, rainbowHigh, smoothstep(0.5, 1.0, yNorm));
-      mat.colorNode = fullRainbow;
-      mat.emissiveNode = fullRainbow.mul(float(1.5).add(fresnel.mul(2.5)));
-      break;
-    }
-    default: {
-      mat.colorNode = baseColor;
-      mat.emissiveNode = baseColor.mul(0.5);
-    }
-  }
-
+  mat.color = new THREE.Color(hex);
+  mat.emissive = new THREE.Color(hex);
+  mat.emissiveIntensity = 0.6;
   mat.roughness = 0.2;
   mat.metalness = 0.4;
   return mat;
 }
 
-// ── Make halo shell material for a stage ──
+// ── Simple halo shell material for a stage ──
 function makeHaloMaterial(hex: number): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const fresnel = fresnelNode();
-  const pulse = float(0.6).add(time.mul(0.8).sin().mul(0.3));
-  const glowColor = color(hex);
-
-  mat.opacityNode = fresnel.mul(pulse).mul(0.5);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(fresnel.mul(pulse).mul(3.0));
+  mat.color = new THREE.Color(hex);
+  mat.emissive = new THREE.Color(hex);
+  mat.emissiveIntensity = 1.5;
+  mat.opacity = 0.25;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
 }
 
-// ── Connection pipe TSL material ──
+// ── Simple connection pipe material ──
 function makePipeMaterial(): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
-
-  // Scrolling brightness along the pipe (y is pipe length axis)
-  const flow = smoothstep(0.3, 0.7, fract(positionLocal.y.mul(3.0).sub(time.mul(1.5))));
-  const baseBlue = color(0x334466);
-  const brightBlue = color(0x66ccff);
-
-  mat.colorNode = mix(baseBlue, brightBlue, flow.mul(0.6));
-  mat.emissiveNode = mix(baseBlue.mul(0.1), brightBlue.mul(1.5), flow.mul(0.5));
-  mat.opacityNode = float(0.35).add(flow.mul(0.25));
+  mat.color = new THREE.Color(0x4499bb);
+  mat.emissive = new THREE.Color(0x4499bb);
+  mat.emissiveIntensity = 0.4;
+  mat.opacity = 0.45;
   mat.roughness = 0.3;
   mat.metalness = 0.1;
   return mat;
 }
 
-// ── Pipe halo material ──
+// ── Simple pipe halo material ──
 function makePipeHaloMaterial(): THREE.MeshStandardNodeMaterial {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
-
-  const flow = smoothstep(0.3, 0.7, fract(positionLocal.y.mul(3.0).sub(time.mul(1.5))));
-  const glowColor = color(0x4488aa);
-  mat.opacityNode = flow.mul(0.15);
-  mat.colorNode = glowColor;
-  mat.emissiveNode = glowColor.mul(flow.mul(2.0));
+  mat.color = new THREE.Color(0x4488aa);
+  mat.emissive = new THREE.Color(0x4488aa);
+  mat.emissiveIntensity = 1.0;
+  mat.opacity = 0.1;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
@@ -372,17 +254,16 @@ function ConnectionPipe({ fromX, toX }: { fromX: number; toX: number }) {
 function Particles({ selectedStage }: { selectedStage: string | null }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  // Particle material: bright additive glow
+  // Simple particle material: bright additive glow
   const particleMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
-
-    const glow = color(0xffffff);
-    mat.colorNode = glow;
-    mat.emissiveNode = glow.mul(3.0);
-    mat.opacityNode = float(0.9);
+    mat.color = new THREE.Color(0xffffff);
+    mat.emissive = new THREE.Color(0xffffff);
+    mat.emissiveIntensity = 3.0;
+    mat.opacity = 0.9;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
     return mat;
@@ -481,16 +362,10 @@ function GridFloor() {
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
     m.transparent = true;
-
-    const gridX = fract(positionLocal.x.mul(2.0));
-    const gridZ = fract(positionLocal.z.mul(2.0));
-    const lineX = smoothstep(0.46, 0.49, gridX).sub(smoothstep(0.51, 0.54, gridX));
-    const lineZ = smoothstep(0.46, 0.49, gridZ).sub(smoothstep(0.51, 0.54, gridZ));
-    const gridPattern = lineX.add(lineZ).clamp(0.0, 1.0);
-
-    m.colorNode = color(0x112233);
-    m.emissiveNode = color(0x223344).mul(gridPattern.mul(0.3));
-    m.opacityNode = float(0.4).add(gridPattern.mul(0.2));
+    m.color = new THREE.Color(0x112233);
+    m.emissive = new THREE.Color(0x112233);
+    m.emissiveIntensity = 0.15;
+    m.opacity = 0.5;
     m.roughness = 0.8;
     m.metalness = 0.1;
     return m;
@@ -508,12 +383,7 @@ function BackgroundSphere() {
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
     m.side = THREE.BackSide;
-    // Dark gradient from deep blue at bottom to near-black at top
-    const yGrad = positionLocal.y.mul(0.02).add(0.5).clamp(0.0, 1.0);
-    const bottomColor = color(0x0a0e1a);
-    const topColor = color(0x050508);
-    m.colorNode = mix(bottomColor, topColor, yGrad);
-    m.emissiveNode = mix(color(0x060a14), color(0x020204), yGrad);
+    m.color = new THREE.Color(0x070a10);
     m.roughness = 1.0;
     m.metalness = 0.0;
     return m;
@@ -571,7 +441,7 @@ export default function NeuralPipelineFlow() {
   // Background click catcher material
   const bgClickMat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
-    m.colorNode = color(0x0a0a12);
+    m.color = new THREE.Color(0x0a0a12);
     m.roughness = 1.0;
     m.metalness = 0.0;
     return m;
