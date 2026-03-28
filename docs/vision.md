@@ -63,7 +63,7 @@ src/
 | WebGPU detection/fallback | Built | Auto-detects, falls back to WebGL with notice |
 | Demo templates (5) | Built | TSL torus, particles, terrain, crystals, aurora |
 | Batch generation workflow | Planned | Choo Choo Ralph spec |
-| Extractable scene spec | Built | Engine-agnostic YAML spec at `docs/spec/scene-pipeline-spec-v1.md` |
+| Extractable scene spec | Built | Engine-agnostic YAML spec at `docs/specs/scene-pipeline-spec-v1.md` |
 
 > For detailed feature requirements, see `docs/prd/prd.md`.
 

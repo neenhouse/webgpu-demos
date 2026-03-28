@@ -1,6 +1,6 @@
 ---
 title: Batch Demo Generation & Per-Demo WebGPU Compatibility
-status: APPROVED
+status: IMPLEMENTED
 created: 2026-03-24
 features: [Feature 5 - Batch Generation, REQ-11 - Per-Demo Compatibility]
 ---

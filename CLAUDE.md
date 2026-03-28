@@ -62,6 +62,7 @@ Before implementing any feature, read docs in this order:
 1. `docs/vision.md` — project vision, architecture, current state
 2. `docs/prd/` — requirements and feature inventory (what to build and current status)
 3. `docs/specs/` — technical design documents (how to build it)
+4. `docs/ralph-specs/` — batch generation specs, playbooks, and accumulated learnings
 
 **Governance chain**: Vision governs PRDs. PRDs govern specs. Specs govern implementation.
 Do not contradict upstream docs. If a spec conflicts with a PRD, the PRD wins.
@@ -70,13 +71,17 @@ After implementing a feature:
 - Update the PRD feature status (PLANNED -> COMPLETE)
 - Update the spec status (APPROVED -> IMPLEMENTED)
 
+Archived plans from earlier phases live in `docs/archive/` for reference.
+
 ## Key File Locations
 
 | What | Where |
 |------|-------|
 | Demo registry | `src/lib/registry.ts` |
 | Scene YAML files | `public/scenes/*.scene.yaml` |
-| Pipeline spec (portable) | `docs/spec/scene-pipeline-spec-v1.md` |
+| Pipeline spec (portable) | `docs/specs/scene-pipeline-spec-v1.md` |
+| Model pipeline design | `docs/specs/model-pipeline-design.md` |
+| Batch generation design | `docs/specs/batch-generation-design.md` |
 | Ralph learnings | `docs/ralph-specs/learnings.md` |
 | Scene editing spec | `docs/ralph-specs/scene-editing.md` |
 | Zod schema (source of truth) | `src/pipeline/spec/schema.ts` |
