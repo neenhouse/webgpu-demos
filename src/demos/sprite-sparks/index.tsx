@@ -122,6 +122,46 @@ export default function SpriteSparks() {
     return mat;
   }, []);
 
+  // Bloom halo shells at the fountain emitter point
+  const haloScales = [0.5, 0.8, 1.2];
+  const haloMaterials = useMemo(() => {
+    return haloScales.map((_, i) => {
+      const mat = new THREE.MeshStandardNodeMaterial();
+      mat.transparent = true;
+      mat.side = THREE.BackSide;
+      mat.depthWrite = false;
+      mat.blending = THREE.AdditiveBlending;
+
+      const layerF = float(i);
+
+      // Fresnel: strongest at grazing angles
+      const fresnelVal = Fn(() => {
+        const viewDir = cameraPosition.sub(positionWorld).normalize();
+        const nDotV = normalWorld.dot(viewDir).saturate();
+        return float(1.0).sub(nDotV).pow(float(1.5).add(layerF.mul(0.5)));
+      })();
+
+      // Warm orange-gold matching the spark base
+      const haloColor = mix(
+        color(0xff6622), // warm orange
+        color(0xffaa44), // gold
+        layerF.mul(0.3),
+      );
+
+      // Very low opacity per shell (0.02-0.04)
+      const baseOpacity = float(0.04).sub(layerF.mul(0.01));
+      mat.opacityNode = fresnelVal.mul(baseOpacity);
+
+      mat.colorNode = haloColor;
+      mat.emissiveNode = haloColor.mul(fresnelVal.mul(2.0));
+
+      mat.roughness = 0.0;
+      mat.metalness = 0.0;
+
+      return mat;
+    });
+  }, []);
+
   // Rotate the fountain
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -146,6 +186,17 @@ export default function SpriteSparks() {
           <icosahedronGeometry args={[1, 2]} />
         </instancedMesh>
       </group>
+
+      {/* Bloom halo shells at fountain base — "heat source" glow */}
+      {haloMaterials.map((mat, i) => (
+        <mesh
+          key={`halo-${i}`}
+          position={[0, -2.0, 0]}
+          material={mat}
+        >
+          <icosahedronGeometry args={[haloScales[i], 3]} />
+        </mesh>
+      ))}
     </>
   );
 }
