@@ -381,6 +381,22 @@ export const demos: DemoEntry[] = [
     color: '#bb8844',
     component: lazy(() => import('../demos/gladiator-arena')),
   },
+  {
+    name: 'aurora-cascade',
+    title: 'Aurora Cascade',
+    description: '1200 compute-driven curtain strips forming northern lights with 5-stop gradient, bloom halos, and reflective ground plane',
+    requiresWebGPU: true,
+    color: '#00ff88',
+    component: lazy(() => import('../demos/aurora-cascade')),
+  },
+  {
+    name: 'particle-galaxy-portrait',
+    title: 'Particle Galaxy Portrait',
+    description: '10,000 compute-driven particles forming a skull shape with orbital shimmer, proximity coloring, and bloom halo core',
+    requiresWebGPU: true,
+    color: '#3366ff',
+    component: lazy(() => import('../demos/particle-galaxy-portrait')),
+  },
 ];
 
 export function getDemoByName(name: string): DemoEntry | undefined {
