@@ -50,18 +50,26 @@ interface DataFlow {
   hex: number;
 }
 
+// Tiered layout: Client → Edge → Services → Data (all z=0 for clean diagram)
 const SERVICES: Service[] = [
-  { id: 'browser', label: 'Browser', type: 'frontend', position: [-6, 4, 0], color: '#61dafb', hex: 0x61dafb, desc: 'React SPA', tech: 'React + Vite' },
-  { id: 'cdn', label: 'CDN', type: 'cdn', position: [-3, 4, 0], color: '#f38020', hex: 0xf38020, desc: 'Edge caching', tech: 'Cloudflare Pages' },
-  { id: 'gateway', label: 'API Gateway', type: 'backend', position: [0, 4, 0], color: '#22cc88', hex: 0x22cc88, desc: 'Request routing', tech: 'Workers' },
-  { id: 'auth', label: 'Auth Service', type: 'backend', position: [-3, 1, 2], color: '#ff6644', hex: 0xff6644, desc: 'JWT + sessions', tech: 'Workers' },
-  { id: 'api', label: 'API Server', type: 'backend', position: [0, 1, 0], color: '#4488ff', hex: 0x4488ff, desc: 'Business logic', tech: 'Workers' },
-  { id: 'ai', label: 'AI Service', type: 'external', position: [3, 1, -2], color: '#cc44ff', hex: 0xcc44ff, desc: 'LLM inference', tech: 'Claude API' },
-  { id: 'db', label: 'Database', type: 'database', position: [-2, -2, 0], color: '#ffaa22', hex: 0xffaa22, desc: 'Relational data', tech: 'D1 (SQLite)' },
-  { id: 'kv', label: 'KV Store', type: 'cache', position: [2, -2, 0], color: '#ff8844', hex: 0xff8844, desc: 'Session + config', tech: 'KV' },
-  { id: 'storage', label: 'Object Store', type: 'database', position: [0, -2, -3], color: '#44cc88', hex: 0x44cc88, desc: 'Files + media', tech: 'R2' },
-  { id: 'queue', label: 'Task Queue', type: 'queue', position: [4, 1, 2], color: '#ff4488', hex: 0xff4488, desc: 'Async jobs', tech: 'Queues' },
+  // Tier 1: Client
+  { id: 'browser', label: 'Browser', type: 'frontend', position: [-4, 5, 0], color: '#61dafb', hex: 0x61dafb, desc: 'React SPA', tech: 'React + Vite' },
+  // Tier 2: Edge
+  { id: 'cdn', label: 'CDN', type: 'cdn', position: [-1, 3, 0], color: '#f38020', hex: 0xf38020, desc: 'Edge caching', tech: 'Cloudflare Pages' },
+  { id: 'gateway', label: 'API Gateway', type: 'backend', position: [2, 3, 0], color: '#22cc88', hex: 0x22cc88, desc: 'Request routing', tech: 'Workers' },
+  // Tier 3: Services
+  { id: 'auth', label: 'Auth Service', type: 'backend', position: [-2, 1, 0], color: '#ff6644', hex: 0xff6644, desc: 'JWT + sessions', tech: 'Workers' },
+  { id: 'api', label: 'API Server', type: 'backend', position: [1, 1, 0], color: '#4488ff', hex: 0x4488ff, desc: 'Business logic', tech: 'Workers' },
+  { id: 'ai', label: 'AI Service', type: 'external', position: [4, 1, 0], color: '#cc44ff', hex: 0xcc44ff, desc: 'LLM inference', tech: 'Claude API' },
+  { id: 'queue', label: 'Task Queue', type: 'queue', position: [6.5, 1, 0], color: '#ff4488', hex: 0xff4488, desc: 'Async jobs', tech: 'Queues' },
+  // Tier 4: Data
+  { id: 'db', label: 'Database', type: 'database', position: [-1, -1, 0], color: '#ffaa22', hex: 0xffaa22, desc: 'Relational data', tech: 'D1 (SQLite)' },
+  { id: 'kv', label: 'KV Store', type: 'cache', position: [2, -1, 0], color: '#ff8844', hex: 0xff8844, desc: 'Session + config', tech: 'KV' },
+  { id: 'storage', label: 'Object Store', type: 'database', position: [5, -1, 0], color: '#44cc88', hex: 0x44cc88, desc: 'Files + media', tech: 'R2' },
 ];
+
+// Customer request trace path
+const TRACE_PATH = ['browser', 'cdn', 'gateway', 'auth', 'api', 'db', 'api', 'ai', 'api', 'queue'];
 
 const FLOWS: DataFlow[] = [
   { from: 'browser', to: 'cdn', label: 'Static assets', protocol: 'HTTPS', color: '#61dafb', hex: 0x61dafb },
@@ -474,24 +482,25 @@ function ServiceNode({
         </mesh>
       )}
 
-      {/* Service label */}
-      <Html position={[0, 1.0, 0]} center distanceFactor={10}>
+      {/* Service label — fixed position, no distanceFactor for alignment */}
+      <Html position={[0, 1.2, 0]} center>
         <div
           style={{
             color: 'white',
             fontSize: '11px',
-            background: `linear-gradient(135deg, rgba(0,0,0,0.85), rgba(${parseInt(typeColor.slice(1, 3), 16)},${parseInt(typeColor.slice(3, 5), 16)},${parseInt(typeColor.slice(5, 7), 16)},0.3))`,
-            padding: '4px 10px',
-            borderRadius: '4px',
+            background: 'rgba(0,0,0,0.8)',
+            padding: '3px 8px',
+            borderRadius: '3px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
-            border: `1px solid ${typeColor}44`,
+            borderLeft: `2px solid ${typeColor}`,
             fontWeight: isSelected ? 'bold' : 'normal',
             opacity: isDimmed ? 0.3 : 1,
+            transform: 'translateY(-100%)',
           }}
         >
-          <div>{service.label}</div>
-          <div style={{ fontSize: '9px', opacity: 0.7 }}>{service.tech}</div>
+          <div style={{ fontSize: '10px', fontWeight: 'bold' }}>{service.label}</div>
+          <div style={{ fontSize: '8px', opacity: 0.6 }}>{service.tech}</div>
         </div>
       </Html>
 
@@ -653,7 +662,7 @@ function DetailPanel({
   connectedFlows: DataFlow[];
 }) {
   return (
-    <Html position={[service.position[0], service.position[1] + 2.2, service.position[2]]} center distanceFactor={10}>
+    <Html position={[service.position[0], service.position[1] + 2.2, service.position[2]]} center>
       <div
         style={{
           color: 'white',
@@ -696,9 +705,87 @@ function BlueprintGridFloor() {
   const gridMat = useMemo(() => makeBlueprintGridMaterial(), []);
 
   return (
-    <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
+    <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
       <planeGeometry args={[40, 40]} />
     </mesh>
+  );
+}
+
+// ── Main Component ──
+
+// ── Trace Request Ball ──
+
+function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; traceProgress: number }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  const mat = useMemo(() => {
+    const m = new THREE.MeshStandardNodeMaterial();
+    m.transparent = true;
+    m.depthWrite = false;
+    m.blending = THREE.AdditiveBlending;
+    const pulse = oscSine(time.mul(6.0)).mul(0.3).add(1.0);
+    m.colorNode = color(0xffee44);
+    m.emissiveNode = color(0xffee44).mul(pulse).mul(4.0);
+    return m;
+  }, []);
+
+  const haloMat = useMemo(() => {
+    const m = new THREE.MeshStandardNodeMaterial();
+    m.transparent = true;
+    m.side = THREE.BackSide;
+    m.depthWrite = false;
+    m.blending = THREE.AdditiveBlending;
+    m.colorNode = color(0xffcc22);
+    m.emissiveNode = color(0xffcc22).mul(2.0);
+    m.opacityNode = float(0.3);
+    return m;
+  }, []);
+
+  if (traceStep >= TRACE_PATH.length - 1) return null;
+
+  const fromId = TRACE_PATH[traceStep];
+  const toId = TRACE_PATH[traceStep + 1];
+  const fromS = serviceMap.get(fromId)!;
+  const toS = serviceMap.get(toId)!;
+  const x = fromS.position[0] + (toS.position[0] - fromS.position[0]) * traceProgress;
+  const y = fromS.position[1] + (toS.position[1] - fromS.position[1]) * traceProgress;
+  const z = fromS.position[2] + (toS.position[2] - fromS.position[2]) * traceProgress;
+
+  return (
+    <group position={[x, y, z]}>
+      <mesh ref={meshRef} material={mat}>
+        <sphereGeometry args={[0.15, 12, 8]} />
+      </mesh>
+      <mesh material={haloMat} scale={[2.5, 2.5, 2.5]}>
+        <sphereGeometry args={[0.15, 8, 6]} />
+      </mesh>
+      <pointLight color="#ffee44" intensity={3} distance={4} />
+    </group>
+  );
+}
+
+// ── Tier Labels ──
+
+function TierLabels() {
+  const tiers = [
+    { label: 'CLIENT', y: 5 },
+    { label: 'EDGE', y: 3 },
+    { label: 'SERVICES', y: 1 },
+    { label: 'DATA', y: -1 },
+  ];
+  return (
+    <>
+      {tiers.map((t) => (
+        <Html key={t.label} position={[-7.5, t.y, 0]} center>
+          <div style={{
+            color: 'rgba(100,140,200,0.4)', fontSize: '9px', fontWeight: 'bold',
+            letterSpacing: '2px', whiteSpace: 'nowrap', pointerEvents: 'none',
+          }}>
+            {t.label}
+          </div>
+        </Html>
+      ))}
+    </>
   );
 }
 
@@ -707,21 +794,24 @@ function BlueprintGridFloor() {
 export default function ArchitectureBlueprint() {
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [hoveredService, setHoveredService] = useState<string | null>(null);
+  const [traceActive, setTraceActive] = useState(false);
+  const [traceStep, setTraceStep] = useState(0);
+  const [traceProgress, setTraceProgress] = useState(0);
   const timeRef = useRef(0);
-  const targetPos = useRef(new THREE.Vector3(2, 6, 12));
-  const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const targetPos = useRef(new THREE.Vector3(1, 2, 14));
+  const targetLookAt = useRef(new THREE.Vector3(1, 2, 0));
   const { camera } = useThree();
 
   const handleSelect = useCallback(
     (id: string) => {
       if (selectedService === id) {
         setSelectedService(null);
-        targetPos.current.set(2, 6, 12);
-        targetLookAt.current.set(0, 0, 0);
+        targetPos.current.set(1, 2, 14);
+        targetLookAt.current.set(1, 2, 0);
       } else {
         setSelectedService(id);
         const s = serviceMap.get(id)!;
-        targetPos.current.set(s.position[0] + 2, s.position[1] + 3, s.position[2] + 6);
+        targetPos.current.set(s.position[0] + 1.5, s.position[1] + 2, s.position[2] + 6);
         targetLookAt.current.set(s.position[0], s.position[1], s.position[2]);
       }
     },
@@ -730,8 +820,17 @@ export default function ArchitectureBlueprint() {
 
   const handleEmptyClick = useCallback(() => {
     setSelectedService(null);
-    targetPos.current.set(2, 6, 12);
-    targetLookAt.current.set(0, 0, 0);
+    targetPos.current.set(1, 2, 14);
+    targetLookAt.current.set(1, 2, 0);
+  }, []);
+
+  const handleTraceRequest = useCallback(() => {
+    setTraceActive(true);
+    setTraceStep(0);
+    setTraceProgress(0);
+    setSelectedService(null);
+    targetPos.current.set(1, 2, 14);
+    targetLookAt.current.set(1, 2, 0);
   }, []);
 
   const connectedFlows = useMemo(() => {
@@ -791,23 +890,40 @@ export default function ArchitectureBlueprint() {
     return mat;
   }, []);
 
+  const currentLookAt = useRef(new THREE.Vector3(1, 2, 0));
+
   useFrame((_, delta) => {
     timeRef.current += delta;
 
+    // Trace animation
+    if (traceActive) {
+      setTraceProgress((prev) => {
+        const next = prev + delta * 1.2; // ~0.8s per segment
+        if (next >= 1) {
+          const nextStep = traceStep + 1;
+          if (nextStep >= TRACE_PATH.length - 1) {
+            setTraceActive(false);
+            setTraceStep(0);
+            return 0;
+          }
+          setTraceStep(nextStep);
+          return 0;
+        }
+        return next;
+      });
+    }
+
     camera.position.lerp(targetPos.current, 0.04);
-    camera.lookAt(
-      camera.position.x + (targetLookAt.current.x - camera.position.x) * 0.04,
-      camera.position.y + (targetLookAt.current.y - camera.position.y) * 0.04,
-      (targetLookAt.current.z) * 0.5,
-    );
+    currentLookAt.current.lerp(targetLookAt.current, 0.04);
+    camera.lookAt(currentLookAt.current);
   });
 
   return (
     <>
       {/* Blue-tinted ambient for holographic atmosphere */}
-      <ambientLight intensity={0.1} color={0x334466} />
-      <directionalLight position={[5, 10, 5]} intensity={0.3} color={0x6688cc} />
-      <directionalLight position={[-5, 5, -5]} intensity={0.1} color={0x4466aa} />
+      <ambientLight intensity={0.15} color={0x334466} />
+      <directionalLight position={[5, 10, 5]} intensity={0.4} color={0x6688cc} />
+      <directionalLight position={[-5, 5, -5]} intensity={0.15} color={0x4466aa} />
 
       {/* Background atmosphere */}
       <mesh material={bgMat}>
@@ -815,12 +931,15 @@ export default function ArchitectureBlueprint() {
       </mesh>
 
       {/* Click background to deselect */}
-      <mesh position={[0, 0, -10]} material={bgClickMat} onClick={handleEmptyClick}>
-        <planeGeometry args={[60, 40]} />
+      <mesh position={[0, 2, -5]} material={bgClickMat} onClick={handleEmptyClick}>
+        <planeGeometry args={[40, 30]} />
       </mesh>
 
       {/* Blueprint grid floor */}
       <BlueprintGridFloor />
+
+      {/* Tier labels */}
+      <TierLabels />
 
       {/* Service nodes */}
       {SERVICES.map((service, i) => (
@@ -852,6 +971,11 @@ export default function ArchitectureBlueprint() {
         selectedService={selectedService}
       />
 
+      {/* Trace request ball */}
+      {traceActive && (
+        <TraceRequestBall traceStep={traceStep} traceProgress={traceProgress} />
+      )}
+
       {/* Detail panel for selected service */}
       {selectedService && (
         <DetailPanel
@@ -859,6 +983,68 @@ export default function ArchitectureBlueprint() {
           connectedFlows={connectedFlows}
         />
       )}
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '190px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>System Architecture</div>
+          <div>Click a service to inspect</div>
+          <div>Hover to see connections</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Use the service list to navigate
+          </div>
+        </div>
+      </Html>
+
+      {/* Service list sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '150px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Services</div>
+          {SERVICES.map(s => (
+            <div key={s.id}
+              onClick={() => handleSelect(s.id)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                color: selectedService === s.id ? '#fff' : s.color,
+                background: selectedService === s.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedService === s.id ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              {s.label}
+            </div>
+          ))}
+          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+            <div
+              onClick={handleTraceRequest}
+              style={{
+                padding: '5px 8px', background: traceActive ? '#ff884433' : '#4488ff22',
+                borderRadius: '4px', cursor: 'pointer', pointerEvents: 'auto',
+                textAlign: 'center', fontWeight: 'bold', fontSize: '10px',
+                color: traceActive ? '#ffaa44' : '#88bbff',
+                border: `1px solid ${traceActive ? '#ff884444' : '#4488ff33'}`,
+              }}
+            >
+              {traceActive ? `Tracing... ${TRACE_PATH[Math.min(traceStep, TRACE_PATH.length - 1)]}` : 'Trace Request'}
+            </div>
+          </div>
+        </div>
+      </Html>
     </>
   );
 }
