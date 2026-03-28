@@ -14,6 +14,7 @@ import {
   float,
   mix,
   smoothstep,
+  hash,
   vec3,
 } from 'three/tsl';
 
@@ -124,14 +125,18 @@ function Tentacle({ angle, phaseOffset }: { angle: number; phaseOffset: number }
       return float(1.0).sub(nDotV).pow(2.5);
     });
 
-    // Emissive: fresnel rim + pulsing wave along the body
+    // Per-segment seed from world position for shimmer variation
+    const segSeed = hash(positionWorld.x.mul(7.0).add(positionWorld.z.mul(11.0)));
+    const shimmer = oscSine(time.mul(1.5).add(segSeed.mul(6.28)));
+
+    // Emissive: fresnel rim + pulsing wave along the body + per-segment shimmer
     const pulse = oscSine(time.mul(2.0).add(positionWorld.y.mul(3.0)).add(float(phaseOffset)));
     const rimGlow = vec3(0.6, 0.2, 1.0).mul(fresnel()).mul(1.5);
     const bodyGlow = mix(
       vec3(1.0, 0.3, 0.1),
       vec3(0.1, 0.7, 1.0),
       heightNorm,
-    ).mul(pulse.mul(0.5).add(0.5)).mul(1.0);
+    ).mul(pulse.mul(0.5).add(0.5)).mul(shimmer.mul(0.4).add(0.6));
     mat.emissiveNode = rimGlow.add(bodyGlow);
 
     // Subtle vertex breathing

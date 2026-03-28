@@ -9,10 +9,44 @@ import {
   Fn,
   float,
   mix,
+  hash,
+  smoothstep,
+  vec3,
 } from 'three/tsl';
 
 export default function FlameOrb() {
   const meshRef = useRef<THREE.Mesh>(null);
+
+  const crackRef = useRef<THREE.Mesh>(null);
+
+  // Crack overlay material: hash noise driven cracks with bright emissive
+  const crackMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.alphaTest = 0.5;
+    mat.side = THREE.DoubleSide;
+    mat.depthWrite = false;
+
+    // Multi-octave hash noise for crack pattern
+    const crackNoise = Fn(() => {
+      const t = time.mul(0.5);
+      const p = positionLocal;
+      const n1 = hash(p.mul(8.0).add(vec3(t, t.mul(0.7), float(0.0))));
+      const n2 = hash(p.mul(16.0).add(vec3(float(3.0), t.mul(1.1), t.mul(0.4))));
+      const combined = n1.mul(0.6).add(n2.mul(0.4));
+      // Narrow band creates thin crack lines
+      return smoothstep(0.48, 0.52, combined);
+    });
+
+    const crack = crackNoise();
+    mat.opacityNode = crack;
+    mat.colorNode = color(0xff8800);
+    mat.emissiveNode = vec3(1.0, 0.7, 0.3).mul(crack).mul(float(3.0));
+    mat.roughness = 0.3;
+    mat.metalness = 0.0;
+
+    return mat;
+  }, []);
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
@@ -81,10 +115,13 @@ export default function FlameOrb() {
     return mat;
   }, []);
 
-  // Slow Y rotation
+  // Slow Y rotation for both meshes
   useFrame((_, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += delta * 0.2;
+    }
+    if (crackRef.current) {
+      crackRef.current.rotation.y += delta * 0.2;
     }
   });
 
@@ -93,6 +130,10 @@ export default function FlameOrb() {
       <ambientLight intensity={0.05} />
       <mesh ref={meshRef} material={material}>
         <icosahedronGeometry args={[1.5, 4]} />
+      </mesh>
+      {/* Crack overlay: slightly larger shell with hash noise driven glowing cracks */}
+      <mesh ref={crackRef} material={crackMaterial}>
+        <icosahedronGeometry args={[1.55, 4]} />
       </mesh>
     </>
   );
