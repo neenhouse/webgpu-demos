@@ -902,6 +902,75 @@ export default function DecisionForest() {
         {/* Edge particles */}
         <EdgeParticles edges={edges} selectedPath={selectedPath} nodes={nodes} time={time} />
       </RotatingGroup>
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '240px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Decision Forest</div>
+          <div>Forge drive's decision tree — what to recommend based on project state</div>
+          <div style={{ marginTop: '4px' }}>Hover nodes to see conditions</div>
+          <div>Click a leaf to highlight the decision path</div>
+          <div>Click root to reset</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Use the legend to understand node types
+          </div>
+        </div>
+      </Html>
+
+      {/* Node types legend sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '180px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Node Types</div>
+          <div style={{ padding: '2px 6px', marginBottom: '2px', fontSize: '10px' }}>
+            <span style={{ color: '#ffffff' }}>&#9679;</span> Root — Starting point
+          </div>
+          <div style={{ padding: '2px 6px', marginBottom: '2px', fontSize: '10px' }}>
+            <span style={{ color: '#ffaa44' }}>&#9670;</span> Decision — Checks a condition
+          </div>
+          <div style={{ padding: '2px 6px', marginBottom: '2px', fontSize: '10px' }}>
+            <span style={{ color: '#22cc88' }}>&#11044;</span> Recommendation — Action to take
+          </div>
+          {selectedPath.length > 0 && (
+            <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '10px' }}>Decision Path</div>
+              {selectedPath.map((nodeId, i) => {
+                const node = nodes.find(n => n.id === nodeId);
+                if (!node) return null;
+                return (
+                  <div key={nodeId}
+                    onClick={() => handleNodeClick(nodeId)}
+                    style={{
+                      padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                      cursor: 'pointer', pointerEvents: 'auto',
+                      color: node.color,
+                      fontSize: '10px', transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'transparent'; }}
+                  >
+                    {i > 0 && <span style={{ opacity: 0.3, marginRight: '4px' }}>&#8594;</span>}
+                    {node.label}
+                    {node.recommendation && <span style={{ opacity: 0.5 }}> — {node.recommendation}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Html>
     </>
   );
 }

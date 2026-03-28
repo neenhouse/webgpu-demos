@@ -906,6 +906,68 @@ export default function DependencyGraph3D() {
           />
         ))}
       </group>
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '190px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Dependency Graph</div>
+          <div>Package dependencies as a force-directed 3D graph</div>
+          <div style={{ marginTop: '6px' }}>Click a node to select</div>
+          <div>Hover to see connections</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Click empty space to reset
+          </div>
+        </div>
+      </Html>
+
+      {/* Package list sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '150px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+          maxHeight: '80vh', overflowY: 'auto',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Packages</div>
+          {(['root', 'framework', 'rendering', 'tooling', 'data'] as const).map(group => {
+            const groupNodes = NODES.filter(n => n.group === group);
+            if (groupNodes.length === 0) return null;
+            return (
+              <div key={group}>
+                <div style={{
+                  fontWeight: 'bold', fontSize: '9px', marginTop: '6px', marginBottom: '2px',
+                  color: GROUP_COLORS[group], textTransform: 'uppercase', letterSpacing: '0.5px',
+                }}>{group}</div>
+                {groupNodes.map(node => (
+                  <div key={node.id}
+                    onClick={() => handleSelect(node.id)}
+                    style={{
+                      padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                      cursor: 'pointer', pointerEvents: 'auto',
+                      color: selected === node.id ? '#fff' : GROUP_COLORS[node.group],
+                      background: selected === node.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                      fontSize: '10px', transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selected === node.id ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+                  >
+                    {node.label}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </Html>
     </>
   );
 }

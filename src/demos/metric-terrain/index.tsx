@@ -834,40 +834,61 @@ export default function MetricTerrain() {
         </Html>
       )}
 
-      {/* Legend */}
-      <Html position={[TERRAIN_WIDTH / 2 + 2, MAX_HEIGHT + 1, 0]} center>
-        <div
-          style={{
-            color: 'white',
-            fontSize: '11px',
-            background: 'rgba(0,0,0,0.8)',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            pointerEvents: 'none',
-          }}
-        >
-          <div style={{ fontWeight: 'bold', marginBottom: '6px', fontSize: '12px' }}>Metrics</div>
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '220px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Metric Terrain</div>
+          <div>Performance metrics visualized as 3D terrain — height represents value, color represents intensity</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Click a peak marker to zoom to that metric
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Hover terrain for values
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Watch the time cursor sweep across
+          </div>
+        </div>
+      </Html>
+
+      {/* Metric legend sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '160px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Metrics</div>
           {METRICS.map((name, i) => (
-            <div
-              key={name}
+            <div key={name}
+              onClick={() => setSelectedMetric(selectedMetric === i ? null : i)}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginBottom: '2px',
+                padding: '3px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                color: selectedMetric === i ? '#fff' : METRIC_COLORS[i],
+                background: selectedMetric === i ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
               }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedMetric === i ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
             >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: METRIC_COLORS[i],
-                }}
-              />
-              <span>{name}</span>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: METRIC_COLORS[i], flexShrink: 0 }} />
+              {name}
             </div>
           ))}
+          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.4)' }}>
+            Time cursor sweeps every 10 seconds
+          </div>
         </div>
       </Html>
     </>

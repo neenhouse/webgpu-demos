@@ -755,6 +755,69 @@ export default function DataFlowPipes() {
 
       {/* Flow particles */}
       <FlowParticles selectedNode={selectedNode} />
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '240px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Data Flow Pipes</div>
+          <div>Data transformation pipeline — packets flow through filter, merge, split, and sink nodes</div>
+          <div style={{ marginTop: '4px' }}>Click a node to inspect</div>
+          <div>Hover to highlight connections</div>
+          <div>Watch packets route through the network</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Use the node list to navigate
+          </div>
+        </div>
+      </Html>
+
+      {/* Pipeline nodes sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '170px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Pipeline Nodes</div>
+          {NODES.map(node => (
+            <div key={node.id}
+              onClick={() => handleSelect(node.id)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                color: selectedNode === node.id ? '#fff' : node.color,
+                background: selectedNode === node.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedNode === node.id ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              <span style={{ opacity: 0.5, fontSize: '9px', marginRight: '4px' }}>{node.type}</span>
+              {node.label}
+            </div>
+          ))}
+          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '10px' }}>Routing Rules</div>
+            <div style={{ padding: '2px 6px', fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
+              Filter: 80% pass, 20% reject
+            </div>
+            <div style={{ padding: '2px 6px', fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
+              Split: random destination
+            </div>
+            <div style={{ padding: '2px 6px', fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
+              Sink: respawn at source
+            </div>
+          </div>
+        </div>
+      </Html>
     </>
   );
 }

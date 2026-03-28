@@ -872,6 +872,78 @@ export default function CodeConstellation() {
           />
         ))}
       </group>
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '210px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#61dafb', fontSize: '12px' }}>Code Constellation</div>
+          <div>This project&apos;s files visualized as stars &mdash; clustered by directory, colored by type</div>
+          <div style={{ marginTop: '6px' }}>Click a star for file details</div>
+          <div>Click a cluster label to zoom in</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Click empty space for overview
+          </div>
+        </div>
+      </Html>
+
+      {/* Legend sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '150px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+          maxHeight: '80vh', overflowY: 'auto',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#61dafb', fontSize: '11px' }}>File Types</div>
+          {([
+            { type: 'TS', color: '#3178c6' },
+            { type: 'TSX', color: '#61dafb' },
+            { type: 'JSON', color: '#f0db4f' },
+            { type: 'MD', color: '#83cd29' },
+            { type: 'Config', color: '#ff8800' },
+          ] as const).map(entry => (
+            <div key={entry.type} style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '2px 0', fontSize: '10px',
+            }}>
+              <span style={{
+                display: 'inline-block', width: '8px', height: '8px',
+                borderRadius: '50%', background: entry.color, flexShrink: 0,
+              }} />
+              <span style={{ color: entry.color }}>{entry.type}</span>
+            </div>
+          ))}
+
+          <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#61dafb', fontSize: '10px' }}>Clusters</div>
+            {DIRECTORIES.map(dir => (
+              <div key={dir}
+                onClick={() => handleSelectCluster(dir)}
+                style={{
+                  padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                  cursor: 'pointer', pointerEvents: 'auto',
+                  color: selectedCluster === dir ? '#fff' : dominantTypeColor(dir),
+                  background: selectedCluster === dir ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  fontSize: '10px', transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedCluster === dir ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+              >
+                {dir}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Html>
     </>
   );
 }

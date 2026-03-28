@@ -1024,6 +1024,82 @@ export default function ForgeLifecycle() {
 
       {/* Ground grid */}
       <GroundGrid />
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '220px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Forge Lifecycle</div>
+          <div>Developer workflow visualized as 5 phases in a pentagon</div>
+          <div style={{ marginTop: '4px' }}>Click a phase to zoom in</div>
+          <div>Click a skill sphere for details</div>
+          <div>Click center torus to reset view</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Use the phase list to navigate
+          </div>
+        </div>
+      </Html>
+
+      {/* Phase list sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '170px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Phases</div>
+          {PHASES.map((phase, i) => (
+            <div key={phase.name}
+              onClick={() => handlePhaseSelect(i)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                color: selectedPhase === i ? '#fff' : phase.color,
+                background: selectedPhase === i ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedPhase === i ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              {phase.name}
+            </div>
+          ))}
+          {selectedPhase !== null && (
+            <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '4px', color: PHASES[selectedPhase].color, fontSize: '10px' }}>
+                {PHASES[selectedPhase].name} Skills
+              </div>
+              {PHASES[selectedPhase].skills.map((skill) => {
+                const skillKey = `${PHASES[selectedPhase].name}-${skill.name}`;
+                return (
+                  <div key={skill.name}
+                    onClick={() => handleSkillSelect(skillKey)}
+                    style={{
+                      padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                      cursor: 'pointer', pointerEvents: 'auto',
+                      color: selectedSkill === skillKey ? '#fff' : 'rgba(255,255,255,0.6)',
+                      background: selectedSkill === skillKey ? 'rgba(255,255,255,0.12)' : 'transparent',
+                      fontSize: '10px', transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedSkill === skillKey ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+                  >
+                    {skill.name} <span style={{ opacity: 0.5 }}>— {skill.desc}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Html>
     </>
   );
 }

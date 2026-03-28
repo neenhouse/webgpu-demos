@@ -735,25 +735,66 @@ export default function TimelineHelix() {
         <pointLight position={[0, totalHeight, 0]} intensity={1.5} color="#ff4488" distance={8} />
       </group>
 
-      {/* Legend */}
-      <Html position={[-6, totalHeight / 2 + 4, 0]} center>
-        <div
-          style={{
-            color: 'white',
-            fontSize: '11px',
-            background: 'rgba(0,0,0,0.8)',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            pointerEvents: 'none',
-          }}
-        >
-          <div style={{ fontWeight: 'bold', marginBottom: '6px', fontSize: '12px' }}>Event Types</div>
-          {Object.entries(TYPE_COLORS).map(([type, col]) => (
-            <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: col }} />
-              <span style={{ textTransform: 'capitalize' }}>{type}</span>
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '220px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>Project Timeline</div>
+          <div>Development history as a DNA double helix — events spiral upward through time</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Click an event for details
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Hover for quick preview
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Click empty space for overview
+          </div>
+        </div>
+      </Html>
+
+      {/* Event timeline sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '180px', maxHeight: 'calc(100vh - 48px)',
+          overflowY: 'auto', pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Timeline</div>
+          {EVENTS.map((ev, i) => (
+            <div key={i}
+              onClick={() => setSelectedEvent(selectedEvent === i ? null : i)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                display: 'flex', alignItems: 'center', gap: '5px',
+                background: selectedEvent === i ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '9px', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = selectedEvent === i ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: TYPE_COLORS[ev.type], flexShrink: 0 }} />
+              <span style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>{ev.date}</span>
+              <span style={{ color: selectedEvent === i ? '#fff' : 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.label}</span>
             </div>
           ))}
+          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '6px' }}>
+            {Object.entries(TYPE_COLORS).map(([type, col]) => (
+              <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '1px', fontSize: '9px' }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: col, flexShrink: 0 }} />
+                <span style={{ textTransform: 'capitalize', color: 'rgba(255,255,255,0.5)' }}>{type}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </Html>
     </>

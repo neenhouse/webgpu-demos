@@ -625,6 +625,77 @@ export default function NeuralPipelineFlow() {
 
       {/* Data particles */}
       <Particles selectedStage={selectedStage} />
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '220px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#44aaff', fontSize: '12px' }}>Neural Pipeline</div>
+          <div>AI transformer inference &mdash; data flows through tokenization, attention, and feed-forward stages</div>
+          <div style={{ marginTop: '6px' }}>Click a stage to inspect</div>
+          <div>Hover for stage name</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Watch data particles transform through the pipeline
+          </div>
+        </div>
+      </Html>
+
+      {/* Stage list sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '160px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+          maxHeight: '80vh', overflowY: 'auto',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#44aaff', fontSize: '11px' }}>Pipeline Stages</div>
+          {STAGES.map(stage => (
+            <div key={stage.id}
+              onClick={() => handleSelect(stage.id)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                color: selectedStage === stage.id ? '#fff' : stage.color,
+                background: selectedStage === stage.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
+                display: 'flex', alignItems: 'center', gap: '5px',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = selectedStage === stage.id ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              <span style={{
+                display: 'inline-block', width: '6px', height: '6px',
+                borderRadius: '50%', background: stage.color, flexShrink: 0,
+              }} />
+              {stage.label}
+            </div>
+          ))}
+
+          <div style={{ marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#44aaff', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Shape Legend</div>
+            {([
+              { shape: 'Box', meaning: 'Data / FFN' },
+              { shape: 'Torus', meaning: 'Attention' },
+              { shape: 'Cylinder', meaning: 'Embedding' },
+              { shape: 'Sphere', meaning: 'Normalization' },
+            ] as const).map(entry => (
+              <div key={entry.shape} style={{
+                fontSize: '9px', padding: '1px 6px', opacity: 0.6,
+              }}>
+                <span style={{ fontWeight: 'bold' }}>{entry.shape}</span> = {entry.meaning}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Html>
     </>
   );
 }

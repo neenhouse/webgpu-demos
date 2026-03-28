@@ -1068,6 +1068,84 @@ export default function StateMachine3D() {
 
       {/* Ambient flow particles */}
       <AmbientFlowParticles arrows={arrows} time={timeRef.current} />
+
+      {/* Instructions overlay (top-left) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', left: '16px',
+          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
+          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
+          borderRadius: '6px', lineHeight: '1.6',
+          maxWidth: '220px', pointerEvents: 'none',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>State Machine</div>
+          <div>A Forge project's lifecycle states — click valid transitions to advance</div>
+          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
+            Click a reachable state to transition
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Hover states for descriptions
+          </div>
+          <div style={{ fontSize: '10px', opacity: 0.6 }}>
+            Green = active, dim = unreachable
+          </div>
+        </div>
+      </Html>
+
+      {/* State list sidebar (right) */}
+      <Html fullscreen>
+        <div style={{
+          position: 'absolute', top: '16px', right: '16px',
+          color: 'white', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '10px 12px',
+          borderRadius: '6px', maxWidth: '170px',
+          pointerEvents: 'none', backdropFilter: 'blur(4px)',
+          border: '1px solid rgba(100,150,255,0.15)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Project States</div>
+          {STATES.map(s => (
+            <div key={s.id}
+              onClick={() => handleStateClick(s.id)}
+              style={{
+                padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                cursor: 'pointer', pointerEvents: 'auto',
+                display: 'flex', alignItems: 'center', gap: '6px',
+                color: s.id === activeState ? '#fff' : s.color,
+                background: s.id === activeState ? 'rgba(255,255,255,0.12)' : 'transparent',
+                fontSize: '10px', transition: 'background 0.2s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.background = s.id === activeState ? 'rgba(255,255,255,0.12)' : 'transparent'; }}
+            >
+              <span style={{ fontSize: '8px' }}>{s.id === activeState ? '\u25B6' : '\u25CB'}</span>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+              {s.label}
+            </div>
+          ))}
+          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '6px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '10px', color: activeStateData.color }}>
+              Current: {activeStateData.label}
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>
+              Available transitions:
+            </div>
+            {getTransitionsFrom(activeState).map(t => {
+              const target = stateMap.get(t.to)!;
+              return (
+                <div key={`${t.from}-${t.to}`}
+                  onClick={() => handleStateClick(t.to)}
+                  style={{
+                    padding: '1px 6px', fontSize: '9px',
+                    color: target.color, cursor: 'pointer', pointerEvents: 'auto',
+                  }}
+                >
+                  → {target.label} ({t.label})
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Html>
     </>
   );
 }
