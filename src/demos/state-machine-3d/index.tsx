@@ -2,6 +2,21 @@ import { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
+import {
+  Fn,
+  color,
+  float,
+  mix,
+  smoothstep,
+  time,
+  positionLocal,
+  positionWorld,
+  normalWorld,
+  cameraPosition,
+  hash,
+  oscSine,
+  vec3,
+} from 'three/tsl';
 
 /**
  * State Machine 3D
@@ -18,6 +33,7 @@ interface State {
   label: string;
   description: string;
   color: string;
+  hex: number;
   position: [number, number, number];
 }
 
@@ -29,14 +45,14 @@ interface Transition {
 }
 
 const STATES: State[] = [
-  { id: 'empty', label: 'Empty', description: 'No project structure', color: '#666666', position: [-6, 0, 0] },
-  { id: 'initialized', label: 'Initialized', description: 'Has package.json, git, .mise.toml', color: '#22cc88', position: [-3, 2, 0] },
-  { id: 'visioned', label: 'Has Vision', description: 'docs/vision.md defines the why', color: '#44ddaa', position: [0, 3, 0] },
-  { id: 'planned', label: 'Planned', description: 'PRDs document what to build', color: '#4488ff', position: [3, 2, 0] },
-  { id: 'building', label: 'Building', description: 'Active implementation in progress', color: '#ffaa22', position: [5, 0, 0] },
-  { id: 'reviewing', label: 'In Review', description: 'Pre-merge quality check', color: '#ff8844', position: [3, -2, 0] },
-  { id: 'shipped', label: 'Shipped', description: 'Feature deployed to production', color: '#22cc44', position: [0, -3, 0] },
-  { id: 'maintaining', label: 'Maintaining', description: 'Monitoring health, iterating', color: '#cc44ff', position: [-3, -2, 0] },
+  { id: 'empty', label: 'Empty', description: 'No project structure', color: '#666666', hex: 0x666666, position: [-6, 0, 0] },
+  { id: 'initialized', label: 'Initialized', description: 'Has package.json, git, .mise.toml', color: '#22cc88', hex: 0x22cc88, position: [-3, 2, 0] },
+  { id: 'visioned', label: 'Has Vision', description: 'docs/vision.md defines the why', color: '#44ddaa', hex: 0x44ddaa, position: [0, 3, 0] },
+  { id: 'planned', label: 'Planned', description: 'PRDs document what to build', color: '#4488ff', hex: 0x4488ff, position: [3, 2, 0] },
+  { id: 'building', label: 'Building', description: 'Active implementation in progress', color: '#ffaa22', hex: 0xffaa22, position: [5, 0, 0] },
+  { id: 'reviewing', label: 'In Review', description: 'Pre-merge quality check', color: '#ff8844', hex: 0xff8844, position: [3, -2, 0] },
+  { id: 'shipped', label: 'Shipped', description: 'Feature deployed to production', color: '#22cc44', hex: 0x22cc44, position: [0, -3, 0] },
+  { id: 'maintaining', label: 'Maintaining', description: 'Monitoring health, iterating', color: '#cc44ff', hex: 0xcc44ff, position: [-3, -2, 0] },
 ];
 
 const TRANSITIONS: Transition[] = [
@@ -68,7 +84,6 @@ function getReachableStates(stateId: string): Set<string> {
   return reachable;
 }
 
-/** Compute a quadratic bezier control point offset perpendicular to the line between two positions */
 function computeBezierControlPoint(
   from: THREE.Vector3,
   to: THREE.Vector3,
@@ -76,12 +91,10 @@ function computeBezierControlPoint(
 ): THREE.Vector3 {
   const mid = new THREE.Vector3().lerpVectors(from, to, 0.5);
   const dir = new THREE.Vector3().subVectors(to, from).normalize();
-  // Perpendicular in XY plane
   const perp = new THREE.Vector3(-dir.y, dir.x, 0);
   return mid.add(perp.multiplyScalar(offset));
 }
 
-/** Sample points along a quadratic bezier */
 function sampleBezier(
   p0: THREE.Vector3,
   p1: THREE.Vector3,
@@ -99,13 +112,213 @@ function sampleBezier(
   return points;
 }
 
+// ── TSL Material Factories ──
+
+function makePlatformMaterial(hexColor: number, mode: 'active' | 'reachable' | 'dim') {
+  const mat = new THREE.MeshStandardNodeMaterial();
+
+  const baseCol = color(hexColor);
+
+  // Fresnel rim glow
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  // Animated hash noise energy field on the surface
+  const noisePattern = Fn(() => {
+    const n1 = hash(positionLocal.mul(8.0).add(time.mul(0.3)));
+    const n2 = hash(positionLocal.mul(16.0).sub(time.mul(0.5)));
+    return n1.mul(0.6).add(n2.mul(0.4));
+  });
+
+  if (mode === 'active') {
+    // Bright pulsing emissive with noise field
+    const pulse = oscSine(time.mul(1.5)).mul(0.4).add(0.8);
+    mat.colorNode = mix(baseCol.mul(0.4), baseCol, noisePattern().mul(0.5).add(0.5));
+    const rimEmissive = baseCol.mul(fresnel()).mul(3.0);
+    const coreEmissive = baseCol.mul(pulse).mul(2.5);
+    const noiseEmissive = baseCol.mul(noisePattern()).mul(pulse).mul(0.8);
+    mat.emissiveNode = coreEmissive.add(rimEmissive).add(noiseEmissive);
+  } else if (mode === 'reachable') {
+    mat.colorNode = mix(baseCol.mul(0.2), baseCol, noisePattern().mul(0.3));
+    const rimEmissive = baseCol.mul(fresnel()).mul(1.5);
+    const coreEmissive = baseCol.mul(0.5);
+    mat.emissiveNode = coreEmissive.add(rimEmissive);
+  } else {
+    mat.colorNode = baseCol.mul(0.1);
+    mat.emissiveNode = baseCol.mul(0.1);
+    mat.transparent = true;
+    mat.opacity = 0.6;
+  }
+
+  mat.roughness = 0.3;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+function makeHaloShellMaterial(hexColor: number, layer: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const layerFade = float(1.0).sub(float(layer).mul(0.35));
+  const pulse = oscSine(time.mul(1.2).add(float(layer).mul(0.5))).mul(0.3).add(0.7);
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(float(1.5).add(float(layer).mul(0.5)));
+  });
+
+  const glowColor = color(hexColor);
+  mat.opacityNode = fresnel().mul(pulse).mul(layerFade).mul(0.5);
+  mat.colorNode = glowColor;
+  mat.emissiveNode = glowColor.mul(fresnel().mul(pulse).mul(layerFade).mul(3.0));
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeArrowMaterial(hexColor: number, isReachable: boolean) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+
+  const baseCol = color(hexColor);
+
+  if (isReachable) {
+    // Scrolling flow pattern along the arrow
+    const flow = Fn(() => {
+      const scroll = positionLocal.y.mul(4.0).sub(time.mul(2.0));
+      const pattern = smoothstep(float(0.3), float(0.7), hash(scroll.floor()));
+      return pattern;
+    });
+
+    mat.colorNode = baseCol.mul(0.5);
+    mat.emissiveNode = baseCol.mul(flow()).mul(1.5).add(baseCol.mul(0.5));
+    mat.opacityNode = float(0.7);
+  } else {
+    mat.colorNode = baseCol.mul(0.05);
+    mat.emissiveNode = baseCol.mul(0.05);
+    mat.opacityNode = float(0.08);
+  }
+
+  mat.roughness = 0.4;
+  mat.metalness = 0.2;
+
+  return mat;
+}
+
+function makeOrbitalRingMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  const pulse = oscSine(time.mul(2.0)).mul(0.3).add(0.7);
+  const baseCol = color(hexColor);
+
+  mat.colorNode = baseCol;
+  mat.emissiveNode = baseCol.mul(pulse).mul(3.0).add(baseCol.mul(fresnel()).mul(2.0));
+  mat.transparent = true;
+  mat.opacity = 0.9;
+  mat.roughness = 0.0;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+function makeOrbitalHaloMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(1.5);
+  });
+
+  const glowColor = color(hexColor);
+  mat.opacityNode = fresnel().mul(0.4);
+  mat.colorNode = glowColor;
+  mat.emissiveNode = glowColor.mul(fresnel()).mul(3.0);
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeShockwaveMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.DoubleSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const baseCol = color(hexColor);
+  mat.colorNode = baseCol;
+  mat.emissiveNode = baseCol.mul(4.0);
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeParticleMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const baseCol = color(hexColor);
+  const pulse = oscSine(time.mul(4.0)).mul(0.3).add(0.7);
+  mat.colorNode = baseCol;
+  mat.emissiveNode = baseCol.mul(pulse).mul(4.0);
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeGridFloorMaterial() {
+  const mat = new THREE.MeshStandardNodeMaterial();
+
+  const gridPattern = Fn(() => {
+    const scale = float(0.5);
+    const gx = smoothstep(float(0.92), float(0.95), positionLocal.x.mul(scale).fract());
+    const gy = smoothstep(float(0.92), float(0.95), positionLocal.y.mul(scale).fract());
+    return gx.add(gy).clamp(0.0, 1.0);
+  });
+
+  const base = vec3(0.01, 0.01, 0.03);
+  const gridCol = vec3(0.04, 0.06, 0.12);
+
+  mat.colorNode = mix(base, gridCol, gridPattern().mul(0.4));
+  mat.emissiveNode = mix(vec3(0, 0, 0), gridCol, gridPattern().mul(0.2));
+  mat.roughness = 0.8;
+  mat.metalness = 0.2;
+
+  return mat;
+}
+
 // ── Transition Arrow Component ──
 
 interface ArrowData {
   transition: Transition;
   points: THREE.Vector3[];
   midPoint: THREE.Vector3;
-  color: THREE.Color;
+  colorHex: number;
   isReachable: boolean;
 }
 
@@ -122,7 +335,6 @@ function TransitionArrow({
   const groupRef = useRef<THREE.Group>(null);
   const isActive = activeTransition && activeTransition.from === arrow.transition.from && activeTransition.to === arrow.transition.to;
 
-  // Build segment meshes from points
   const segments = useMemo(() => {
     const segs: { pos: THREE.Vector3; quat: THREE.Quaternion; length: number }[] = [];
     const up = new THREE.Vector3(0, 1, 0);
@@ -139,7 +351,6 @@ function TransitionArrow({
     return segs;
   }, [arrow.points]);
 
-  // Arrow head direction
   const arrowHead = useMemo(() => {
     const pts = arrow.points;
     const tip = pts[pts.length - 1].clone();
@@ -147,22 +358,41 @@ function TransitionArrow({
     const dir = new THREE.Vector3().subVectors(tip, prev).normalize();
     const up = new THREE.Vector3(0, 1, 0);
     const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-    // Pull tip back slightly to not overlap the target platform
     tip.add(dir.clone().multiplyScalar(-0.3));
     return { position: tip, quaternion: quat };
   }, [arrow.points]);
 
-  const opacity = arrow.isReachable ? (hovered || isActive ? 1.0 : 0.6) : 0.15;
-  const emissiveIntensity = hovered || isActive ? 2.0 : arrow.isReachable ? 0.5 : 0.1;
+  const arrowMat = useMemo(() => makeArrowMaterial(arrow.colorHex, arrow.isReachable), [arrow.colorHex, arrow.isReachable]);
+
+  const hoveredMat = useMemo(() => {
+    if (!arrow.isReachable) return null;
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    const baseCol = color(arrow.colorHex);
+    const flow = Fn(() => {
+      const scroll = positionLocal.y.mul(4.0).sub(time.mul(2.0));
+      const pattern = smoothstep(float(0.3), float(0.7), hash(scroll.floor()));
+      return pattern;
+    });
+    mat.colorNode = baseCol;
+    mat.emissiveNode = baseCol.mul(flow()).mul(3.0).add(baseCol.mul(1.5));
+    mat.opacityNode = float(1.0);
+    mat.roughness = 0.2;
+    mat.metalness = 0.3;
+    return mat;
+  }, [arrow.colorHex, arrow.isReachable]);
+
+  const activeMat = (hovered || isActive) && hoveredMat ? hoveredMat : arrowMat;
+  const arrowColor = useMemo(() => new THREE.Color(arrow.colorHex), [arrow.colorHex]);
 
   return (
     <group ref={groupRef}>
-      {/* Arrow body segments */}
       {segments.map((seg, i) => (
         <mesh
           key={i}
           position={seg.pos}
           quaternion={seg.quat}
+          material={activeMat}
           onClick={(e) => {
             e.stopPropagation();
             if (arrow.isReachable) onTrigger(arrow.transition);
@@ -173,30 +403,14 @@ function TransitionArrow({
           }}
           onPointerOut={() => setHovered(false)}
         >
-          <cylinderGeometry args={[0.04, 0.04, seg.length, 4]} />
-          <meshStandardMaterial
-            color={arrow.color}
-            emissive={arrow.color}
-            emissiveIntensity={emissiveIntensity}
-            transparent
-            opacity={opacity}
-          />
+          <cylinderGeometry args={[0.05, 0.05, seg.length, 6]} />
         </mesh>
       ))}
 
-      {/* Arrow head cone */}
-      <mesh position={arrowHead.position} quaternion={arrowHead.quaternion}>
-        <coneGeometry args={[0.15, 0.4, 6]} />
-        <meshStandardMaterial
-          color={arrow.color}
-          emissive={arrow.color}
-          emissiveIntensity={emissiveIntensity}
-          transparent
-          opacity={opacity}
-        />
+      <mesh position={arrowHead.position} quaternion={arrowHead.quaternion} material={activeMat}>
+        <coneGeometry args={[0.18, 0.45, 6]} />
       </mesh>
 
-      {/* Hover label */}
       {hovered && (
         <Html position={arrow.midPoint} center distanceFactor={10}>
           <div
@@ -208,7 +422,7 @@ function TransitionArrow({
               borderRadius: '4px',
               whiteSpace: 'nowrap',
               pointerEvents: 'none',
-              border: `1px solid ${arrow.color.getStyle()}`,
+              border: `1px solid ${arrowColor.getStyle()}`,
             }}
           >
             <strong>{arrow.transition.label}</strong>: {arrow.transition.trigger}
@@ -219,7 +433,7 @@ function TransitionArrow({
   );
 }
 
-// ── Self-Loop Arrow (building -> building) ──
+// ── Self-Loop Arrow ──
 
 function SelfLoopArrow({
   state,
@@ -236,7 +450,7 @@ function SelfLoopArrow({
 }) {
   const [hovered, setHovered] = useState(false);
   const isActive = activeTransition && activeTransition.from === transition.from && activeTransition.to === transition.to;
-  const loopColor = new THREE.Color(state.color);
+  const loopColor = useMemo(() => new THREE.Color(state.color), [state.color]);
 
   const loopCenter = new THREE.Vector3(
     state.position[0] + 1.5,
@@ -244,14 +458,29 @@ function SelfLoopArrow({
     state.position[2],
   );
 
-  const opacity = isReachable ? (hovered || isActive ? 1.0 : 0.6) : 0.15;
-  const emissiveIntensity = hovered || isActive ? 2.0 : isReachable ? 0.5 : 0.1;
+  const loopMat = useMemo(() => makeArrowMaterial(state.hex, isReachable), [state.hex, isReachable]);
+
+  const brightMat = useMemo(() => {
+    if (!isReachable) return null;
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    const baseCol = color(state.hex);
+    mat.colorNode = baseCol;
+    mat.emissiveNode = baseCol.mul(3.0);
+    mat.opacityNode = float(1.0);
+    mat.roughness = 0.2;
+    mat.metalness = 0.3;
+    return mat;
+  }, [state.hex, isReachable]);
+
+  const activeMat = (hovered || isActive) && brightMat ? brightMat : loopMat;
 
   return (
     <group>
       <mesh
         position={loopCenter}
         rotation={[Math.PI / 2, 0, 0]}
+        material={activeMat}
         onClick={(e) => {
           e.stopPropagation();
           if (isReachable) onTrigger(transition);
@@ -262,26 +491,11 @@ function SelfLoopArrow({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <torusGeometry args={[0.6, 0.04, 8, 24, Math.PI * 1.6]} />
-        <meshStandardMaterial
-          color={loopColor}
-          emissive={loopColor}
-          emissiveIntensity={emissiveIntensity}
-          transparent
-          opacity={opacity}
-        />
+        <torusGeometry args={[0.6, 0.05, 8, 24, Math.PI * 1.6]} />
       </mesh>
 
-      {/* Arrow head for self-loop */}
-      <mesh position={[state.position[0] + 0.95, state.position[1] + 1.2, state.position[2]]}>
-        <coneGeometry args={[0.12, 0.3, 6]} />
-        <meshStandardMaterial
-          color={loopColor}
-          emissive={loopColor}
-          emissiveIntensity={emissiveIntensity}
-          transparent
-          opacity={opacity}
-        />
+      <mesh position={[state.position[0] + 0.95, state.position[1] + 1.2, state.position[2]]} material={activeMat}>
+        <coneGeometry args={[0.14, 0.35, 6]} />
       </mesh>
 
       {hovered && (
@@ -315,7 +529,7 @@ function StatePlatform({
   isHovered,
   onHover,
   onClick,
-  time,
+  time: _time,
   index,
 }: {
   state: State;
@@ -328,22 +542,57 @@ function StatePlatform({
   index: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
-  const col = useMemo(() => new THREE.Color(state.color), [state.color]);
+  const ring1Ref = useRef<THREE.Mesh>(null);
+  const ring2Ref = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
 
-  // Floating offset
-  const floatY = Math.sin(time + index * 1.3) * 0.08;
-  // Active pulse
-  const pulse = isActive ? 1.0 + Math.sin(time * 2.5) * 0.06 : 1.0;
+  // Determine visual mode
+  const mode = isActive ? 'active' : isReachable ? 'reachable' : 'dim';
 
-  const emissiveIntensity = isActive ? 1.5 : isReachable ? 0.5 : 0.08;
+  const platformMat = useMemo(() => makePlatformMaterial(state.hex, mode), [state.hex, mode]);
+
+  // Halo shells for active and reachable
+  const haloMats = useMemo(() => {
+    if (mode === 'dim') return [];
+    if (mode === 'active') return [makeHaloShellMaterial(state.hex, 0), makeHaloShellMaterial(state.hex, 1)];
+    return [makeHaloShellMaterial(state.hex, 0)];
+  }, [state.hex, mode]);
+
+  // Orbital ring material for active state
+  const orbitalRingMat = useMemo(() => isActive ? makeOrbitalRingMaterial(state.hex) : null, [state.hex, isActive]);
+  const orbitalHaloMat = useMemo(() => isActive ? makeOrbitalHaloMaterial(state.hex) : null, [state.hex, isActive]);
+
+  useFrame((_, delta) => {
+    if (groupRef.current) {
+      // Gentle float
+      groupRef.current.position.y = state.position[1] + Math.sin(groupRef.current.userData.t + index * 1.3) * 0.08;
+      groupRef.current.userData.t = (groupRef.current.userData.t || 0) + delta;
+    }
+    // Pulse scale for active
+    if (meshRef.current && isActive) {
+      const t = groupRef.current?.userData.t || 0;
+      const s = 1.0 + Math.sin(t * 2.5) * 0.06;
+      meshRef.current.scale.setScalar(s);
+    }
+    // Orbit the rings
+    if (ring1Ref.current) {
+      ring1Ref.current.rotation.z += delta * 1.5;
+      ring1Ref.current.rotation.x = Math.PI / 2 + Math.sin((groupRef.current?.userData.t || 0) * 0.7) * 0.2;
+    }
+    if (ring2Ref.current) {
+      ring2Ref.current.rotation.z -= delta * 1.0;
+      ring2Ref.current.rotation.x = Math.PI / 3 + Math.cos((groupRef.current?.userData.t || 0) * 0.5) * 0.3;
+    }
+  });
+
+  const haloScales: [number, number, number][] = [[1.4, 1.4, 1.4], [1.8, 1.8, 1.8]];
 
   return (
-    <group position={[state.position[0], state.position[1] + floatY, state.position[2]]}>
+    <group ref={groupRef} position={[state.position[0], state.position[1], state.position[2]]}>
       {/* Hexagonal platform */}
       <mesh
         ref={meshRef}
-        scale={[pulse, pulse, pulse]}
+        material={platformMat}
         onClick={(e) => {
           e.stopPropagation();
           onClick(state.id);
@@ -355,35 +604,36 @@ function StatePlatform({
         onPointerOut={() => onHover(null)}
       >
         <cylinderGeometry args={[1, 1, 0.3, 6]} />
-        <meshStandardMaterial
-          color={col}
-          emissive={col}
-          emissiveIntensity={emissiveIntensity}
-          metalness={0.3}
-          roughness={0.5}
-        />
       </mesh>
 
-      {/* Orbiting ring for active state */}
-      {isActive && (
-        <mesh
-          ref={ringRef}
-          rotation={[Math.PI / 2, 0, time * 1.5]}
-          position={[0, 0, 0]}
-        >
-          <torusGeometry args={[1.3, 0.04, 8, 32]} />
-          <meshStandardMaterial
-            color={col}
-            emissive={col}
-            emissiveIntensity={3.0}
-            transparent
-            opacity={0.8}
-          />
+      {/* Halo shells */}
+      {haloMats.map((mat, i) => (
+        <mesh key={i} material={mat} scale={haloScales[i]}>
+          <cylinderGeometry args={[1, 1, 0.3, 6]} />
+        </mesh>
+      ))}
+
+      {/* Orbiting energy ring for active state */}
+      {isActive && orbitalRingMat && (
+        <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]} material={orbitalRingMat}>
+          <torusGeometry args={[1.35, 0.06, 8, 32]} />
+        </mesh>
+      )}
+      {isActive && orbitalHaloMat && (
+        <mesh ref={ring2Ref} rotation={[Math.PI / 3, 0, 0]} material={orbitalHaloMat}>
+          <torusGeometry args={[1.35, 0.15, 8, 32]} />
         </mesh>
       )}
 
+      {/* Point light at each state */}
+      <pointLight
+        color={state.color}
+        intensity={isActive ? 3.0 : isReachable ? 1.0 : 0.15}
+        distance={isActive ? 8 : 4}
+      />
+
       {/* Label */}
-      <Html position={[0, 0.6, 0]} center distanceFactor={10}>
+      <Html position={[0, 0.7, 0]} center distanceFactor={10}>
         <div
           style={{
             color: 'white',
@@ -425,41 +675,73 @@ function StatePlatform({
   );
 }
 
+// ── Shockwave Ring ──
+
+interface ShockwaveData {
+  position: [number, number, number];
+  startTime: number;
+  colorHex: number;
+}
+
+function ShockwaveRings({ shockwaves, time: currentTime }: { shockwaves: ShockwaveData[]; time: number }) {
+  return (
+    <>
+      {shockwaves.map((sw, i) => {
+        const elapsed = currentTime - sw.startTime;
+        const duration = 0.8;
+        if (elapsed < 0 || elapsed > duration) return null;
+        const progress = elapsed / duration;
+        const scale = 1.0 + progress * 3.0;
+        const opacity = 1.0 - progress;
+
+        const mat = useMemo(() => makeShockwaveMaterial(sw.colorHex), [sw.colorHex]);
+
+        return (
+          <mesh
+            key={i}
+            position={sw.position}
+            rotation={[Math.PI / 2, 0, 0]}
+            scale={[scale, scale, scale]}
+          >
+            <torusGeometry args={[1.0, 0.04, 6, 24]} />
+            <primitive object={(() => { const m = mat.clone(); m.opacity = opacity; return m; })()} attach="material" />
+          </mesh>
+        );
+      })}
+    </>
+  );
+}
+
 // ── Transition Particles ──
 
 interface TransitionParticle {
   startTime: number;
   duration: number;
   points: THREE.Vector3[];
+  colorHex: number;
 }
 
-function TransitionParticles({ particles, time }: { particles: TransitionParticle[]; time: number }) {
+function TransitionParticles({ particles, time: currentTime }: { particles: TransitionParticle[]; time: number }) {
   return (
     <>
       {particles.map((p, pi) => {
-        const elapsed = time - p.startTime;
+        const elapsed = currentTime - p.startTime;
         if (elapsed < 0 || elapsed > p.duration) return null;
-        const count = 12;
+        const count = 24;
         return Array.from({ length: count }, (_, i) => {
           const baseT = elapsed / p.duration;
-          const particleT = baseT - (i / count) * 0.3;
+          const particleT = baseT - (i / count) * 0.35;
           if (particleT < 0 || particleT > 1) return null;
-          // Sample bezier
           const pts = p.points;
           const x = (1 - particleT) * (1 - particleT) * pts[0].x + 2 * (1 - particleT) * particleT * pts[1].x + particleT * particleT * pts[2].x;
           const y = (1 - particleT) * (1 - particleT) * pts[0].y + 2 * (1 - particleT) * particleT * pts[1].y + particleT * particleT * pts[2].y;
           const z = (1 - particleT) * (1 - particleT) * pts[0].z + 2 * (1 - particleT) * particleT * pts[1].z + particleT * particleT * pts[2].z;
-          const alpha = 1.0 - (i / count) * 0.6;
+          const size = 0.07 * (1.0 - (i / count) * 0.4);
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const mat = useMemo(() => makeParticleMaterial(p.colorHex), [p.colorHex]);
           return (
-            <mesh key={`${pi}-${i}`} position={[x, y, z]}>
+            <mesh key={`${pi}-${i}`} position={[x, y, z]} material={mat} scale={[size * 14, size * 14, size * 14]}>
               <sphereGeometry args={[0.06, 6, 6]} />
-              <meshStandardMaterial
-                color="#ffffff"
-                emissive="#ffffff"
-                emissiveIntensity={3.0}
-                transparent
-                opacity={alpha}
-              />
             </mesh>
           );
         });
@@ -470,41 +752,95 @@ function TransitionParticles({ particles, time }: { particles: TransitionParticl
 
 // ── Ambient Flow Particles along arrows ──
 
-function AmbientFlowParticles({ arrows, time }: { arrows: ArrowData[]; time: number }) {
-  const particles = useMemo(() => {
+function AmbientFlowParticles({ arrows, time: currentTime }: { arrows: ArrowData[]; time: number }) {
+  const particleDefs = useMemo(() => {
     const result: { arrowIdx: number; offset: number }[] = [];
     arrows.forEach((_, ai) => {
-      for (let j = 0; j < 3; j++) {
-        result.push({ arrowIdx: ai, offset: j / 3 });
+      for (let j = 0; j < 4; j++) {
+        result.push({ arrowIdx: ai, offset: j / 4 });
       }
     });
     return result;
   }, [arrows]);
 
+  // Create materials for each arrow's color
+  const flowMats = useMemo(() => {
+    return arrows.map((arrow) => {
+      const mat = new THREE.MeshStandardNodeMaterial();
+      mat.transparent = true;
+      mat.depthWrite = false;
+      mat.blending = THREE.AdditiveBlending;
+      const baseCol = color(arrow.colorHex);
+      mat.colorNode = baseCol;
+      mat.emissiveNode = baseCol.mul(2.5);
+      mat.roughness = 0.0;
+      mat.metalness = 0.0;
+      return mat;
+    });
+  }, [arrows]);
+
   return (
     <>
-      {particles.map((p, i) => {
+      {particleDefs.map((p, i) => {
         const arrow = arrows[p.arrowIdx];
         if (!arrow.isReachable) return null;
         const pts = arrow.points;
-        const t = ((time * 0.3 + p.offset) % 1.0);
+        const t = ((currentTime * 0.4 + p.offset) % 1.0);
         const x = (1 - t) * (1 - t) * pts[0].x + 2 * (1 - t) * t * pts[1].x + t * t * pts[2].x;
         const y = (1 - t) * (1 - t) * pts[0].y + 2 * (1 - t) * t * pts[1].y + t * t * pts[2].y;
         const z = (1 - t) * (1 - t) * pts[0].z + 2 * (1 - t) * t * pts[1].z + t * t * pts[2].z;
         return (
-          <mesh key={i} position={[x, y, z]}>
-            <sphereGeometry args={[0.03, 4, 4]} />
-            <meshStandardMaterial
-              color={arrow.color}
-              emissive={arrow.color}
-              emissiveIntensity={1.5}
-              transparent
-              opacity={0.6}
-            />
+          <mesh key={i} position={[x, y, z]} material={flowMats[p.arrowIdx]}>
+            <sphereGeometry args={[0.04, 6, 6]} />
           </mesh>
         );
       })}
     </>
+  );
+}
+
+// ── Grid Floor with state-color-tinted zones ──
+
+function GridFloor({ states, activeState }: { states: State[]; activeState: string }) {
+  const gridMat = useMemo(() => makeGridFloorMaterial(), []);
+
+  return (
+    <group>
+      {/* Main grid floor */}
+      <mesh position={[0, -1.5, -0.5]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
+        <planeGeometry args={[24, 18]} />
+      </mesh>
+
+      {/* Tinted zones beneath each platform */}
+      {states.map((state) => {
+        const isActiveState = state.id === activeState;
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const zoneMat = useMemo(() => {
+          const mat = new THREE.MeshStandardNodeMaterial();
+          mat.transparent = true;
+          mat.depthWrite = false;
+          mat.blending = THREE.AdditiveBlending;
+          const baseCol = color(state.hex);
+          const intensity = isActiveState ? 0.15 : 0.03;
+          mat.colorNode = baseCol.mul(intensity);
+          mat.emissiveNode = baseCol.mul(intensity * 0.5);
+          mat.roughness = 0.9;
+          mat.metalness = 0.0;
+          return mat;
+        }, [state.hex, isActiveState]);
+
+        return (
+          <mesh
+            key={state.id}
+            position={[state.position[0], -1.49, -0.5]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            material={zoneMat}
+          >
+            <circleGeometry args={[2.0, 6]} />
+          </mesh>
+        );
+      })}
+    </group>
   );
 }
 
@@ -515,6 +851,7 @@ export default function StateMachine3D() {
   const [hoveredState, setHoveredState] = useState<string | null>(null);
   const [activeTransition, setActiveTransition] = useState<Transition | null>(null);
   const [transitionParticles, setTransitionParticles] = useState<TransitionParticle[]>([]);
+  const [shockwaves, setShockwaves] = useState<ShockwaveData[]>([]);
   const timeRef = useRef(0);
   const targetPos = useRef(new THREE.Vector3(0, 2, 14));
   const targetLook = useRef(new THREE.Vector3(0, 0, 0));
@@ -522,7 +859,6 @@ export default function StateMachine3D() {
 
   const reachableStates = useMemo(() => getReachableStates(activeState), [activeState]);
 
-  // Build arrow data for non-self-loop transitions
   const arrows: ArrowData[] = useMemo(() => {
     return TRANSITIONS.filter((t) => t.from !== t.to).map((t) => {
       const fromState = stateMap.get(t.from)!;
@@ -530,26 +866,27 @@ export default function StateMachine3D() {
       const from = new THREE.Vector3(...fromState.position);
       const to = new THREE.Vector3(...toState.position);
 
-      // Check if there's a reverse transition to determine offset direction
       const hasReverse = TRANSITIONS.some((r) => r.from === t.to && r.to === t.from);
       const offsetAmount = hasReverse ? 0.8 : 0.5;
 
       const control = computeBezierControlPoint(from, to, offsetAmount);
       const points = sampleBezier(from, control, to, 12);
       const midPoint = sampleBezier(from, control, to, 2)[1];
-      const col = new THREE.Color(fromState.color).lerp(new THREE.Color(toState.color), 0.5);
+      const colFrom = new THREE.Color(fromState.color);
+      const colTo = new THREE.Color(toState.color);
+      colFrom.lerp(colTo, 0.5);
+      const colorHex = parseInt(colFrom.getHexString(), 16);
 
       return {
         transition: t,
         points,
         midPoint,
-        color: col,
+        colorHex,
         isReachable: t.from === activeState,
       };
     });
   }, [activeState]);
 
-  // Self-loop transition
   const selfLoop = useMemo(
     () => TRANSITIONS.find((t) => t.from === t.to),
     [],
@@ -558,7 +895,7 @@ export default function StateMachine3D() {
   const triggerTransition = useCallback(
     (t: Transition) => {
       if (t.from !== activeState) return;
-      if (activeTransition) return; // Already transitioning
+      if (activeTransition) return;
 
       setActiveTransition(t);
 
@@ -569,7 +906,6 @@ export default function StateMachine3D() {
 
       let bezierPoints: THREE.Vector3[];
       if (t.from === t.to) {
-        // Self-loop: create a loop path
         const loopUp = new THREE.Vector3(from.x + 1.5, from.y + 1.5, from.z);
         bezierPoints = [from, loopUp, from];
       } else {
@@ -583,12 +919,29 @@ export default function StateMachine3D() {
       targetPos.current.set(mid.x, mid.y + 3, 10);
       targetLook.current.copy(mid);
 
+      // Source shockwave
+      setShockwaves((prev) => [
+        ...prev,
+        {
+          position: [...fromState.position] as [number, number, number],
+          startTime: timeRef.current,
+          colorHex: fromState.hex,
+        },
+      ]);
+
+      // Particles
+      const colFrom = new THREE.Color(fromState.color);
+      const colTo = new THREE.Color(toState.color);
+      colFrom.lerp(colTo, 0.5);
+      const particleColorHex = parseInt(colFrom.getHexString(), 16);
+
       setTransitionParticles((prev) => [
         ...prev,
         {
           startTime: timeRef.current,
           duration: 1.0,
           points: bezierPoints,
+          colorHex: particleColorHex,
         },
       ]);
 
@@ -597,7 +950,6 @@ export default function StateMachine3D() {
         setActiveState(t.to);
         setActiveTransition(null);
 
-        // Move camera to focus on new state
         const newState = stateMap.get(t.to)!;
         targetPos.current.set(newState.position[0], newState.position[1] + 3, 12);
         targetLook.current.set(newState.position[0], newState.position[1], 0);
@@ -609,7 +961,6 @@ export default function StateMachine3D() {
   const handleStateClick = useCallback(
     (stateId: string) => {
       if (stateId === activeState) return;
-      // Find a transition from activeState to this state
       const t = TRANSITIONS.find((tr) => tr.from === activeState && tr.to === stateId);
       if (t) {
         triggerTransition(t);
@@ -623,32 +974,55 @@ export default function StateMachine3D() {
 
     // Smooth camera movement
     camera.position.lerp(targetPos.current, 0.03);
-    const currentLook = new THREE.Vector3();
-    camera.getWorldDirection(currentLook);
     camera.lookAt(
       camera.position.x + (targetLook.current.x - camera.position.x) * 0.03,
       camera.position.y + (targetLook.current.y - camera.position.y) * 0.03 - 0.5,
       0,
     );
 
-    // Cleanup old particles
+    // Cleanup old particles and shockwaves
     setTransitionParticles((prev) =>
       prev.filter((p) => timeRef.current - p.startTime < p.duration + 0.5),
+    );
+    setShockwaves((prev) =>
+      prev.filter((sw) => timeRef.current - sw.startTime < 1.0),
     );
   });
 
   const activeStateData = stateMap.get(activeState)!;
 
+  // Background gradient material
+  const bgMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const bgColor = Fn(() => {
+      const bottom = vec3(0.02, 0.0, 0.06);
+      const top = vec3(0.0, 0.0, 0.01);
+      const yFactor = positionLocal.y.add(1.0).mul(0.5).clamp(0.0, 1.0);
+      return mix(bottom, top, yFactor);
+    });
+    mat.colorNode = bgColor();
+    return mat;
+  }, []);
+
   return (
     <>
-      <ambientLight intensity={0.1} />
+      <ambientLight intensity={0.08} />
       <pointLight
         position={[activeStateData.position[0], activeStateData.position[1] + 2, 3]}
-        intensity={2.0}
+        intensity={3.0}
         color={activeStateData.color}
         distance={15}
       />
-      <directionalLight position={[5, 8, 5]} intensity={0.3} />
+      <directionalLight position={[5, 8, 5]} intensity={0.2} />
+
+      {/* Dark gradient background sphere */}
+      <mesh material={bgMat}>
+        <sphereGeometry args={[25, 16, 16]} />
+      </mesh>
+
+      {/* Grid floor with tinted zones */}
+      <GridFloor states={STATES} activeState={activeState} />
 
       {/* State platforms */}
       {STATES.map((state, i) => (
@@ -675,7 +1049,7 @@ export default function StateMachine3D() {
         />
       ))}
 
-      {/* Self-loop arrow for building -> building */}
+      {/* Self-loop arrow */}
       {selfLoop && (
         <SelfLoopArrow
           state={stateMap.get(selfLoop.from)!}
@@ -686,17 +1060,14 @@ export default function StateMachine3D() {
         />
       )}
 
-      {/* Transition particles (when a transition fires) */}
+      {/* Shockwave rings on transition */}
+      <ShockwaveRings shockwaves={shockwaves} time={timeRef.current} />
+
+      {/* Transition particles */}
       <TransitionParticles particles={transitionParticles} time={timeRef.current} />
 
-      {/* Ambient flow particles along reachable arrows */}
+      {/* Ambient flow particles */}
       <AmbientFlowParticles arrows={arrows} time={timeRef.current} />
-
-      {/* Background plane */}
-      <mesh position={[0, 0, -2]} rotation={[0, 0, 0]}>
-        <planeGeometry args={[30, 20]} />
-        <meshBasicMaterial color="#080810" />
-      </mesh>
     </>
   );
 }

@@ -2,6 +2,23 @@ import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
+import {
+  Fn,
+  color,
+  float,
+  mix,
+  smoothstep,
+  time,
+  positionLocal,
+  positionWorld,
+  normalWorld,
+  cameraPosition,
+  hash,
+  oscSine,
+  vec3,
+  screenUV,
+  atan,
+} from 'three/tsl';
 
 /**
  * Architecture Blueprint
@@ -19,6 +36,7 @@ interface Service {
   type: 'frontend' | 'backend' | 'database' | 'cache' | 'cdn' | 'queue' | 'external';
   position: [number, number, number];
   color: string;
+  hex: number;
   desc: string;
   tech: string;
 }
@@ -29,32 +47,33 @@ interface DataFlow {
   label: string;
   protocol: string;
   color: string;
+  hex: number;
 }
 
 const SERVICES: Service[] = [
-  { id: 'browser', label: 'Browser', type: 'frontend', position: [-6, 4, 0], color: '#61dafb', desc: 'React SPA', tech: 'React + Vite' },
-  { id: 'cdn', label: 'CDN', type: 'cdn', position: [-3, 4, 0], color: '#f38020', desc: 'Edge caching', tech: 'Cloudflare Pages' },
-  { id: 'gateway', label: 'API Gateway', type: 'backend', position: [0, 4, 0], color: '#22cc88', desc: 'Request routing', tech: 'Workers' },
-  { id: 'auth', label: 'Auth Service', type: 'backend', position: [-3, 1, 2], color: '#ff6644', desc: 'JWT + sessions', tech: 'Workers' },
-  { id: 'api', label: 'API Server', type: 'backend', position: [0, 1, 0], color: '#4488ff', desc: 'Business logic', tech: 'Workers' },
-  { id: 'ai', label: 'AI Service', type: 'external', position: [3, 1, -2], color: '#cc44ff', desc: 'LLM inference', tech: 'Claude API' },
-  { id: 'db', label: 'Database', type: 'database', position: [-2, -2, 0], color: '#ffaa22', desc: 'Relational data', tech: 'D1 (SQLite)' },
-  { id: 'kv', label: 'KV Store', type: 'cache', position: [2, -2, 0], color: '#ff8844', desc: 'Session + config', tech: 'KV' },
-  { id: 'storage', label: 'Object Store', type: 'database', position: [0, -2, -3], color: '#44cc88', desc: 'Files + media', tech: 'R2' },
-  { id: 'queue', label: 'Task Queue', type: 'queue', position: [4, 1, 2], color: '#ff4488', desc: 'Async jobs', tech: 'Queues' },
+  { id: 'browser', label: 'Browser', type: 'frontend', position: [-6, 4, 0], color: '#61dafb', hex: 0x61dafb, desc: 'React SPA', tech: 'React + Vite' },
+  { id: 'cdn', label: 'CDN', type: 'cdn', position: [-3, 4, 0], color: '#f38020', hex: 0xf38020, desc: 'Edge caching', tech: 'Cloudflare Pages' },
+  { id: 'gateway', label: 'API Gateway', type: 'backend', position: [0, 4, 0], color: '#22cc88', hex: 0x22cc88, desc: 'Request routing', tech: 'Workers' },
+  { id: 'auth', label: 'Auth Service', type: 'backend', position: [-3, 1, 2], color: '#ff6644', hex: 0xff6644, desc: 'JWT + sessions', tech: 'Workers' },
+  { id: 'api', label: 'API Server', type: 'backend', position: [0, 1, 0], color: '#4488ff', hex: 0x4488ff, desc: 'Business logic', tech: 'Workers' },
+  { id: 'ai', label: 'AI Service', type: 'external', position: [3, 1, -2], color: '#cc44ff', hex: 0xcc44ff, desc: 'LLM inference', tech: 'Claude API' },
+  { id: 'db', label: 'Database', type: 'database', position: [-2, -2, 0], color: '#ffaa22', hex: 0xffaa22, desc: 'Relational data', tech: 'D1 (SQLite)' },
+  { id: 'kv', label: 'KV Store', type: 'cache', position: [2, -2, 0], color: '#ff8844', hex: 0xff8844, desc: 'Session + config', tech: 'KV' },
+  { id: 'storage', label: 'Object Store', type: 'database', position: [0, -2, -3], color: '#44cc88', hex: 0x44cc88, desc: 'Files + media', tech: 'R2' },
+  { id: 'queue', label: 'Task Queue', type: 'queue', position: [4, 1, 2], color: '#ff4488', hex: 0xff4488, desc: 'Async jobs', tech: 'Queues' },
 ];
 
 const FLOWS: DataFlow[] = [
-  { from: 'browser', to: 'cdn', label: 'Static assets', protocol: 'HTTPS', color: '#61dafb' },
-  { from: 'browser', to: 'gateway', label: 'API calls', protocol: 'HTTPS', color: '#22cc88' },
-  { from: 'gateway', to: 'auth', label: 'Auth check', protocol: 'RPC', color: '#ff6644' },
-  { from: 'gateway', to: 'api', label: 'Requests', protocol: 'RPC', color: '#4488ff' },
-  { from: 'api', to: 'ai', label: 'Prompts', protocol: 'HTTPS', color: '#cc44ff' },
-  { from: 'api', to: 'db', label: 'Queries', protocol: 'SQL', color: '#ffaa22' },
-  { from: 'api', to: 'kv', label: 'Get/Set', protocol: 'KV API', color: '#ff8844' },
-  { from: 'api', to: 'storage', label: 'Upload/Download', protocol: 'S3 API', color: '#44cc88' },
-  { from: 'api', to: 'queue', label: 'Enqueue', protocol: 'Queue API', color: '#ff4488' },
-  { from: 'auth', to: 'kv', label: 'Sessions', protocol: 'KV API', color: '#ff6644' },
+  { from: 'browser', to: 'cdn', label: 'Static assets', protocol: 'HTTPS', color: '#61dafb', hex: 0x61dafb },
+  { from: 'browser', to: 'gateway', label: 'API calls', protocol: 'HTTPS', color: '#22cc88', hex: 0x22cc88 },
+  { from: 'gateway', to: 'auth', label: 'Auth check', protocol: 'RPC', color: '#ff6644', hex: 0xff6644 },
+  { from: 'gateway', to: 'api', label: 'Requests', protocol: 'RPC', color: '#4488ff', hex: 0x4488ff },
+  { from: 'api', to: 'ai', label: 'Prompts', protocol: 'HTTPS', color: '#cc44ff', hex: 0xcc44ff },
+  { from: 'api', to: 'db', label: 'Queries', protocol: 'SQL', color: '#ffaa22', hex: 0xffaa22 },
+  { from: 'api', to: 'kv', label: 'Get/Set', protocol: 'KV API', color: '#ff8844', hex: 0xff8844 },
+  { from: 'api', to: 'storage', label: 'Upload/Download', protocol: 'S3 API', color: '#44cc88', hex: 0x44cc88 },
+  { from: 'api', to: 'queue', label: 'Enqueue', protocol: 'Queue API', color: '#ff4488', hex: 0xff4488 },
+  { from: 'auth', to: 'kv', label: 'Sessions', protocol: 'KV API', color: '#ff6644', hex: 0xff6644 },
 ];
 
 const serviceMap = new Map(SERVICES.map((s) => [s.id, s]));
@@ -75,6 +94,277 @@ function getTypeColor(type: Service['type']): string {
     case 'queue': return '#ff4488';
     case 'external': return '#cc44ff';
   }
+}
+
+// ── TSL Material Factories ──
+
+/** Frontend (box): scan lines scrolling down the surface */
+function makeFrontendMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const scanLines = Fn(() => {
+    const scan = positionLocal.y.mul(20.0).add(time.mul(1.5)).fract();
+    const line = smoothstep(float(0.4), float(0.5), scan).mul(smoothstep(float(0.6), float(0.5), scan));
+    return line;
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.15), baseCol.mul(0.5), scanLines());
+  mat.emissiveNode = baseCol.mul(scanLines()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
+  mat.roughness = 0.3;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+/** Backend (tall box): horizontal server rack bands with hash noise */
+function makeBackendMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const rackBands = Fn(() => {
+    const band = positionLocal.y.mul(8.0).floor();
+    const noise = hash(band.mul(17.3).add(positionLocal.x.mul(5.0)));
+    const bandLine = smoothstep(float(0.85), float(0.9), positionLocal.y.mul(8.0).fract());
+    return noise.mul(0.5).add(bandLine.mul(0.5));
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.4), rackBands());
+  mat.emissiveNode = baseCol.mul(rackBands()).mul(1.0).add(baseCol.mul(fresnel()).mul(1.8)).add(baseCol.mul(0.2));
+  mat.roughness = 0.4;
+  mat.metalness = 0.6;
+
+  return mat;
+}
+
+/** Database (cylinder): rotating angular ring pattern */
+function makeDatabaseMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const ringPattern = Fn(() => {
+    // Horizontal bands that subtly rotate
+    const angle = atan(positionLocal.x, positionLocal.z).add(time.mul(0.5));
+    const angularBands = angle.mul(3.0).fract();
+    const ring = smoothstep(float(0.3), float(0.35), angularBands).mul(smoothstep(float(0.7), float(0.65), angularBands));
+    const yBands = smoothstep(float(0.85), float(0.9), positionLocal.y.mul(6.0).fract());
+    return ring.mul(0.6).add(yBands.mul(0.4));
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), ringPattern());
+  mat.emissiveNode = baseCol.mul(ringPattern()).mul(1.2).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.2));
+  mat.roughness = 0.3;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+/** Cache (octahedron): fast flickering hash noise */
+function makeCacheMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const flickerNoise = Fn(() => {
+    const n1 = hash(positionLocal.mul(12.0).add(time.mul(8.0)));
+    const n2 = hash(positionLocal.mul(6.0).sub(time.mul(5.0)));
+    return n1.mul(0.6).add(n2.mul(0.4));
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.15), baseCol.mul(0.6), flickerNoise());
+  mat.emissiveNode = baseCol.mul(flickerNoise()).mul(1.8).add(baseCol.mul(fresnel()).mul(2.2)).add(baseCol.mul(0.3));
+  mat.roughness = 0.2;
+  mat.metalness = 0.4;
+
+  return mat;
+}
+
+/** CDN (disc): concentric radial pulses */
+function makeCdnMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const radialPulse = Fn(() => {
+    const dist = positionLocal.x.mul(positionLocal.x).add(positionLocal.z.mul(positionLocal.z)).sqrt();
+    const pulse = dist.mul(6.0).sub(time.mul(2.0)).fract();
+    const ring = smoothstep(float(0.3), float(0.4), pulse).mul(smoothstep(float(0.6), float(0.5), pulse));
+    return ring;
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), radialPulse());
+  mat.emissiveNode = baseCol.mul(radialPulse()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
+  mat.roughness = 0.3;
+  mat.metalness = 0.4;
+
+  return mat;
+}
+
+/** Queue (torus): spinning circular flow */
+function makeQueueMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const spinFlow = Fn(() => {
+    const angle = atan(positionLocal.x, positionLocal.z);
+    const flow = angle.div(Math.PI).add(time.mul(1.5)).fract();
+    const band = smoothstep(float(0.2), float(0.3), flow).mul(smoothstep(float(0.8), float(0.7), flow));
+    return band;
+  });
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.0);
+  });
+
+  mat.colorNode = mix(baseCol.mul(0.1), baseCol.mul(0.5), spinFlow());
+  mat.emissiveNode = baseCol.mul(spinFlow()).mul(1.5).add(baseCol.mul(fresnel()).mul(2.0)).add(baseCol.mul(0.3));
+  mat.roughness = 0.2;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+/** External (icosahedron): mysterious deep glow with strong fresnel */
+function makeExternalMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  const baseCol = color(hexColor);
+
+  const pulse = oscSine(time.mul(0.8)).mul(0.3).add(0.7);
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(2.5);
+  });
+
+  const noise = Fn(() => {
+    return hash(positionLocal.mul(5.0).add(time.mul(0.4)));
+  });
+
+  mat.colorNode = baseCol.mul(0.15).add(baseCol.mul(noise()).mul(0.15));
+  mat.emissiveNode = baseCol.mul(fresnel()).mul(3.5).add(baseCol.mul(pulse).mul(0.6));
+  mat.roughness = 0.1;
+  mat.metalness = 0.3;
+
+  return mat;
+}
+
+/** Create a halo shell for any service node */
+function makeServiceHaloMaterial(hexColor: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const fresnel = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    return float(1.0).sub(nDotV).pow(1.8);
+  });
+
+  const pulse = oscSine(time.mul(0.9)).mul(0.2).add(0.8);
+  const glowColor = color(hexColor);
+
+  mat.opacityNode = fresnel().mul(pulse).mul(0.4);
+  mat.colorNode = glowColor;
+  mat.emissiveNode = glowColor.mul(fresnel().mul(pulse).mul(3.0));
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeServiceMaterial(type: Service['type'], hexColor: number) {
+  switch (type) {
+    case 'frontend': return makeFrontendMaterial(hexColor);
+    case 'backend': return makeBackendMaterial(hexColor);
+    case 'database': return makeDatabaseMaterial(hexColor);
+    case 'cache': return makeCacheMaterial(hexColor);
+    case 'cdn': return makeCdnMaterial(hexColor);
+    case 'queue': return makeQueueMaterial(hexColor);
+    case 'external': return makeExternalMaterial(hexColor);
+  }
+}
+
+/** Connection tube material with scrolling brightness */
+function makeConnectionMaterial(hexColor: number, isHighlighted: boolean) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  const baseCol = color(hexColor);
+
+  if (isHighlighted) {
+    const scroll = Fn(() => {
+      const flow = positionLocal.y.mul(3.0).sub(time.mul(2.0)).fract();
+      const band = smoothstep(float(0.3), float(0.5), flow).mul(smoothstep(float(0.7), float(0.5), flow));
+      return band.mul(0.6).add(0.4);
+    });
+
+    mat.colorNode = baseCol.mul(0.3);
+    mat.emissiveNode = baseCol.mul(scroll()).mul(2.0);
+    mat.opacityNode = float(0.6);
+  } else {
+    mat.colorNode = baseCol.mul(0.08);
+    mat.emissiveNode = baseCol.mul(0.15);
+    mat.opacityNode = float(0.15);
+  }
+
+  mat.roughness = 0.3;
+  mat.metalness = 0.2;
+
+  return mat;
+}
+
+/** Blueprint grid floor material */
+function makeBlueprintGridMaterial() {
+  const mat = new THREE.MeshStandardNodeMaterial();
+
+  const gridPattern = Fn(() => {
+    const scale = float(0.3);
+    const gx = smoothstep(float(0.92), float(0.96), positionLocal.x.mul(scale).fract());
+    const gy = smoothstep(float(0.92), float(0.96), positionLocal.y.mul(scale).fract());
+    return gx.add(gy).clamp(0.0, 1.0);
+  });
+
+  const base = vec3(0.005, 0.008, 0.025);
+  const gridCol = vec3(0.02, 0.05, 0.12);
+
+  mat.colorNode = mix(base, gridCol, gridPattern().mul(0.5));
+  mat.emissiveNode = mix(vec3(0, 0, 0), vec3(0.01, 0.03, 0.08), gridPattern().mul(0.3));
+  mat.roughness = 0.8;
+  mat.metalness = 0.3;
+
+  return mat;
 }
 
 // ── Service Shape Component ──
@@ -105,34 +395,65 @@ function ServiceNode({
   isSelected,
   isHovered,
   isHighlighted,
+  isDimmed,
   onSelect,
   onHover,
-  time,
   index,
 }: {
   service: Service;
   isSelected: boolean;
   isHovered: boolean;
   isHighlighted: boolean;
+  isDimmed: boolean;
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
-  time: number;
   index: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const col = useMemo(() => new THREE.Color(service.color), [service.color]);
+  const groupRef = useRef<THREE.Group>(null);
 
-  const floatY = Math.sin(time * 0.8 + index * 1.7) * 0.1;
-  const pulse = isSelected ? 1.0 + Math.sin(time * 3) * 0.05 : 1.0;
-  const emissiveIntensity = isSelected ? 1.5 : isHovered ? 1.0 : isHighlighted ? 0.7 : 0.3;
+  const serviceMat = useMemo(() => makeServiceMaterial(service.type, service.hex), [service.type, service.hex]);
+
+  // Dim material overlay for non-connected services when something is selected
+  const dimMat = useMemo(() => {
+    if (!isDimmed) return null;
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    const baseCol = color(service.hex);
+    mat.colorNode = baseCol.mul(0.05);
+    mat.emissiveNode = baseCol.mul(0.05);
+    mat.opacityNode = float(0.4);
+    mat.roughness = 0.8;
+    mat.metalness = 0.2;
+    return mat;
+  }, [service.hex, isDimmed]);
+
+  const haloMat = useMemo(() => makeServiceHaloMaterial(service.hex), [service.hex]);
 
   const typeColor = useMemo(() => getTypeColor(service.type), [service.type]);
 
+  useFrame((_, delta) => {
+    if (groupRef.current) {
+      const t = (groupRef.current.userData.t || 0) + delta;
+      groupRef.current.userData.t = t;
+      groupRef.current.position.y = service.position[1] + Math.sin(t * 0.8 + index * 1.7) * 0.1;
+    }
+    if (meshRef.current && isSelected) {
+      const t = groupRef.current?.userData.t || 0;
+      const s = 1.0 + Math.sin(t * 3) * 0.05;
+      meshRef.current.scale.setScalar(s);
+    } else if (meshRef.current) {
+      meshRef.current.scale.setScalar(1.0);
+    }
+  });
+
+  const activeMat = isDimmed && dimMat ? dimMat : serviceMat;
+
   return (
-    <group position={[service.position[0], service.position[1] + floatY, service.position[2]]}>
+    <group ref={groupRef} position={[service.position[0], service.position[1], service.position[2]]}>
       <mesh
         ref={meshRef}
-        scale={[pulse, pulse, pulse]}
+        material={activeMat}
         onClick={(e) => {
           e.stopPropagation();
           onSelect(service.id);
@@ -144,14 +465,14 @@ function ServiceNode({
         onPointerOut={() => onHover(null)}
       >
         <ServiceShape type={service.type} />
-        <meshStandardMaterial
-          color={col}
-          emissive={col}
-          emissiveIntensity={emissiveIntensity}
-          metalness={0.4}
-          roughness={0.4}
-        />
       </mesh>
+
+      {/* Halo shell */}
+      {!isDimmed && (
+        <mesh material={haloMat} scale={[1.4, 1.4, 1.4]}>
+          <ServiceShape type={service.type} />
+        </mesh>
+      )}
 
       {/* Service label */}
       <Html position={[0, 1.0, 0]} center distanceFactor={10}>
@@ -166,6 +487,7 @@ function ServiceNode({
             pointerEvents: 'none',
             border: `1px solid ${typeColor}44`,
             fontWeight: isSelected ? 'bold' : 'normal',
+            opacity: isDimmed ? 0.3 : 1,
           }}
         >
           <div>{service.label}</div>
@@ -174,7 +496,11 @@ function ServiceNode({
       </Html>
 
       {/* Point light at service */}
-      <pointLight color={service.color} intensity={isSelected ? 1.5 : 0.3} distance={5} />
+      <pointLight
+        color={service.color}
+        intensity={isSelected ? 2.5 : isHovered ? 1.5 : isHighlighted ? 0.8 : isDimmed ? 0.05 : 0.4}
+        distance={isSelected ? 7 : 5}
+      />
     </group>
   );
 }
@@ -200,40 +526,35 @@ function ConnectionPipe({
 
   const up = new THREE.Vector3(0, 1, 0);
   const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-  const col = new THREE.Color(flow.color);
   const radius = isHighlighted ? 0.06 : 0.04;
-  const opacity = isHighlighted ? 0.5 : 0.15;
+
+  const pipeMat = useMemo(
+    () => makeConnectionMaterial(flow.hex, isHighlighted),
+    [flow.hex, isHighlighted],
+  );
 
   return (
-    <mesh position={mid} quaternion={quat}>
+    <mesh position={mid} quaternion={quat} material={pipeMat}>
       <cylinderGeometry args={[radius, radius, length, 6]} />
-      <meshStandardMaterial
-        color={col}
-        emissive={col}
-        emissiveIntensity={isHighlighted ? 0.8 : 0.2}
-        transparent
-        opacity={opacity}
-      />
     </mesh>
   );
 }
 
 // ── Flow Particles (instanced for performance) ──
 
-const PARTICLES_PER_FLOW = 8;
+const PARTICLES_PER_FLOW = 12;
 const TOTAL_PARTICLES = FLOWS.length * PARTICLES_PER_FLOW;
 
 function FlowParticles({
   hoveredService,
-  time,
+  selectedService,
 }: {
   hoveredService: string | null;
-  time: number;
+  selectedService: string | null;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const colorsRef = useRef<Float32Array | null>(null);
 
-  // Pre-compute flow endpoints
   const flowData = useMemo(() => {
     return FLOWS.map((flow) => {
       const fromService = serviceMap.get(flow.from)!;
@@ -247,7 +568,6 @@ function FlowParticles({
     });
   }, []);
 
-  // Initialize instance colors
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -266,27 +586,47 @@ function FlowParticles({
     mesh.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
   }, [flowData]);
 
-  useFrame(() => {
+  // Particle material using TSL for additive glow
+  const particleMat = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+
+    const pulse = oscSine(time.mul(3.0)).mul(0.3).add(0.7);
+    mat.colorNode = color(0xffffff);
+    mat.emissiveNode = color(0xffffff).mul(pulse).mul(3.0);
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+
+    return mat;
+  }, []);
+
+  const active = hoveredService ?? selectedService;
+
+  useFrame((state) => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
+    const currentTime = state.clock.elapsedTime;
     const dummy = new THREE.Object3D();
 
     for (let fi = 0; fi < flowData.length; fi++) {
       const { from, to, flow } = flowData[fi];
-      const isHighlighted = hoveredService !== null &&
-        (flow.from === hoveredService || flow.to === hoveredService);
-      const scale = isHighlighted ? 0.08 : 0.04;
+      const isHighlighted = active !== null &&
+        (flow.from === active || flow.to === active);
+      const scale = isHighlighted ? 0.06 : 0.04;
 
       for (let pi = 0; pi < PARTICLES_PER_FLOW; pi++) {
         const idx = fi * PARTICLES_PER_FLOW + pi;
-        const t = ((time * 0.5 + pi / PARTICLES_PER_FLOW) % 1.0);
+        // Add speed variation per particle
+        const speedMul = 0.4 + (pi % 3) * 0.15;
+        const t = ((currentTime * speedMul + pi / PARTICLES_PER_FLOW) % 1.0);
 
-        // Add floating offset based on flow index
-        const floatOffset = Math.sin(time * 0.8 + fi * 1.7) * 0.1;
+        const floatOffset = Math.sin(currentTime * 0.8 + fi * 1.7) * 0.1;
 
         dummy.position.lerpVectors(from, to, t);
-        dummy.position.y += floatOffset * (1 - Math.abs(t - 0.5) * 2); // Only float in middle
+        dummy.position.y += floatOffset * (1 - Math.abs(t - 0.5) * 2);
         dummy.scale.setScalar(scale);
         dummy.updateMatrix();
         mesh.setMatrixAt(idx, dummy.matrix);
@@ -297,15 +637,8 @@ function FlowParticles({
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL_PARTICLES]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL_PARTICLES]} material={particleMat}>
       <sphereGeometry args={[1, 6, 6]} />
-      <meshStandardMaterial
-        color="#ffffff"
-        emissive="#ffffff"
-        emissiveIntensity={2.0}
-        transparent
-        opacity={0.8}
-      />
     </instancedMesh>
   );
 }
@@ -357,55 +690,15 @@ function DetailPanel({
   );
 }
 
-// ── Grid Floor ──
+// ── Blueprint Grid Floor ──
 
-function GridFloor() {
+function BlueprintGridFloor() {
+  const gridMat = useMemo(() => makeBlueprintGridMaterial(), []);
+
   return (
-    <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh position={[0, -4, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
       <planeGeometry args={[40, 40]} />
-      <meshStandardMaterial
-        color="#0a0f1e"
-        emissive="#1a2040"
-        emissiveIntensity={0.1}
-        transparent
-        opacity={0.8}
-      />
     </mesh>
-  );
-}
-
-function GridLines() {
-  const lines = useMemo(() => {
-    const result: { from: [number, number, number]; to: [number, number, number] }[] = [];
-    const size = 20;
-    const step = 2;
-    for (let i = -size; i <= size; i += step) {
-      result.push({ from: [i, -3.99, -size], to: [i, -3.99, size] });
-      result.push({ from: [-size, -3.99, i], to: [size, -3.99, i] });
-    }
-    return result;
-  }, []);
-
-  return (
-    <>
-      {lines.map((line, i) => {
-        const from = new THREE.Vector3(...line.from);
-        const to = new THREE.Vector3(...line.to);
-        const mid = new THREE.Vector3().lerpVectors(from, to, 0.5);
-        const dir = new THREE.Vector3().subVectors(to, from);
-        const length = dir.length();
-        dir.normalize();
-        const up = new THREE.Vector3(0, 1, 0);
-        const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-
-        return (
-          <mesh key={i} position={mid} quaternion={quat}>
-            <cylinderGeometry args={[0.01, 0.01, length, 3]} />
-            <meshBasicMaterial color="#1a2555" transparent opacity={0.3} />
-          </mesh>
-        );
-      })}
-    </>
   );
 }
 
@@ -422,7 +715,6 @@ export default function ArchitectureBlueprint() {
   const handleSelect = useCallback(
     (id: string) => {
       if (selectedService === id) {
-        // Deselect - return to overview
         setSelectedService(null);
         targetPos.current.set(2, 6, 12);
         targetLookAt.current.set(0, 0, 0);
@@ -469,10 +761,39 @@ export default function ArchitectureBlueprint() {
     return indices;
   }, [hoveredService, selectedService]);
 
+  // Determine if we should dim non-connected services
+  const activeContext = hoveredService ?? selectedService;
+  const shouldDim = activeContext !== null;
+
+  // Background material
+  const bgMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const bgColor = Fn(() => {
+      const bottom = vec3(0.01, 0.015, 0.04);
+      const top = vec3(0.0, 0.0, 0.015);
+      const mid = vec3(0.02, 0.01, 0.05);
+      const yFactor = screenUV.y;
+      const base = mix(bottom, top, yFactor);
+      const glowBand = smoothstep(float(0.2), float(0.4), yFactor).mul(smoothstep(float(0.6), float(0.4), yFactor));
+      return mix(base, mid, glowBand.mul(0.3));
+    });
+    mat.colorNode = bgColor();
+    return mat;
+  }, []);
+
+  // Background click plane material
+  const bgClickMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.colorNode = color(0x000000);
+    mat.transparent = true;
+    mat.opacity = 0.0;
+    return mat;
+  }, []);
+
   useFrame((_, delta) => {
     timeRef.current += delta;
 
-    // Smooth camera
     camera.position.lerp(targetPos.current, 0.04);
     camera.lookAt(
       camera.position.x + (targetLookAt.current.x - camera.position.x) * 0.04,
@@ -483,19 +804,23 @@ export default function ArchitectureBlueprint() {
 
   return (
     <>
-      <ambientLight intensity={0.15} />
-      <directionalLight position={[5, 10, 5]} intensity={0.4} />
-      <directionalLight position={[-5, 5, -5]} intensity={0.15} />
+      {/* Blue-tinted ambient for holographic atmosphere */}
+      <ambientLight intensity={0.1} color={0x334466} />
+      <directionalLight position={[5, 10, 5]} intensity={0.3} color={0x6688cc} />
+      <directionalLight position={[-5, 5, -5]} intensity={0.1} color={0x4466aa} />
 
-      {/* Click background to deselect */}
-      <mesh position={[0, 0, -10]} onClick={handleEmptyClick}>
-        <planeGeometry args={[60, 40]} />
-        <meshBasicMaterial color="#0a0f1e" />
+      {/* Background atmosphere */}
+      <mesh material={bgMat}>
+        <sphereGeometry args={[35, 16, 16]} />
       </mesh>
 
-      {/* Grid floor */}
-      <GridFloor />
-      <GridLines />
+      {/* Click background to deselect */}
+      <mesh position={[0, 0, -10]} material={bgClickMat} onClick={handleEmptyClick}>
+        <planeGeometry args={[60, 40]} />
+      </mesh>
+
+      {/* Blueprint grid floor */}
+      <BlueprintGridFloor />
 
       {/* Service nodes */}
       {SERVICES.map((service, i) => (
@@ -505,9 +830,9 @@ export default function ArchitectureBlueprint() {
           isSelected={selectedService === service.id}
           isHovered={hoveredService === service.id}
           isHighlighted={highlightedServiceIds.has(service.id)}
+          isDimmed={shouldDim && !highlightedServiceIds.has(service.id)}
           onSelect={handleSelect}
           onHover={setHoveredService}
-          time={timeRef.current}
           index={i}
         />
       ))}
@@ -522,7 +847,10 @@ export default function ArchitectureBlueprint() {
       ))}
 
       {/* Data flow particles */}
-      <FlowParticles hoveredService={hoveredService ?? selectedService} time={timeRef.current} />
+      <FlowParticles
+        hoveredService={hoveredService}
+        selectedService={selectedService}
+      />
 
       {/* Detail panel for selected service */}
       {selectedService && (

@@ -1,7 +1,20 @@
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
+import {
+  Fn,
+  color,
+  float,
+  mix,
+  smoothstep,
+  time,
+  positionLocal,
+  normalLocal,
+  hash,
+  oscSine,
+  vec3,
+} from 'three/tsl';
 
 /**
  * Decision Forest — Forge drive's decision tree rendered as a 3D branching structure.
@@ -9,6 +22,9 @@ import * as THREE from 'three/webgpu';
  * Tree grows left-to-right. Decision nodes are octahedra, leaf nodes are icosahedra.
  * Click a leaf to highlight the full path from root. Hover to see labels.
  * Particles pulse along edges.
+ *
+ * Enhanced with TSL materials, fresnel glow, halo shells, animated energy edges,
+ * ambient particles, and dramatic lighting.
  */
 
 // ── Data ──
@@ -20,20 +36,23 @@ interface TreeNode {
   recommendation?: string;
   children?: TreeNode[];
   color: string;
+  hex: number;
 }
 
 const DECISION_TREE: TreeNode = {
   id: 'root',
   label: 'Project State',
   color: '#ffffff',
+  hex: 0xffffff,
   children: [
     {
       id: 'no-structure',
       label: 'No Structure?',
       condition: 'No package.json',
       color: '#ff6644',
+      hex: 0xff6644,
       children: [
-        { id: 'init', label: 'init', recommendation: 'Run /forge:init', color: '#22cc88' },
+        { id: 'init', label: 'init', recommendation: 'Run /forge:init', color: '#22cc88', hex: 0x22cc88 },
       ],
     },
     {
@@ -41,8 +60,9 @@ const DECISION_TREE: TreeNode = {
       label: 'No Git?',
       condition: 'No .git directory',
       color: '#ff8844',
+      hex: 0xff8844,
       children: [
-        { id: 'init2', label: 'init', recommendation: 'Run /forge:init', color: '#22cc88' },
+        { id: 'init2', label: 'init', recommendation: 'Run /forge:init', color: '#22cc88', hex: 0x22cc88 },
       ],
     },
     {
@@ -50,8 +70,9 @@ const DECISION_TREE: TreeNode = {
       label: 'No Vision?',
       condition: 'Missing docs/vision.md',
       color: '#ffaa44',
+      hex: 0xffaa44,
       children: [
-        { id: 'vision', label: 'vision', recommendation: 'Run /forge:vision', color: '#44ddaa' },
+        { id: 'vision', label: 'vision', recommendation: 'Run /forge:vision', color: '#44ddaa', hex: 0x44ddaa },
       ],
     },
     {
@@ -59,8 +80,9 @@ const DECISION_TREE: TreeNode = {
       label: 'No PRDs?',
       condition: 'Vision exists, no docs/prd/',
       color: '#ffcc44',
+      hex: 0xffcc44,
       children: [
-        { id: 'plan', label: 'plan', recommendation: 'Run /forge:plan', color: '#4488ff' },
+        { id: 'plan', label: 'plan', recommendation: 'Run /forge:plan', color: '#4488ff', hex: 0x4488ff },
       ],
     },
     {
@@ -68,8 +90,9 @@ const DECISION_TREE: TreeNode = {
       label: 'No Infra?',
       condition: 'PRDs exist, no deploy config',
       color: '#ddcc44',
+      hex: 0xddcc44,
       children: [
-        { id: 'infra', label: 'infra', recommendation: 'Run /forge:infra', color: '#4488ff' },
+        { id: 'infra', label: 'infra', recommendation: 'Run /forge:infra', color: '#4488ff', hex: 0x4488ff },
       ],
     },
     {
@@ -77,8 +100,9 @@ const DECISION_TREE: TreeNode = {
       label: 'No Tests?',
       condition: 'No test framework',
       color: '#aacc44',
+      hex: 0xaacc44,
       children: [
-        { id: 'test', label: 'test', recommendation: 'Run /forge:test', color: '#4488ff' },
+        { id: 'test', label: 'test', recommendation: 'Run /forge:test', color: '#4488ff', hex: 0x4488ff },
       ],
     },
     {
@@ -86,24 +110,28 @@ const DECISION_TREE: TreeNode = {
       label: 'Open Issues?',
       condition: 'Beads issues exist',
       color: '#88cc44',
+      hex: 0x88cc44,
       children: [
         {
           id: 'implement',
           label: 'Implement',
           recommendation: 'Build next task',
           color: '#4488ff',
+          hex: 0x4488ff,
         },
         {
           id: 'parallel',
           label: '3+ tasks?',
           condition: '3+ independent issues',
           color: '#66aaff',
+          hex: 0x66aaff,
           children: [
             {
               id: 'fan-out',
               label: 'parallel',
               recommendation: 'Run /forge:parallel',
               color: '#4488ff',
+              hex: 0x4488ff,
             },
           ],
         },
@@ -114,12 +142,14 @@ const DECISION_TREE: TreeNode = {
       label: 'All Complete?',
       condition: 'All features COMPLETE',
       color: '#44cc88',
+      hex: 0x44cc88,
       children: [
         {
           id: 'next-cycle',
           label: 'plan',
           recommendation: 'Plan next iteration',
           color: '#cc44ff',
+          hex: 0xcc44ff,
         },
       ],
     },
@@ -134,6 +164,7 @@ interface LayoutNode {
   condition?: string;
   recommendation?: string;
   color: string;
+  hex: number;
   position: THREE.Vector3;
   isLeaf: boolean;
   parentId?: string;
@@ -148,6 +179,8 @@ interface LayoutEdge {
   to: THREE.Vector3;
   fromColor: string;
   toColor: string;
+  fromHex: number;
+  toHex: number;
 }
 
 const X_SPACING = 3.5;
@@ -183,6 +216,7 @@ function layoutTree(
     condition: node.condition,
     recommendation: node.recommendation,
     color: node.color,
+    hex: node.hex,
     position,
     isLeaf,
     parentId,
@@ -200,6 +234,8 @@ function layoutTree(
         to: position,
         fromColor: parentNode.color,
         toColor: node.color,
+        fromHex: parentNode.hex,
+        toHex: node.hex,
       });
     }
   }
@@ -222,7 +258,6 @@ function computeLayout() {
   const edges: LayoutEdge[] = [];
   const indexRef = { value: 0 };
 
-  // Count leaves to determine vertical spread
   function countLeaves(node: TreeNode): number {
     if (!node.children || node.children.length === 0) return 1;
     return node.children.reduce((sum, c) => sum + countLeaves(c), 0);
@@ -267,7 +302,85 @@ function getPathToNode(targetId: string, nodes: LayoutNode[]): string[] {
   return path;
 }
 
-// ── Node Component ──
+// ── Ambient floating particles ──
+
+function AmbientParticles() {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const PARTICLE_COUNT = 30;
+
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+
+    const twinkle = oscSine(time.mul(0.6).add(hash(positionLocal.mul(30.0)).mul(6.28)));
+    mat.colorNode = color(0x6688aa);
+    mat.emissiveNode = vec3(0.3, 0.4, 0.6).mul(twinkle.mul(0.5).add(0.5)).mul(1.5);
+    mat.opacityNode = twinkle.mul(0.3).add(0.2);
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+    return mat;
+  }, []);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      dummy.position.set(
+        (Math.random() - 0.5) * 16,
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 4,
+      );
+      dummy.scale.setScalar(0.02 + Math.random() * 0.03);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
+
+  // Gentle drift
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const positions = useRef<THREE.Vector3[]>([]);
+
+  useEffect(() => {
+    positions.current = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      positions.current.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 16,
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 4,
+      ));
+    }
+  }, []);
+
+  useFrame((state) => {
+    const mesh = meshRef.current;
+    if (!mesh || positions.current.length === 0) return;
+    const t = state.clock.elapsedTime;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = positions.current[i];
+      dummy.position.set(
+        p.x + Math.sin(t * 0.15 + i * 2.1) * 0.3,
+        p.y + Math.cos(t * 0.12 + i * 1.7) * 0.2,
+        p.z + Math.sin(t * 0.1 + i * 3.3) * 0.15,
+      );
+      dummy.scale.setScalar(0.02 + Math.sin(t * 0.5 + i) * 0.01);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]} material={material}>
+      <icosahedronGeometry args={[1, 0]} />
+    </instancedMesh>
+  );
+}
+
+// ── Node Component with TSL materials ──
 
 function DecisionNode({
   node,
@@ -289,16 +402,90 @@ function DecisionNode({
   time: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const col = useMemo(() => new THREE.Color(node.color), [node.color]);
   const isHovered = hoveredNode === node.id;
+  const isRoot = node.id === 'root';
 
   // Floating motion
   const floatY = Math.sin(t * 0.7 + node.index * 0.5) * 0.1;
 
-  const emissiveIntensity = isOnPath ? 2.0 : isDimmed ? 0.1 : isHovered ? 1.5 : 0.6;
-  const opacity = isDimmed ? 0.3 : 1.0;
+  const radius = isRoot ? 0.5 : node.isLeaf ? 0.25 : 0.3;
 
-  const radius = node.id === 'root' ? 0.5 : node.isLeaf ? 0.25 : 0.3;
+  // TSL core material
+  const coreMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+
+    const nodeCol = color(node.hex);
+
+    // Fresnel rim glow
+    const fresnel = Fn(() => {
+      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(2.0);
+      return f;
+    })();
+
+    // Root node: rainbow fresnel via position-based color variation
+    if (isRoot) {
+      const rainbowColor = Fn(() => {
+        const px = positionLocal.x.mul(2.0).add(time.mul(0.3));
+        const py = positionLocal.y.mul(2.0).add(time.mul(0.2));
+        const r = px.sin().mul(0.5).add(0.5);
+        const g = py.sin().mul(0.5).add(0.5);
+        const b = px.add(py).sin().mul(0.5).add(0.5);
+        return vec3(r, g, b);
+      })();
+      mat.colorNode = mix(color(0x222233), rainbowColor, fresnel.mul(0.7).add(0.3));
+      mat.emissiveNode = rainbowColor.mul(fresnel.mul(2.5).add(0.8));
+    } else {
+      // Animated interior shimmer (hash noise * time)
+      const shimmer = Fn(() => {
+        const n = hash(positionLocal.mul(15.0).add(vec3(time.mul(0.5), float(0.0), float(0.0))));
+        return n;
+      })();
+
+      const dimFactor = float(isDimmed ? 0.15 : 1.0);
+      const pathBrightness = float(isOnPath ? 2.5 : isHovered ? 1.8 : 0.8);
+
+      mat.colorNode = mix(color(0x111122), nodeCol, shimmer.mul(0.4).add(fresnel.mul(0.5)).add(0.1));
+
+      // Pulsing emissive
+      const pulse = oscSine(time.mul(1.2).add(float(node.index).mul(0.6)));
+      mat.emissiveNode = nodeCol.mul(
+        fresnel.mul(1.5).add(shimmer.mul(0.3)).add(0.2).mul(pulse.mul(0.3).add(0.7)).mul(pathBrightness).mul(dimFactor),
+      );
+      mat.opacityNode = isDimmed ? float(0.2) : float(1.0);
+    }
+
+    mat.roughness = 0.2;
+    mat.metalness = 0.4;
+    return mat;
+  }, [node.hex, node.index, isRoot, isDimmed, isOnPath, isHovered]);
+
+  // Leaf halo shell material
+  const haloMaterial = useMemo(() => {
+    if (!node.isLeaf && !isRoot) return null;
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.side = THREE.BackSide;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+
+    const nodeCol = color(node.hex);
+    const fresnel = Fn(() => {
+      const f = positionLocal.normalize().dot(normalLocal).abs().oneMinus().pow(1.8);
+      return f;
+    })();
+
+    const pulse = oscSine(time.mul(1.0).add(float(node.index).mul(0.8)));
+    const dimFactor = float(isDimmed ? 0.05 : 1.0);
+    const pathBoost = float(isOnPath ? 1.5 : 1.0);
+
+    mat.opacityNode = fresnel.mul(pulse.mul(0.3).add(0.5)).mul(0.35).mul(dimFactor).mul(pathBoost);
+    mat.colorNode = nodeCol;
+    mat.emissiveNode = nodeCol.mul(fresnel.mul(pulse.mul(0.3).add(0.7)).mul(2.0).mul(dimFactor).mul(pathBoost));
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+    return mat;
+  }, [node.isLeaf, isRoot, node.hex, node.index, isDimmed, isOnPath]);
 
   return (
     <group position={[node.position.x, node.position.y + floatY, node.position.z]}>
@@ -317,25 +504,29 @@ function DecisionNode({
           document.body.style.cursor = 'auto';
           onUnhover();
         }}
+        material={coreMaterial}
       >
-        {node.id === 'root' ? (
+        {isRoot ? (
           <sphereGeometry args={[radius, 24, 16]} />
         ) : node.isLeaf ? (
           <icosahedronGeometry args={[radius, 0]} />
         ) : (
           <octahedronGeometry args={[radius, 0]} />
         )}
-        <meshStandardMaterial
-          color={col}
-          emissive={col}
-          emissiveIntensity={emissiveIntensity}
-          metalness={0.3}
-          roughness={0.3}
-          transparent
-          opacity={opacity}
-        />
       </mesh>
-      <pointLight color={col} intensity={isDimmed ? 0.05 : 0.4} distance={2} />
+
+      {/* Halo shell for leaf and root nodes */}
+      {haloMaterial && (
+        <mesh material={haloMaterial} scale={[1.4, 1.4, 1.4]}>
+          {isRoot ? (
+            <sphereGeometry args={[radius, 16, 12]} />
+          ) : (
+            <icosahedronGeometry args={[radius, 1]} />
+          )}
+        </mesh>
+      )}
+
+      <pointLight color={node.color} intensity={isDimmed ? 0.05 : 0.6} distance={2.5} />
 
       {/* Hover label */}
       {isHovered && (
@@ -370,18 +561,18 @@ function DecisionNode({
   );
 }
 
-// ── Edge Component ──
+// ── Edge Component with TSL animated energy flow ──
 
 function TreeEdge({
   edge,
+  edgeIndex,
   isOnPath,
   isDimmed,
-  time: t,
 }: {
   edge: LayoutEdge;
+  edgeIndex: number;
   isOnPath: boolean;
   isDimmed: boolean;
-  time: number;
 }) {
   const { midpoint, length, quat } = useMemo(() => {
     const mid = new THREE.Vector3().lerpVectors(edge.from, edge.to, 0.5);
@@ -392,39 +583,58 @@ function TreeEdge({
     return { midpoint: mid, length: len, quat: q };
   }, [edge.from, edge.to]);
 
-  const fromCol = useMemo(() => new THREE.Color(edge.fromColor), [edge.fromColor]);
-  const toCol = useMemo(() => new THREE.Color(edge.toColor), [edge.toColor]);
-  const avgColor = useMemo(() => new THREE.Color().lerpColors(fromCol, toCol, 0.5), [fromCol, toCol]);
+  // TSL material with scrolling brightness pattern
+  const edgeMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
 
-  const emissiveIntensity = isOnPath ? 2.0 : isDimmed ? 0.05 : 0.3;
-  const opacity = isOnPath ? 0.9 : isDimmed ? 0.1 : 0.35;
-  const thickness = isOnPath ? 0.03 : 0.015;
+    const fromCol = color(edge.fromHex);
+    const toCol = color(edge.toHex);
+    const avgColor = mix(fromCol, toCol, float(0.5));
 
-  // Account for floating motion on both ends
-  const fromFloatY = Math.sin(t * 0.7) * 0.1;
-  const toFloatY = Math.sin(t * 0.7) * 0.1;
-  const avgFloat = (fromFloatY + toFloatY) / 2;
+    // Scrolling energy flow pattern
+    const flowSpeed = float(isOnPath ? 3.0 : 1.0);
+    const flowPattern = Fn(() => {
+      const scroll = positionLocal.y.mul(4.0).add(time.mul(flowSpeed).add(float(edgeIndex).mul(0.5)));
+      const wave = scroll.sin().mul(0.5).add(0.5);
+      const detail = positionLocal.y.mul(10.0).add(time.mul(flowSpeed.mul(2.0))).sin().mul(0.2).add(0.8);
+      return wave.mul(detail);
+    })();
+
+    const dimFactor = float(isDimmed ? 0.08 : 1.0);
+    const pathBoost = float(isOnPath ? 2.5 : 1.0);
+    const thickness = isOnPath ? 0.03 : 0.015;
+
+    mat.colorNode = avgColor;
+    mat.emissiveNode = avgColor.mul(flowPattern.mul(pathBoost).add(0.2).mul(dimFactor));
+    mat.opacityNode = isDimmed
+      ? float(0.08)
+      : isOnPath
+        ? flowPattern.mul(0.5).add(0.5)
+        : flowPattern.mul(0.25).add(0.2);
+
+    mat.roughness = 0.2;
+    mat.metalness = 0.4;
+
+    // Store thickness for geometry
+    (mat as unknown as Record<string, number>)._thickness = thickness;
+    return mat;
+  }, [edge.fromHex, edge.toHex, edgeIndex, isOnPath, isDimmed]);
+
+  const thickness = (edgeMaterial as unknown as Record<string, number>)._thickness || 0.015;
 
   return (
     <mesh
-      position={[midpoint.x, midpoint.y + avgFloat, midpoint.z]}
+      position={[midpoint.x, midpoint.y, midpoint.z]}
       quaternion={quat}
+      material={edgeMaterial}
     >
-      <cylinderGeometry args={[thickness, thickness, length, 6]} />
-      <meshStandardMaterial
-        color={avgColor}
-        emissive={avgColor}
-        emissiveIntensity={emissiveIntensity}
-        transparent
-        opacity={opacity}
-        metalness={0.2}
-        roughness={0.4}
-      />
+      <cylinderGeometry args={[thickness, thickness, length, 8]} />
     </mesh>
   );
 }
 
-// ── Edge Particles ──
+// ── Edge Particles with glow ──
 
 function EdgeParticles({
   edges,
@@ -438,12 +648,47 @@ function EdgeParticles({
   time: number;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const haloRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const particlesPerEdge = 2;
+  const particlesPerEdge = 4;
   const totalParticles = edges.length * particlesPerEdge;
+
+  // Core particle material
+  const coreMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+
+    const pulse = oscSine(time.mul(2.0).add(hash(positionLocal.mul(20.0)).mul(6.28)));
+    mat.colorNode = color(0xffffff);
+    mat.emissiveNode = vec3(1.0, 0.9, 0.8).mul(pulse.mul(0.5).add(1.5));
+    mat.opacityNode = pulse.mul(0.3).add(0.7);
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+    return mat;
+  }, []);
+
+  // Halo material for outer glow
+  const haloMaterial = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.side = THREE.BackSide;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+
+    const pulse = oscSine(time.mul(1.5).add(hash(positionLocal.mul(15.0)).mul(6.28)));
+    mat.colorNode = color(0x88aaff);
+    mat.emissiveNode = vec3(0.4, 0.5, 1.0).mul(pulse.mul(0.4).add(0.6));
+    mat.opacityNode = pulse.mul(0.15).add(0.1);
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+    return mat;
+  }, []);
 
   useFrame(() => {
     const mesh = meshRef.current;
+    const halo = haloRef.current;
     if (!mesh) return;
 
     let idx = 0;
@@ -453,9 +698,8 @@ function EdgeParticles({
         selectedPath.length > 0 &&
         selectedPath.includes(edge.fromId) &&
         selectedPath.includes(edge.toId);
-      const speed = isOnPath ? 0.6 : 0.25;
+      const speed = isOnPath ? 0.8 : 0.25;
 
-      // Get floating offsets for from/to nodes
       const fromNode = nodes.find((n) => n.id === edge.fromId);
       const toNode = nodes.find((n) => n.id === edge.toId);
       const fromFloatY = fromNode ? Math.sin(t * 0.7 + fromNode.index * 0.5) * 0.1 : 0;
@@ -469,27 +713,33 @@ function EdgeParticles({
         const z = edge.from.z + (edge.to.z - edge.from.z) * progress;
 
         dummy.position.set(x, baseY + floatY, z);
-        const scale = isOnPath ? 0.06 : 0.035;
+        const scale = isOnPath ? 0.07 : 0.04;
         dummy.scale.setScalar(scale);
         dummy.updateMatrix();
         mesh.setMatrixAt(idx, dummy.matrix);
+
+        // Halo at 1.8x scale
+        if (halo) {
+          dummy.scale.setScalar(scale * 1.8);
+          dummy.updateMatrix();
+          halo.setMatrixAt(idx, dummy.matrix);
+        }
         idx++;
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
+    if (halo) halo.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]}>
-      <sphereGeometry args={[1, 8, 6]} />
-      <meshStandardMaterial
-        color="#ffffff"
-        emissive="#ffffff"
-        emissiveIntensity={2}
-        transparent
-        opacity={0.7}
-      />
-    </instancedMesh>
+    <>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]} material={coreMaterial}>
+        <sphereGeometry args={[1, 8, 6]} />
+      </instancedMesh>
+      <instancedMesh ref={haloRef} args={[undefined, undefined, totalParticles]} material={haloMaterial}>
+        <sphereGeometry args={[1, 6, 4]} />
+      </instancedMesh>
+    </>
   );
 }
 
@@ -505,6 +755,35 @@ function RotatingGroup({ children, time: t }: { children: React.ReactNode; time:
   });
 
   return <group ref={groupRef}>{children}</group>;
+}
+
+// ── Background gradient sphere ──
+
+function BackgroundSphere() {
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.side = THREE.BackSide;
+
+    // Dark gradient: deep blue at top, near-black at bottom
+    const gradient = Fn(() => {
+      const y = positionLocal.normalize().y;
+      const topCol = vec3(0.02, 0.03, 0.08);
+      const bottomCol = vec3(0.005, 0.005, 0.015);
+      return mix(bottomCol, topCol, smoothstep(-1.0, 1.0, y));
+    })();
+
+    mat.colorNode = gradient;
+    mat.emissiveNode = gradient.mul(0.5);
+    mat.roughness = 1.0;
+    mat.metalness = 0.0;
+    return mat;
+  }, []);
+
+  return (
+    <mesh material={material}>
+      <sphereGeometry args={[20, 24, 16]} />
+    </mesh>
+  );
 }
 
 // ── Main Component ──
@@ -527,19 +806,15 @@ export default function DecisionForest() {
       if (!node) return;
 
       if (nodeId === 'root') {
-        // Reset
         setSelectedPath([]);
       } else if (node.isLeaf) {
-        // Highlight path from root to this leaf
         const path = getPathToNode(nodeId, nodes);
         if (selectedPath.length > 0 && selectedPath[selectedPath.length - 1] === nodeId) {
-          // Clicking same leaf deselects
           setSelectedPath([]);
         } else {
           setSelectedPath(path);
         }
       } else {
-        // Clicking a decision node highlights path to it
         const path = getPathToNode(nodeId, nodes);
         if (selectedPath.length > 0 && selectedPath[selectedPath.length - 1] === nodeId) {
           setSelectedPath([]);
@@ -555,9 +830,22 @@ export default function DecisionForest() {
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.15} />
-      <directionalLight position={[8, 6, 4]} intensity={0.3} />
+      {/* Lighting - more dramatic */}
+      <ambientLight intensity={0.1} />
+      <directionalLight position={[8, 6, 4]} intensity={0.2} />
+
+      {/* Colored accent lighting at key positions */}
+      <pointLight position={[-6, 3, 2]} color="#ff6644" intensity={1.5} distance={12} />
+      <pointLight position={[6, -3, 2]} color="#4488ff" intensity={1.5} distance={12} />
+      <pointLight position={[0, 0, 4]} color="#22cc88" intensity={1.0} distance={10} />
+      <pointLight position={[0, 5, -2]} color="#cc44ff" intensity={1.0} distance={10} />
+      <pointLight position={[0, -5, -2]} color="#ffaa44" intensity={1.0} distance={10} />
+
+      {/* Background gradient */}
+      <BackgroundSphere />
+
+      {/* Ambient floating particles */}
+      <AmbientParticles />
 
       {/* Background click to reset */}
       <mesh
@@ -573,7 +861,7 @@ export default function DecisionForest() {
 
       <RotatingGroup time={time}>
         {/* Edges */}
-        {edges.map((edge) => {
+        {edges.map((edge, edgeIdx) => {
           const isOnPath =
             hasSelection &&
             selectedPath.includes(edge.fromId) &&
@@ -584,9 +872,9 @@ export default function DecisionForest() {
             <TreeEdge
               key={`${edge.fromId}-${edge.toId}`}
               edge={edge}
+              edgeIndex={edgeIdx}
               isOnPath={isOnPath}
               isDimmed={isDimmed}
-              time={time}
             />
           );
         })}

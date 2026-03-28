@@ -2,6 +2,20 @@ import { useRef, useState, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
+import {
+  color,
+  float,
+  time,
+  oscSine,
+  positionLocal,
+  normalWorld,
+  positionWorld,
+  cameraPosition,
+  Fn,
+  mix,
+  smoothstep,
+  fract,
+} from 'three/tsl';
 
 /**
  * Metric Terrain
@@ -10,6 +24,9 @@ import * as THREE from 'three/webgpu';
  * points create a landscape where height = value and color = category.
  * A sweeping time cursor highlights cross-sections. Click peaks to
  * inspect metrics, hover for value readouts.
+ *
+ * REWRITTEN with TSL materials: height-gradient coloring, glowing peaks,
+ * halo shells, scan-line cursor, grid floor, and atmospheric lighting.
  */
 
 // ── Data ──
@@ -17,21 +34,18 @@ import * as THREE from 'three/webgpu';
 const METRICS = ['CPU Usage', 'Memory', 'Requests/s', 'Error Rate'];
 const TIME_POINTS = 20;
 const METRIC_COLORS = ['#4488ff', '#22cc88', '#ffaa22', '#ff4466'];
-const METRIC_COLORS_THREE = METRIC_COLORS.map((c) => new THREE.Color(c));
+const METRIC_COLORS_HEX = [0x4488ff, 0x22cc88, 0xffaa22, 0xff4466];
 
 function generateMetricData(): number[][] {
   const data: number[][] = [];
-  // Use a seeded approach for stable data
   const seeds = [0.45, 0.35, 0.55, 0.2];
   for (let m = 0; m < METRICS.length; m++) {
     const series: number[] = [];
     let value = seeds[m];
     for (let t = 0; t < TIME_POINTS; t++) {
-      // Deterministic pseudo-random using sin
       const pseudo = Math.sin(m * 137.5 + t * 43.7) * 0.5 + 0.5;
       value += (pseudo - 0.48) * 0.1;
       value = Math.max(0.05, Math.min(1.0, value));
-      // Add occasional spikes
       if (Math.sin(m * 97.3 + t * 23.1) > 0.85) {
         value = Math.min(1.0, value + 0.3);
       }
@@ -86,9 +100,17 @@ function findPeaks(data: number[][]): PeakInfo[] {
   return peaks;
 }
 
+// ── TSL helper: fresnel ──
+
+const fresnelNode = Fn(() => {
+  const viewDir = cameraPosition.sub(positionWorld).normalize();
+  const nDotV = normalWorld.dot(viewDir).saturate();
+  return float(1.0).sub(nDotV).pow(2.0);
+});
+
 // ── Terrain mesh builder ──
 
-function buildTerrainGeometry(data: number[][]): { geometry: THREE.BufferGeometry; vertexColors: Float32Array } {
+function buildTerrainGeometry(data: number[][]): THREE.BufferGeometry {
   const segsX = (TIME_POINTS - 1) * SUBDIVS_PER_UNIT_X;
   const segsZ = (METRICS.length - 1) * SUBDIVS_PER_UNIT_Z;
 
@@ -97,25 +119,24 @@ function buildTerrainGeometry(data: number[][]): { geometry: THREE.BufferGeometr
 
   const posAttr = geo.getAttribute('position');
   const vertexCount = posAttr.count;
-  const colors = new Float32Array(vertexCount * 3);
+
+  // Store normalized height in a custom attribute for TSL coloring
+  const heights = new Float32Array(vertexCount);
 
   for (let i = 0; i < vertexCount; i++) {
     const x = posAttr.getX(i);
     const z = posAttr.getZ(i);
 
-    // Map x to time (0 to TIME_POINTS-1)
     const tNorm = (x + TERRAIN_WIDTH / 2) / TERRAIN_WIDTH;
     const tExact = tNorm * (TIME_POINTS - 1);
     const tIdx = Math.min(Math.floor(tExact), TIME_POINTS - 2);
     const tFrac = tExact - tIdx;
 
-    // Map z to metric (0 to METRICS.length-1)
     const mNorm = (z + TERRAIN_DEPTH / 2) / TERRAIN_DEPTH;
     const mExact = mNorm * (METRICS.length - 1);
     const mIdx = Math.min(Math.floor(mExact), METRICS.length - 2);
     const mFrac = mExact - mIdx;
 
-    // Bilinear cosine interpolation of data values
     const v00 = data[mIdx][tIdx];
     const v01 = data[mIdx][tIdx + 1];
     const v10 = data[mIdx + 1][tIdx];
@@ -127,50 +148,106 @@ function buildTerrainGeometry(data: number[][]): { geometry: THREE.BufferGeometr
 
     const y = value * MAX_HEIGHT;
     posAttr.setY(i, y);
-
-    // Color: blend between metric colors based on z position
-    const c1 = METRIC_COLORS_THREE[mIdx];
-    const c2 = METRIC_COLORS_THREE[mIdx + 1];
-    const blended = new THREE.Color().lerpColors(c1, c2, mFrac);
-
-    // Darken or brighten based on height
-    const heightFactor = 0.4 + value * 0.8;
-    blended.multiplyScalar(heightFactor);
-
-    colors[i * 3] = blended.r;
-    colors[i * 3 + 1] = blended.g;
-    colors[i * 3 + 2] = blended.b;
+    heights[i] = value;
   }
 
   posAttr.needsUpdate = true;
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.computeVertexNormals();
 
-  return { geometry: geo, vertexColors: colors };
+  return geo;
 }
 
-// ── Time cursor plane ──
+// ── Terrain TSL Material ──
+
+function makeTerrainMaterial(): THREE.MeshStandardNodeMaterial {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.side = THREE.DoubleSide;
+
+  // 5-stop height gradient based on world-space Y position
+  // Height ranges from 0 to MAX_HEIGHT (4.0)
+  const heightColor = Fn(() => {
+    const h = positionLocal.y.div(MAX_HEIGHT).saturate();
+
+    // 5 gradient stops
+    const deepBlueGreen = color(0x0a3a2a);
+    const green = color(0x22aa44);
+    const yellow = color(0xddcc22);
+    const orangeRed = color(0xff6622);
+    const peak = color(0xffeecc);
+
+    // Chain mix/smoothstep
+    const t1 = smoothstep(float(0.0), float(0.25), h);
+    const t2 = smoothstep(float(0.25), float(0.5), h);
+    const t3 = smoothstep(float(0.5), float(0.75), h);
+    const t4 = smoothstep(float(0.75), float(1.0), h);
+
+    const c = mix(deepBlueGreen, green, t1);
+    const c2 = mix(c, yellow, t2);
+    const c3 = mix(c2, orangeRed, t3);
+    const c4 = mix(c3, peak, t4);
+
+    return c4;
+  });
+
+  mat.colorNode = heightColor();
+
+  // Emissive: peaks glow subtly
+  const emissiveGlow = Fn(() => {
+    const h = positionLocal.y.div(MAX_HEIGHT).saturate();
+    const glowStrength = smoothstep(float(0.5), float(1.0), h).mul(0.8);
+    return color(0xffeecc).mul(glowStrength);
+  });
+
+  mat.emissiveNode = emissiveGlow();
+
+  mat.roughness = 0.5;
+  mat.metalness = 0.1;
+
+  return mat;
+}
+
+// ── Time cursor plane with scan-line material ──
 
 function TimeCursor() {
   const meshRef = useRef<THREE.Mesh>(null);
 
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.side = THREE.DoubleSide;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+
+    // Scan-line effect: bright horizontal bands scrolling
+    const scanLine = fract(positionLocal.y.mul(8.0).sub(time.mul(2.0)));
+    const scanBand = smoothstep(float(0.0), float(0.15), scanLine).mul(
+      smoothstep(float(1.0), float(0.85), scanLine),
+    );
+
+    // Fresnel edge glow on the plane
+    const rim = fresnelNode();
+
+    mat.colorNode = color(0x44aaff);
+    mat.emissiveNode = color(0x44aaff).mul(scanBand.mul(2.0).add(rim.mul(3.0)));
+    mat.opacityNode = float(0.15).add(scanBand.mul(0.2)).add(rim.mul(0.4));
+
+    mat.roughness = 0.0;
+    mat.metalness = 0.0;
+
+    return mat;
+  }, []);
+
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
     const t = clock.getElapsedTime();
-    const progress = (t % 10) / 10; // 10-second loop
+    const progress = (t % 10) / 10;
     const x = progress * TERRAIN_WIDTH - TERRAIN_WIDTH / 2;
     meshRef.current.position.x = x;
   });
 
   return (
-    <mesh ref={meshRef} position={[0, MAX_HEIGHT / 2 + 0.5, 0]}>
-      <planeGeometry args={[0.05, MAX_HEIGHT + 2, 1, 1]} />
-      <meshBasicMaterial
-        color="#ffffff"
-        transparent
-        opacity={0.3}
-        side={THREE.DoubleSide}
-      />
+    <mesh ref={meshRef} position={[0, MAX_HEIGHT / 2 + 0.5, 0]} material={material}>
+      <planeGeometry args={[0.08, MAX_HEIGHT + 2, 1, 1]} />
     </mesh>
   );
 }
@@ -189,6 +266,12 @@ function TimeCursorLine({ data }: { data: number[][] }) {
     }
     const geo = new THREE.BufferGeometry().setFromPoints(pts);
     return geo;
+  }, []);
+
+  const lineMat = useMemo(() => {
+    const mat = new THREE.LineBasicNodeMaterial();
+    mat.colorNode = color(0x88ccff);
+    return mat;
   }, []);
 
   useFrame(({ clock }) => {
@@ -224,23 +307,79 @@ function TimeCursorLine({ data }: { data: number[][] }) {
 
   return (
     <group ref={groupRef}>
-      <primitive object={new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: '#ffffff', linewidth: 2 }))} ref={lineRef} />
+      <primitive object={new THREE.Line(lineGeo, lineMat)} ref={lineRef} />
     </group>
   );
 }
 
-// ── Grid floor ──
+// ── Grid floor with TSL pattern ──
 
 function GridFloor() {
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+
+    // Faint grid pattern using fract
+    const gridPattern = Fn(() => {
+      const scale = float(0.5);
+      const gx = fract(positionLocal.x.mul(scale));
+      const gz = fract(positionLocal.y.mul(scale)); // Y because plane is rotated
+      const lineX = smoothstep(float(0.02), float(0.0), gx).add(smoothstep(float(0.98), float(1.0), gx));
+      const lineZ = smoothstep(float(0.02), float(0.0), gz).add(smoothstep(float(0.98), float(1.0), gz));
+      return lineX.add(lineZ).saturate();
+    });
+
+    const grid = gridPattern();
+    const baseColor = color(0x0a0a1a);
+    const lineColor = color(0x1a1a3a);
+
+    mat.colorNode = mix(baseColor, lineColor, grid);
+    mat.emissiveNode = color(0x0a0a2a).mul(grid.mul(0.5));
+    mat.roughness = 0.9;
+    mat.metalness = 0.1;
+
+    return mat;
+  }, []);
+
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} material={material}>
       <planeGeometry args={[24, 16]} />
-      <meshStandardMaterial
-        color="#111122"
-        roughness={0.9}
-        metalness={0.1}
-      />
     </mesh>
+  );
+}
+
+// ── Time tick lines (thin vertical cylinders) ──
+
+function TimeTickLines() {
+  const ticks = useMemo(() => {
+    const result: number[] = [];
+    for (let t = 0; t < TIME_POINTS; t += 4) {
+      result.push(t);
+    }
+    return result;
+  }, []);
+
+  const material = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.colorNode = color(0x222244);
+    mat.emissiveNode = color(0x111133);
+    mat.opacityNode = float(0.3);
+    mat.roughness = 0.8;
+    mat.metalness = 0.0;
+    return mat;
+  }, []);
+
+  return (
+    <>
+      {ticks.map((t) => {
+        const x = (t / (TIME_POINTS - 1)) * TERRAIN_WIDTH - TERRAIN_WIDTH / 2;
+        return (
+          <mesh key={`tick-${t}`} position={[x, 0.5, TERRAIN_DEPTH / 2 + 0.3]} material={material}>
+            <cylinderGeometry args={[0.01, 0.01, 1.0, 4]} />
+          </mesh>
+        );
+      })}
+    </>
   );
 }
 
@@ -273,7 +412,59 @@ function TimeLabels() {
   );
 }
 
-// ── Peak marker ──
+// ── Peak marker with halo and light beam ──
+
+function makePeakCoreMaterial(colorHex: number, metricIndex: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+
+  const rim = fresnelNode();
+  const pulse = oscSine(time.mul(2.0).add(float(metricIndex).mul(1.5))).mul(0.4).add(0.6);
+
+  mat.colorNode = color(colorHex);
+  mat.emissiveNode = color(colorHex).mul(pulse.mul(2.5)).add(color(0xffffff).mul(rim.mul(pulse).mul(2.0)));
+  mat.roughness = 0.15;
+  mat.metalness = 0.5;
+
+  return mat;
+}
+
+function makePeakHaloMaterial(colorHex: number, metricIndex: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.side = THREE.BackSide;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  const rim = fresnelNode();
+  const pulse = oscSine(time.mul(2.0).add(float(metricIndex).mul(1.5))).mul(0.3).add(0.7);
+
+  mat.colorNode = color(colorHex);
+  mat.emissiveNode = color(colorHex).mul(rim.mul(pulse).mul(3.5));
+  mat.opacityNode = rim.mul(pulse).mul(0.5);
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
+
+function makeBeamMaterial(colorHex: number) {
+  const mat = new THREE.MeshStandardNodeMaterial();
+  mat.transparent = true;
+  mat.depthWrite = false;
+  mat.blending = THREE.AdditiveBlending;
+
+  // Fading upward
+  const fadeUp = smoothstep(float(-0.5), float(0.5), positionLocal.y).oneMinus().mul(0.15);
+  const pulse = oscSine(time.mul(1.5)).mul(0.3).add(0.7);
+
+  mat.colorNode = color(colorHex);
+  mat.emissiveNode = color(colorHex).mul(pulse.mul(1.5));
+  mat.opacityNode = fadeUp.mul(pulse);
+  mat.roughness = 0.0;
+  mat.metalness = 0.0;
+
+  return mat;
+}
 
 function PeakMarker({
   peak,
@@ -292,23 +483,26 @@ function PeakMarker({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const metricColor = METRIC_COLORS[peak.metric];
+  const metricColorHex = METRIC_COLORS_HEX[peak.metric];
+
+  const coreMat = useMemo(() => makePeakCoreMaterial(metricColorHex, peak.metric), [metricColorHex, peak.metric]);
+  const haloMat = useMemo(() => makePeakHaloMaterial(metricColorHex, peak.metric), [metricColorHex, peak.metric]);
+  const beamMat = useMemo(() => makeBeamMaterial(metricColorHex), [metricColorHex]);
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
     const t = clock.getElapsedTime();
-    // Gentle pulse
     const pulse = Math.sin(t * 2 + peak.metric * 1.5) * 0.05 + 1.0;
     const baseScale = selected ? 1.4 : hovered ? 1.2 : 1.0;
     meshRef.current.scale.setScalar(baseScale * pulse);
-
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
-    mat.emissiveIntensity = selected ? 2.5 : hovered ? 1.8 : 1.0;
   });
 
   return (
     <group position={[peak.position.x, peak.position.y + 0.3, peak.position.z]}>
+      {/* Core octahedron */}
       <mesh
         ref={meshRef}
+        material={coreMat}
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
@@ -324,14 +518,20 @@ function PeakMarker({
         }}
       >
         <octahedronGeometry args={[0.2, 0]} />
-        <meshStandardMaterial
-          color={metricColor}
-          emissive={metricColor}
-          emissiveIntensity={1.0}
-          roughness={0.2}
-          metalness={0.5}
-        />
       </mesh>
+
+      {/* Halo shell */}
+      <mesh material={haloMat} scale={[1.5, 1.5, 1.5]}>
+        <octahedronGeometry args={[0.2, 1]} />
+      </mesh>
+
+      {/* Vertical light beam from peak upward */}
+      <mesh position={[0, 1.5, 0]} material={beamMat}>
+        <cylinderGeometry args={[0.02, 0.04, 3.0, 6]} />
+      </mesh>
+
+      {/* Point light at peak */}
+      <pointLight color={metricColor} intensity={1.5} distance={4} />
 
       {/* Metric name label */}
       <Html center distanceFactor={12}>
@@ -423,7 +623,6 @@ function CameraController({ selectedMetric }: { selectedMetric: number | null })
 
   useEffect(() => {
     if (selectedMetric !== null) {
-      // Side view of the metric's ridge
       const z = (selectedMetric / (METRICS.length - 1)) * TERRAIN_DEPTH - TERRAIN_DEPTH / 2;
       targetPos.current.set(TERRAIN_WIDTH / 2 + 3, 3, z);
       targetLook.current.set(0, MAX_HEIGHT * 0.3, z);
@@ -453,17 +652,25 @@ function TerrainHoverTarget({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
+  const material = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.opacity = 0;
+    mat.side = THREE.DoubleSide;
+    return mat;
+  }, []);
+
   return (
     <mesh
       ref={meshRef}
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, MAX_HEIGHT + 0.01, 0]}
+      material={material}
       onPointerMove={(e) => {
         if (!e.point) return;
         const x = e.point.x;
         const z = e.point.z;
 
-        // Map to data indices
         const tNorm = (x + TERRAIN_WIDTH / 2) / TERRAIN_WIDTH;
         const mNorm = (z + TERRAIN_DEPTH / 2) / TERRAIN_DEPTH;
 
@@ -499,7 +706,23 @@ function TerrainHoverTarget({
       onPointerLeave={() => onHoverInfo(null)}
     >
       <planeGeometry args={[TERRAIN_WIDTH, TERRAIN_DEPTH]} />
-      <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
+// ── Background click catcher ──
+
+function BackgroundClickTarget({ onClick }: { onClick: () => void }) {
+  const material = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.opacity = 0;
+    return mat;
+  }, []);
+
+  return (
+    <mesh position={[0, -5, 0]} rotation={[-Math.PI / 2, 0, 0]} onClick={onClick} material={material}>
+      <planeGeometry args={[60, 60]} />
     </mesh>
   );
 }
@@ -519,7 +742,8 @@ export default function MetricTerrain() {
 
   const data = useMemo(() => generateMetricData(), []);
   const peaks = useMemo(() => findPeaks(data), [data]);
-  const terrainResult = useMemo(() => buildTerrainGeometry(data), [data]);
+  const terrainGeo = useMemo(() => buildTerrainGeometry(data), [data]);
+  const terrainMat = useMemo(() => makeTerrainMaterial(), []);
 
   const handleBackgroundClick = useCallback(() => {
     setSelectedMetric(null);
@@ -528,36 +752,29 @@ export default function MetricTerrain() {
   return (
     <>
       {/* Lighting */}
-      <ambientLight intensity={0.2} />
-      <directionalLight position={[5, 10, 5]} intensity={1.0} castShadow />
-      <directionalLight position={[-3, 8, -4]} intensity={0.4} />
+      <ambientLight intensity={0.15} />
+      <directionalLight position={[5, 10, 5]} intensity={0.9} castShadow />
+      <directionalLight position={[-3, 8, -4]} intensity={0.3} />
 
       {/* Camera controller */}
       <CameraController selectedMetric={selectedMetric} />
 
       {/* Background click target */}
-      <mesh position={[0, -5, 0]} rotation={[-Math.PI / 2, 0, 0]} onClick={handleBackgroundClick}>
-        <planeGeometry args={[60, 60]} />
-        <meshBasicMaterial transparent opacity={0} />
-      </mesh>
+      <BackgroundClickTarget onClick={handleBackgroundClick} />
 
-      {/* Grid floor */}
+      {/* Grid floor with TSL pattern */}
       <GridFloor />
 
-      {/* Terrain mesh */}
-      <mesh geometry={terrainResult.geometry} onClick={handleBackgroundClick}>
-        <meshStandardMaterial
-          vertexColors
-          roughness={0.6}
-          metalness={0.2}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/* Time tick lines */}
+      <TimeTickLines />
+
+      {/* Terrain mesh with TSL height-gradient material */}
+      <mesh geometry={terrainGeo} material={terrainMat} onClick={handleBackgroundClick} />
 
       {/* Terrain hover target (invisible plane above terrain) */}
       <TerrainHoverTarget data={data} onHoverInfo={setHoverInfo} />
 
-      {/* Time cursor */}
+      {/* Time cursor with scan-line effect */}
       <TimeCursor />
       <TimeCursorLine data={data} />
 
@@ -585,7 +802,7 @@ export default function MetricTerrain() {
         );
       })}
 
-      {/* Peak markers */}
+      {/* Peak markers with halos and beams */}
       {peaks.map((peak, i) => (
         <PeakMarker
           key={`peak-${i}`}
