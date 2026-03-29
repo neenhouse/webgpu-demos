@@ -32,6 +32,7 @@ A gallery of 146 WebGPU experiments built with Three.js WebGPURenderer. Each dem
 | 16 | Organic/nature demos (Batch 10) | COMPLETE | | 10 demos: tree-growth, coral-reef, weather-system, crystal-formation, mycelium-network, butterfly-swarm, flower-bloom, erosion-canyon, frost-patterns, kelp-forest |
 | 17 | Abstract math art demos (Batch 11) | COMPLETE | | 10 demos: strange-attractor, hyperbolic-plane, lissajous-web, klein-bottle, mandelbulb-3d, fibonacci-spiral, moebius-flow, penrose-tiles, hopf-fibration, julia-morph |
 | 18 | Game-ready technique demos (Batch 12) | COMPLETE | | 10 demos: shadow-cascade, ssao-showcase, pbr-material-lab, gpu-culling, lod-transition, deferred-lights, volumetric-fog-rays, screen-reflections, motion-blur-demo, toon-outline |
+| 19 | Gallery search & filter | COMPLETE | | Text search + 13-tag category filtering with sticky filter bar, result counts, empty state |
 
 ## Active Requirements
 
@@ -181,10 +182,16 @@ Detect WebGPU support and gracefully fall back to WebGL.
 
 **Demos**: shadow-cascade, ssao-showcase, pbr-material-lab, gpu-culling, lod-transition, deferred-lights, volumetric-fog-rays, screen-reflections, motion-blur-demo, toon-outline
 
+### 19. Gallery Search & Filter (2026-03-28)
+
+- [x] **REQ-48**: Text search filtering on demo title and description `COMPLETE`
+- [x] **REQ-49**: Tag-based category filtering with 13 tags matching batch themes `COMPLETE`
+- [x] **REQ-50**: Sticky filter bar with search input, tag pills, result count, and clear button `COMPLETE`
+- [x] **REQ-51**: Combined AND/OR filter logic (search AND any-active-tag) `COMPLETE`
+
 ## Intent Backlog
 
 - **Thumbnails/screenshots**: Auto-capture preview images for gallery cards
-- **Search/filter**: Tag-based filtering in gallery (by technique: TSL, compute, interactive, etc.)
 - **Per-demo parameter controls**: Sliders for speed, color, density in shader demos
 - **Performance dashboard**: FPS/GPU timing overlay comparing WebGPU vs WebGL
 
