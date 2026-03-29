@@ -29,6 +29,11 @@ These combinations produced the best visual results in Batch 3:
 7. **hash(positionWorld) for per-instance variation** — not custom attributes
 8. **float(uniform) wrapper** — for TypeScript compat with TSL math
 
+## Atmosphere Rules
+- **Every demo MUST have a background** — add a BackSide sphere with dark gradient color (`#020408` for tech, `#040208` for warm, `#020804` for nature). Exception: full-viewport shader demos (fractal, plasma, CRT, gameboy, ASCII).
+- **Every lit demo needs 2+ light types** — at minimum ambientLight + directionalLight. A single ambientLight produces flat, boring illumination.
+- **All materials should use emissive** — even subtle `emissiveIntensity: 0.3` adds glow against dark backgrounds. Demos with no emissive look dead.
+
 ## Color Palette Rules
 - Use 4-5 stop gradients (not 2-3)
 - Warm-to-cool transitions (orange→cyan, red→blue) create natural energy feel

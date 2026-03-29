@@ -85,6 +85,11 @@ export default function OceanSurface() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       {/* Warm directional sun light */}
       <directionalLight
         position={[5, 8, 3]}

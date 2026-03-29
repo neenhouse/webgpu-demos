@@ -204,6 +204,7 @@ export default function SmokeTendrils() {
     <>
       <color attach="background" args={['#0a0a0a']} />
       <ambientLight intensity={0.05} />
+      <directionalLight position={[5, 8, 5]} intensity={0.4} />
 
       <instancedMesh
         ref={meshRef}

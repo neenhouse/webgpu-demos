@@ -253,6 +253,11 @@ export default function CityGenerator() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.15} color="#334466" />
       <directionalLight position={[8, 14, 6]} intensity={0.6} color="#aabbdd" />
       <pointLight position={[0, 8, 0]} intensity={2.0} color="#ffcc88" distance={40} />

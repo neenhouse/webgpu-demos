@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
+  float,
   time,
   positionLocal,
   normalLocal,
@@ -76,6 +77,28 @@ export default function ProceduralTerrain() {
 
     mat.colorNode = colorMapping();
 
+    // Subtle emissive: faint glow on high peaks (snow line) and deep valleys (water)
+    const emissiveMapping = Fn(() => {
+      const x = positionLocal.x;
+      const z = positionLocal.z;
+      const t = time.mul(0.3);
+
+      const h1 = x.mul(0.8).add(t).sin().mul(z.mul(0.6).add(t.mul(0.7)).cos()).mul(0.6);
+      const h2 = x.mul(1.5).add(z.mul(1.2)).add(t.mul(0.5)).sin().mul(0.3);
+      const h3 = x.mul(3.0).sub(t.mul(0.8)).cos().mul(z.mul(2.5).add(t).sin()).mul(0.1);
+      const h4 = x.mul(0.3).add(z.mul(0.4)).sub(t.mul(0.2)).sin().mul(0.8);
+      const height = h1.add(h2).add(h3).add(h4);
+      const normalized = height.add(1.8).div(3.6).saturate();
+
+      // Peak glow: faint blue-white on high terrain
+      const peakGlow = color(0x8899ff).mul(normalized.sub(0.8).div(0.2).saturate().mul(0.4));
+      // Valley glow: faint blue tint on low terrain (water)
+      const valleyGlow = color(0x0022aa).mul(float(1.0).sub(normalized).mul(0.3).saturate());
+      return peakGlow.add(valleyGlow);
+    });
+
+    mat.emissiveNode = emissiveMapping();
+
     mat.roughness = 0.8;
     mat.metalness = 0.1;
 
@@ -90,6 +113,11 @@ export default function ProceduralTerrain() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020804" />
+      </mesh>
       <ambientLight intensity={0.3} />
       <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow />
       <directionalLight position={[-3, 8, -4]} intensity={0.4} />

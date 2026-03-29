@@ -221,6 +221,11 @@ export default function MotionBlurDemo() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.2} />
       <directionalLight position={[5, 8, 5]} intensity={0.6} />
       <directionalLight position={[-4, 5, -4]} intensity={0.3} color="#8899ff" />

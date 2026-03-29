@@ -241,6 +241,11 @@ export default function MultiMaterial() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.15} />
       <directionalLight position={[4, 5, 3]} intensity={0.5} />
       {/* Colored accent lights — each reinforces one face's palette */}

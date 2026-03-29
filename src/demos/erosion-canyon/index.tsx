@@ -274,6 +274,8 @@ export default function ErosionCanyon() {
         <planeGeometry args={[0.8, 6, 4, 4]} />
         <meshStandardMaterial
           color="#2255cc"
+          emissive="#1133aa"
+          emissiveIntensity={0.8}
           transparent
           opacity={0.5}
           roughness={0.05}

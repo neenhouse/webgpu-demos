@@ -88,6 +88,11 @@ export default function MorphingSphere() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#040208" />
+      </mesh>
       <ambientLight intensity={0.3} />
       <directionalLight position={[5, 5, 5]} intensity={1.2} />
       <directionalLight position={[-3, -2, -4]} intensity={0.3} color={0xff4400} />

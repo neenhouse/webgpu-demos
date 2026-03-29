@@ -133,6 +133,11 @@ const rings: RingConfig[] = [
 export default function NeonRings() {
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.05} />
       <pointLight position={[0, 0, 0]} intensity={0.3} color={0x444466} />
       {rings.map((config, i) => (

@@ -101,6 +101,7 @@ export default function DrumMachineCubes() {
       return mix(c2, magenta, smoothstep(float(0.66), float(1.0), h));
     });
     mat.colorNode = colorFn();
+    mat.emissiveNode = colorFn().mul(float(1.5));
 
     mat.roughness = 0.2;
     mat.metalness = 0.8;

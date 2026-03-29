@@ -192,6 +192,11 @@ export default function SsaoShowcase() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       {/* Ambient + fill lights — muted to show AO contribution */}
       <ambientLight intensity={0.3} color="#aabbcc" />
       <directionalLight position={[3, 6, 2]} intensity={0.6} color="#ffffff" castShadow shadow-bias={-0.001} />

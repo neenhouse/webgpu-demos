@@ -89,6 +89,11 @@ export default function NoiseDissolve() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.25} />
       <directionalLight position={[5, 8, 5]} intensity={1.0} />
       <directionalLight position={[-4, -2, -6]} intensity={0.3} color={0x6688aa} />

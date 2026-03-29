@@ -105,8 +105,14 @@ export default function WireframeLandscape() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       {/* Minimal ambient — wireframe is self-lit via emissive */}
       <ambientLight intensity={0.05} />
+      <directionalLight position={[5, 8, 5]} intensity={0.4} />
       <mesh
         ref={meshRef}
         material={material}

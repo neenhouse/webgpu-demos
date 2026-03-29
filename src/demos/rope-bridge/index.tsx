@@ -96,7 +96,6 @@ export default function RopeBridge() {
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const up = useMemo(() => new THREE.Vector3(0, 1, 0), []);
-  const right = useMemo(() => new THREE.Vector3(1, 0, 0), []);
   const tmpDir = useMemo(() => new THREE.Vector3(), []);
   const tmpMid = useMemo(() => new THREE.Vector3(), []);
   const tmpQ = useMemo(() => new THREE.Quaternion(), []);
@@ -230,7 +229,7 @@ export default function RopeBridge() {
         tmpDir.subVectors(right.pos, left.pos);
         const len = tmpDir.length();
         tmpDir.normalize();
-        tmpQ.setFromUnitVectors(right, tmpDir);
+        tmpQ.setFromUnitVectors(up.set(0, 1, 0), tmpDir);
 
         dummy.position.copy(tmpMid);
         dummy.quaternion.copy(tmpQ);

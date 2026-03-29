@@ -75,6 +75,11 @@ export default function ShadowCascade() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       {/* Ambient fill */}
       <ambientLight intensity={0.12} color="#334455" />
 

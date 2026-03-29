@@ -320,6 +320,11 @@ export default function ParticleMorph() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.1} />
       <directionalLight position={[3, 4, 5]} intensity={0.3} />
       <pointLight position={[0, 0, 0]} intensity={3.0} color="#00ccff" distance={10} />

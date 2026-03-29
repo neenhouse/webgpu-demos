@@ -110,7 +110,14 @@ export default function SpiralGalaxy() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.15} />
+      <directionalLight position={[5, 8, 5]} intensity={0.4} />
+      <pointLight position={[0, 0, 0]} intensity={6} color="#ffcc44" distance={8} />
 
       <group ref={groupRef}>
         <instancedMesh

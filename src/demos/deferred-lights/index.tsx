@@ -192,6 +192,11 @@ export default function DeferredLights() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.05} color="#112233" />
 
       {/* 100 actual point lights */}

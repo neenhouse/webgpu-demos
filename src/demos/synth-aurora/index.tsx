@@ -43,6 +43,8 @@ const SYNTH_PHASES = [0, 0.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9];
 const synthGroundMat = (() => {
   const m = new THREE.MeshStandardNodeMaterial();
   m.color.set(0x010108);
+  m.emissive = new THREE.Color(0x002211);
+  m.emissiveIntensity = 1.5;
   m.roughness = 0.05;
   m.metalness = 0.95;
   return m;

@@ -237,6 +237,11 @@ export default function LodTransition() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
       <ambientLight intensity={0.15} />
       <directionalLight position={[8, 10, 5]} intensity={0.6} />
       <directionalLight position={[-5, 8, -8]} intensity={0.3} color="#8899ff" />
