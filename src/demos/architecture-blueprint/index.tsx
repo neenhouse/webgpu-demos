@@ -87,6 +87,11 @@ const FLOWS: DataFlow[] = [
 
 const serviceMap = new Map(SERVICES.map((s) => [s.id, s]));
 
+// ── Shared Geometry Instances (module scope — created once) ──
+
+const SHARED_CIRCLE_GEO = new THREE.CircleGeometry(0.7, 24);
+const SHARED_RING_GEO = new THREE.CircleGeometry(1.0, 32);
+
 // ── Helpers ──
 
 function getConnectedFlows(serviceId: string): DataFlow[] {
@@ -270,8 +275,8 @@ function ServiceNode({
   const wireframeOpacityRef = useRef(0.2);
 
   // Dim material overlay for non-connected services when something is selected
+  // Created once per hex color — isDimmed toggles which material is used, not recreates it
   const dimMat = useMemo(() => {
-    if (!isDimmed) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.color = new THREE.Color(service.hex).multiplyScalar(0.1);
@@ -281,7 +286,7 @@ function ServiceNode({
     mat.roughness = 0.8;
     mat.metalness = 0.2;
     return mat;
-  }, [service.hex, isDimmed]);
+  }, [service.hex]);
 
   const haloMat = useMemo(() => makeServiceHaloMaterial(service.hex), [service.hex]);
 
@@ -521,14 +526,10 @@ function ServiceNode({
       )}
 
       {/* Platform base circle with pulsing opacity (#15) */}
-      <mesh ref={platformRef} position={[0, -0.45, 0]} rotation={[-Math.PI / 2, 0, 0]} material={platformMat}>
-        <circleGeometry args={[0.7, 24]} />
-      </mesh>
+      <mesh ref={platformRef} position={[0, -0.45, 0]} rotation={[-Math.PI / 2, 0, 0]} material={platformMat} geometry={SHARED_CIRCLE_GEO} />
 
       {/* Zone of influence ring — larger, subtle (#16) */}
-      <mesh ref={platformRingRef} position={[0, -0.46, 0]} rotation={[-Math.PI / 2, 0, 0]} material={platformRingMat}>
-        <circleGeometry args={[1.0, 32]} />
-      </mesh>
+      <mesh ref={platformRingRef} position={[0, -0.46, 0]} rotation={[-Math.PI / 2, 0, 0]} material={platformRingMat} geometry={SHARED_RING_GEO} />
 
       {/* External service pulsing emissive ring (#17) */}
       {service.type === 'external' && externalRingMat && (
@@ -544,48 +545,49 @@ function ServiceNode({
         </mesh>
       )}
 
-      {/* Service label */}
-      <Html position={[0, 0.9, 0]} center>
-        <div
-          style={{
-            color: 'white',
-            fontSize: '11px',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            background: isDimmed ? 'rgba(0,0,0,0.4)' : 'rgba(5,10,25,0.9)',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            borderLeft: `3px solid ${typeColor}`,
-            fontWeight: isSelected ? 'bold' : 'normal',
-            opacity: isDimmed ? 0.25 : 1,
-            transform: 'translateY(-100%)',
-            boxShadow: isSelected ? `0 0 12px ${typeColor}40` : 'none',
-            transition: 'opacity 0.3s, box-shadow 0.3s',
-            // #91: Scanline effect on hover — thin repeating horizontal lines
-            backgroundImage: isHovered
-              ? `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px), linear-gradient(rgba(5,10,25,0.9), rgba(5,10,25,0.9))`
-              : undefined,
-          }}
-        >
-          <div style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <span
-              style={{
-                display: 'inline-block', width: '6px', height: '6px',
-                borderRadius: '50%', background: getHealthColor(service.health),
-                flexShrink: 0,
-                boxShadow: `0 0 4px ${getHealthColor(service.health)}`,
-                // #58: Degraded services blink — toggle opacity between 0.3 and 1.0 at 2Hz
-                opacity: service.health === 'degraded' ? (blinkVisible ? 1.0 : 0.3) : 1.0,
-              }}
-            />
-            {service.label}
+      {/* Service label — skip for dimmed services to reduce Html overhead */}
+      {!isDimmed && (
+        <Html position={[0, 0.9, 0]} center>
+          <div
+            style={{
+              color: 'white',
+              fontSize: '11px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              background: 'rgba(5,10,25,0.9)',
+              padding: '4px 10px',
+              borderRadius: '4px',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              borderLeft: `3px solid ${typeColor}`,
+              fontWeight: isSelected ? 'bold' : 'normal',
+              transform: 'translateY(-100%)',
+              boxShadow: isSelected ? `0 0 12px ${typeColor}40` : 'none',
+              transition: 'opacity 0.3s, box-shadow 0.3s',
+              // #91: Scanline effect on hover — thin repeating horizontal lines
+              backgroundImage: isHovered
+                ? `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px), linear-gradient(rgba(5,10,25,0.9), rgba(5,10,25,0.9))`
+                : undefined,
+            }}
+          >
+            <div style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span
+                style={{
+                  display: 'inline-block', width: '6px', height: '6px',
+                  borderRadius: '50%', background: getHealthColor(service.health),
+                  flexShrink: 0,
+                  boxShadow: `0 0 4px ${getHealthColor(service.health)}`,
+                  // #58: Degraded services blink — toggle opacity between 0.3 and 1.0 at 2Hz
+                  opacity: service.health === 'degraded' ? (blinkVisible ? 1.0 : 0.3) : 1.0,
+                }}
+              />
+              {service.label}
+            </div>
+            <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '1px' }}>{service.tech}</div>
           </div>
-          <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '1px' }}>{service.tech}</div>
-        </div>
-      </Html>
+        </Html>
+      )}
 
-      {/* Warning tooltip for degraded AI Service when hovered */}
+      {/* Warning tooltip for degraded AI Service when hovered — only mount when hovered */}
       {isHovered && service.id === 'ai' && (
         <Html position={[0, 1.8, 0]} center>
           <div style={{
@@ -606,12 +608,14 @@ function ServiceNode({
         </Html>
       )}
 
-      {/* Point light at service */}
-      <pointLight
-        color={service.color}
-        intensity={isSelected ? 2.5 : isHovered ? 1.5 : isHighlighted ? 0.8 : isDimmed ? 0.05 : 0.4 + traceFlash * 3.0 + dataFlash * 2.0}
-        distance={isSelected ? 7 : 5}
-      />
+      {/* Point light at service — skip when dimmed to reduce light count */}
+      {!isDimmed && (
+        <pointLight
+          color={service.color}
+          intensity={isSelected ? 2.5 : isHovered ? 1.5 : isHighlighted ? 0.8 : 0.4 + traceFlash * 3.0 + dataFlash * 2.0}
+          distance={isSelected ? 7 : 5}
+        />
+      )}
     </group>
   );
 }
@@ -1111,64 +1115,43 @@ function DetailPanel({
 
 // ── Blueprint Grid Floor ──
 
+// Pre-build a single LineSegments buffer for the grid (major + minor lines merged)
+function buildGridLineGeometry(): THREE.BufferGeometry {
+  const span = 15;
+  const minorStep = 2;
+  const positions: number[] = [];
+
+  for (let i = -span; i <= span; i += minorStep) {
+    // Horizontal line along X axis at Z=i
+    positions.push(-span, -2.49, i,  span, -2.49, i);
+    // Vertical line along Z axis at X=i
+    positions.push(i, -2.49, -span,  i, -2.49,  span);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  return geo;
+}
+
+const GRID_LINE_GEO = buildGridLineGeometry();
+
 function BlueprintGridFloor() {
   const gridMat = useMemo(() => makeBlueprintGridMaterial(), []);
 
-  // Generate grid lines — minor lines every 2 units from -15 to +15, major every 5
-  const gridLines = useMemo(() => {
-    const lines: { pos: [number, number, number]; rot: [number, number, number]; size: [number, number]; isMajor: boolean; distFromCenter: number }[] = [];
-    const span = 15;
-    const minorStep = 2;
-
-    for (let i = -span; i <= span; i += minorStep) {
-      const isMajor = i % 5 === 0;
-      // Horizontal lines (along X) — distFromCenter based on Z offset
-      lines.push({ pos: [0, -2.49, i], rot: [0, 0, 0], size: [span * 2, isMajor ? 0.03 : 0.015], isMajor, distFromCenter: Math.abs(i) });
-      // Vertical lines (along Z) — distFromCenter based on X offset
-      lines.push({ pos: [i, -2.49, 0], rot: [0, Math.PI / 2, 0], size: [span * 2, isMajor ? 0.03 : 0.015], isMajor, distFromCenter: Math.abs(i) });
-    }
-    return lines;
+  const lineMat = useMemo(() => {
+    const mat = new THREE.LineBasicMaterial();
+    mat.transparent = true;
+    mat.opacity = 0.14;
+    mat.color = new THREE.Color(0x4488cc);
+    return mat;
   }, []);
-
-  // #75: Per-line material refs for wave animation
-  const lineMatRefs = useRef<(THREE.MeshBasicNodeMaterial | null)[]>([]);
-
-  const lineMats = useMemo(() =>
-    gridLines.map((_line, i) => {
-      const mat = new THREE.MeshBasicNodeMaterial();
-      mat.transparent = true;
-      mat.opacity = 0.12;
-      mat.color = new THREE.Color(0x4488cc);
-      lineMatRefs.current[i] = mat;
-      return mat;
-    }),
-  [gridLines]);
-
-  // #75: Animate grid line opacity — wave pattern based on distance from center
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    for (let i = 0; i < gridLines.length; i++) {
-      const mat = lineMatRefs.current[i];
-      if (!mat) continue;
-      const line = gridLines[i];
-      const baseOpacity = line.isMajor ? 0.25 : 0.12;
-      // Wave: lines further from center are dimmer; wave travels outward
-      const distFactor = Math.max(0, 1 - line.distFromCenter / 15);
-      const wave = Math.sin(t * 0.5 - line.distFromCenter * 0.3) * 0.5 + 0.5;
-      mat.opacity = baseOpacity * (0.4 + distFactor * 0.4 + wave * 0.2);
-    }
-  });
 
   return (
     <>
       <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
         <planeGeometry args={[60, 60]} />
       </mesh>
-      {gridLines.map((line, i) => (
-        <mesh key={i} position={line.pos} rotation={[-Math.PI / 2, line.rot[1], 0]} material={lineMats[i]}>
-          <planeGeometry args={line.size} />
-        </mesh>
-      ))}
+      <lineSegments geometry={GRID_LINE_GEO} material={lineMat} />
     </>
   );
 }
@@ -1568,15 +1551,11 @@ function TierLabels() {
   // Separator lines between tiers
   const separatorY = [5.25, 2.75, 0.25]; // between client-edge, edge-services, services-data
 
-  const sepMatRef = useRef<THREE.MeshBasicNodeMaterial | null>(null);
-  const sepMeshRefs = useRef<(THREE.Mesh | null)[]>([]);
-
   const sepMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
     mat.transparent = true;
     mat.opacity = 0.08;
     mat.color = new THREE.Color(0x4488cc);
-    sepMatRef.current = mat;
     return mat;
   }, []);
 
@@ -1584,16 +1563,9 @@ function TierLabels() {
   const { camera } = useThree();
   const [parallaxX, setParallaxX] = useState(0);
 
-  useFrame((state) => {
-    // #56: Pulse separator line opacity between 0.04 and 0.12 using sin(time)
-    if (sepMatRef.current) {
-      const t = state.clock.elapsedTime;
-      sepMatRef.current.opacity = 0.08 + Math.sin(t * 0.7) * 0.04;
-    }
-
+  useFrame(() => {
     // #57: Compute parallax offset from camera drift (opposite direction, subtle)
     const camX = camera.position.x;
-    // Parallax: labels move slightly opposite to camera X drift
     setParallaxX(-(camX - 1) * 0.08);
   });
 
@@ -1612,8 +1584,8 @@ function TierLabels() {
           </div>
         </Html>
       ))}
-      {separatorY.map((y, i) => (
-        <mesh key={y} ref={(el) => { sepMeshRefs.current[i] = el; }} position={[1, y, 0]} rotation={[0, 0, 0]}>
+      {separatorY.map((y) => (
+        <mesh key={y} position={[1, y, 0]} rotation={[0, 0, 0]}>
           <planeGeometry args={[22, 0.01]} />
           <primitive object={sepMat} attach="material" />
         </mesh>
@@ -1799,38 +1771,6 @@ function AmbientParticleClusters() {
     <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL]} material={mat} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
     </instancedMesh>
-  );
-}
-
-// ── Nebula Background Spheres ──
-
-// #77: 3 large translucent spheres with BackSide + AdditiveBlending for nebula effect
-function NebulaSpheres() {
-  const configs = useMemo(() => [
-    { pos: [-8, 8, -30], radius: 14, color: 0x112255 },
-    { pos: [10, 2, -35], radius: 16, color: 0x0a1a44 },
-    { pos: [1, -3, -28], radius: 12, color: 0x0d1133 },
-  ], []);
-
-  const mats = useMemo(() => configs.map((c) => {
-    const m = new THREE.MeshBasicNodeMaterial();
-    m.transparent = true;
-    m.depthWrite = false;
-    m.side = THREE.BackSide;
-    m.blending = THREE.AdditiveBlending;
-    m.color = new THREE.Color(c.color);
-    m.opacity = 0.02;
-    return m;
-  }), [configs]);
-
-  return (
-    <>
-      {configs.map((c, i) => (
-        <mesh key={i} position={c.pos as [number, number, number]} material={mats[i]}>
-          <sphereGeometry args={[c.radius, 12, 12]} />
-        </mesh>
-      ))}
-    </>
   );
 }
 
@@ -2335,9 +2275,6 @@ export default function ArchitectureBlueprint() {
       <mesh material={bgMat}>
         <sphereGeometry args={[50, 16, 16]} />
       </mesh>
-
-      {/* #77: Nebula background glow spheres */}
-      <NebulaSpheres />
 
       {/* Background stars */}
       <BackgroundStars />
