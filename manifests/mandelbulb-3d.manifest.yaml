@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: mandelbulb-3d
+  title: "Mandelbulb 3D"
+  description: "3D Mandelbrot set via SDF raymarching with orbit trap coloring and animated rotation"
+  tags:
+    - math
+  color: "#2244ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: mandelbulb-3d

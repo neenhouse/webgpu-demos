@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: crystal-grid
+  title: "Crystal Grid"
+  description: "Faceted icosahedrons with rainbow wave animation and metallic fresnel rim"
+  tags:
+    - tsl
+  color: "#8844ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: crystal-grid

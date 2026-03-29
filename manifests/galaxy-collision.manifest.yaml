@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: galaxy-collision
+  title: "Galaxy Collision"
+  description: "Two spiral galaxies collide with GPU compute gravity driving 10000+ stars"
+  tags:
+    - shader-art
+    - compute
+  color: "#2244aa"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: galaxy-collision

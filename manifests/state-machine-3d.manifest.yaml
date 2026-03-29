@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: state-machine-3d
+  title: "State Machine 3D"
+  description: "Interactive state machine diagram showing a Forge project lifecycle with clickable transitions and animated particles"
+  tags:
+    - data-viz
+  color: "#ffaa22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: state-machine-3d

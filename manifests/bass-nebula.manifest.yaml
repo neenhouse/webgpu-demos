@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: bass-nebula
+  title: "Bass Nebula"
+  description: "Volumetric shell cloud pulsing radius and opacity to simulated bass frequency"
+  tags:
+    - audio
+  color: "#2200aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: bass-nebula

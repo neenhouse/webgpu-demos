@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: crystal-cavern
+  title: "Crystal Cavern"
+  description: "Underground cave with glowing crystal clusters, hash-noise cave walls, fresnel refraction, bloom halos, and colored point lights"
+  tags:
+    - shader-art
+  color: "#9944cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: crystal-cavern

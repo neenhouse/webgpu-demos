@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: pbr-material-lab
+  title: "PBR Material Lab"
+  description: "7x7 grid of spheres exploring roughness and metalness parameter space with colored lighting"
+  tags:
+    - game-ready
+  color: "#aabbcc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: pbr-material-lab

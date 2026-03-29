@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: beat-pulse-grid
+  title: "Beat Pulse Grid"
+  description: "400 pillars pulsing to simulated beat frequencies with bass-reactive height and color gradient"
+  tags:
+    - audio
+  color: "#ff2266"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: beat-pulse-grid

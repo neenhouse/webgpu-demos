@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: deep-sea
+  title: "Deep Sea"
+  description: "Bioluminescent jellyfish with chain tentacles, luminous plankton, volumetric light shafts, and depth fog"
+  tags:
+    - shader-art
+  color: "#00aacc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: deep-sea

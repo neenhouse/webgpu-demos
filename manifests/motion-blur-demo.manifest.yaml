@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: motion-blur-demo
+  title: "Motion Blur Demo"
+  description: "Per-object motion blur via ghost copies showing speed and direction of moving objects"
+  tags:
+    - game-ready
+  color: "#ff6644"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: motion-blur-demo

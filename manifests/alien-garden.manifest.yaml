@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: alien-garden
+  title: "Alien Garden"
+  description: "Bioluminescent alien garden with glowing mushrooms, exotic vegetation, and SDF organic shapes"
+  tags:
+    - scene
+  color: "#6622cc"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: alien-garden.scene.yaml

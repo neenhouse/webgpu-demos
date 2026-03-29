@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: fibonacci-spiral
+  title: "Fibonacci Spiral"
+  description: "Phyllotaxis sunflower pattern with golden-angle arrangement and animated angle deviation"
+  tags:
+    - math
+  color: "#ffcc00"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: fibonacci-spiral

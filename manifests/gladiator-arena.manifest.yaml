@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: gladiator-arena
+  title: "Gladiator Arena"
+  description: "Roman colosseum floor with arena walls, two gladiators with weapons, rubble, and harsh midday sun"
+  tags:
+    - scene
+  color: "#bb8844"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: gladiator-arena.scene.yaml

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cave-system
+  title: "Cave System"
+  description: "Underground cave with noise-carved walls, stalactites, bioluminescent pools, and crystal clusters"
+  tags:
+    - procedural
+  color: "#664422"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: cave-system

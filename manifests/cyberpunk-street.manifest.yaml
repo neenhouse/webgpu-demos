@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cyberpunk-street
+  title: "Cyberpunk Street"
+  description: "Neon-lit urban night scene with tower buildings, parked vehicles, vendor stall, and dense purple fog"
+  tags:
+    - scene
+  color: "#ee11aa"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: cyberpunk-street.scene.yaml

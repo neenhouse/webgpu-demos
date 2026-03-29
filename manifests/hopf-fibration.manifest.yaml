@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: hopf-fibration
+  title: "Hopf Fibration"
+  description: "4D-to-3D stereographic projection of Hopf fibration circles with rainbow fiber coloring"
+  tags:
+    - math
+  color: "#4488ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: hopf-fibration

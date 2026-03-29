@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: quantum-field
+  title: "Quantum Field"
+  description: "8000 compute particles with Brownian motion and periodic wave function collapse flash"
+  tags:
+    - shader-art
+    - compute
+  color: "#4477ff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: quantum-field

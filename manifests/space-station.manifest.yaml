@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: space-station
+  title: "Space Station"
+  description: "Sci-fi corridor with holographic displays, alien specimen, pipe conduits, and cool fluorescent lighting"
+  tags:
+    - scene
+  color: "#3366dd"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: space-station.scene.yaml

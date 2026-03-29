@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: flame-orb
+  title: "Flame Orb"
+  description: "Sphere with aggressive fire-like flickering and warm emission"
+  tags:
+    - tsl
+  color: "#ff3300"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: flame-orb

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: mushroom-forest
+  title: "Mushroom Forest"
+  description: "Giant bioluminescent mushrooms with pulsing caps, spore particles, and ground fog"
+  tags:
+    - procedural
+  color: "#22cc88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: mushroom-forest

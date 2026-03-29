@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: compute-particles
+  title: "Compute Particles"
+  description: "20,000 GPU-driven particles with compute shader physics, gravity, respawn, and velocity-based color"
+  tags:
+    - shader-art
+    - compute
+  color: "#ff5577"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: compute-particles

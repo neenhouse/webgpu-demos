@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: screen-reflections
+  title: "Screen Reflections"
+  description: "Glossy floor reflections using Y-flip technique with blur fade and colorful objects"
+  tags:
+    - game-ready
+  color: "#4466aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: screen-reflections

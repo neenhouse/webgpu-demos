@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: desert-dunes
+  title: "Desert Dunes"
+  description: "Wind-sculpted sand dune field with ripple displacement, heat haze, and drifting sand particles"
+  tags:
+    - procedural
+  color: "#cc9944"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: desert-dunes

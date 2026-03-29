@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ascii-render
+  title: "ASCII Render"
+  description: "3D scene rendered as ASCII characters via luminance-to-glyph mapping with terminal aesthetic"
+  tags:
+    - retro
+  color: "#00ff00"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ascii-render

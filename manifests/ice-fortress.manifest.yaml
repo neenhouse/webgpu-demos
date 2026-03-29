@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ice-fortress
+  title: "Ice Fortress"
+  description: "Crystalline ice structures with fresnel refraction glow, sub-surface lighting, and frost particles"
+  tags:
+    - procedural
+  color: "#88ddff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ice-fortress

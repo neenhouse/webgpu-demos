@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: gravitational-orbits
+  title: "Gravitational Orbits"
+  description: "5000 particles orbiting 4 moving attractors with GPU compute gravitational forces and speed-based color"
+  tags:
+    - emergent
+  color: "#ffaa22"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: gravitational-orbits

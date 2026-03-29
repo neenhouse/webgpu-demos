@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: reaction-diffusion
+  title: "Reaction Diffusion"
+  description: "Gray-Scott reaction-diffusion model producing organic Turing patterns on a 256x256 GPU compute grid"
+  tags:
+    - emergent
+  color: "#22bbaa"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: reaction-diffusion

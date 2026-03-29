@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: shadow-cascade
+  title: "Shadow Cascade"
+  description: "Cascaded shadow maps with 3 directional lights, soft shadows, and color-coded cascade visualization"
+  tags:
+    - game-ready
+  color: "#334455"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: shadow-cascade

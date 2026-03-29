@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cellular-life
+  title: "Cellular Life"
+  description: "256x256 Game of Life cellular automaton with GPU compute double-buffered grid and age-based coloring"
+  tags:
+    - emergent
+  color: "#44ff22"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: cellular-life

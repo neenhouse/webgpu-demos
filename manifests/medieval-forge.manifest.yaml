@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: medieval-forge
+  title: "Medieval Forge"
+  description: "Blacksmith workshop with forge fire, weapon rack, anvil workbench, and scattered debris"
+  tags:
+    - scene
+  color: "#cc6622"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: medieval-forge.scene.yaml

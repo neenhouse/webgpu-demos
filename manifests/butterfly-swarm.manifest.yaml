@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: butterfly-swarm
+  title: "Butterfly Swarm"
+  description: "Morpho butterflies with iridescent fresnel wings, flocking behavior, and garden backdrop"
+  tags:
+    - organic
+  color: "#2288ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: butterfly-swarm

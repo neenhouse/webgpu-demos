@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: data-flow-pipes
+  title: "Data Flow Pipes"
+  description: "Data transformation pipeline with filtering, merging, splitting, and 300 particles flowing through a 3D pipe network"
+  tags:
+    - data-viz
+  color: "#cc44ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: data-flow-pipes

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: digital-storm
+  title: "Digital Storm"
+  description: "Full-viewport storm with compute wind-driven rain, fractal lightning branches, SDF cloud layer, and ambient flash bloom"
+  tags:
+    - shader-art
+  color: "#5533bb"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: digital-storm

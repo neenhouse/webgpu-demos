@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ocean-world
+  title: "Ocean World"
+  description: "Vast animated ocean with multi-layer wave displacement, foam lines, and underwater caustic patterns"
+  tags:
+    - procedural
+  color: "#0066aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ocean-world

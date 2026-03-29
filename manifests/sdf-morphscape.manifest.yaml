@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: sdf-morphscape
+  title: "SDF Morphscape"
+  description: "Raymarched SDF landscape of morphing geometric primitives blending with smooth unions"
+  tags:
+    - emergent
+  color: "#9944cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: sdf-morphscape

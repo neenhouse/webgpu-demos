@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: junkyard
+  title: "Abandoned Junkyard"
+  description: "Post-apocalyptic junkyard with rusted vehicles, debris piles, CSG barriers, and scattered rocks"
+  tags:
+    - scene
+  color: "#8B6914"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: junkyard.scene.yaml

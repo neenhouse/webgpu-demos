@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: demoscene-plasma
+  title: "Demoscene Plasma"
+  description: "Classic demo plasma effect with layered sine wave interference and 8-stop cycling color palette"
+  tags:
+    - retro
+  color: "#ff8800"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: demoscene-plasma

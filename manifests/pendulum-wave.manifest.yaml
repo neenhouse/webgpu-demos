@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: pendulum-wave
+  title: "Pendulum Wave"
+  description: "20 pendulums with slightly different periods creating mesmerizing wave patterns as they drift in and out of phase"
+  tags:
+    - emergent
+    - physics
+  color: "#ff8800"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: pendulum-wave

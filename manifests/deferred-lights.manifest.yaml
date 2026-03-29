@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: deferred-lights
+  title: "Deferred Lights"
+  description: "100 dynamic point lights illuminating a room scene with orbiting light visualization spheres"
+  tags:
+    - game-ready
+  color: "#ffcc44"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: deferred-lights

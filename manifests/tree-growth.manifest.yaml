@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: tree-growth
+  title: "Tree Growth"
+  description: "L-system tree growing in real time with branching cylinders, leaf particles, and wind sway"
+  tags:
+    - organic
+  color: "#228822"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: tree-growth

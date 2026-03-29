@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: crt-monitor
+  title: "CRT Monitor"
+  description: "Full CRT simulation with scanlines, phosphor glow, barrel distortion, vignette, and color bleed"
+  tags:
+    - retro
+  color: "#33ff33"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: crt-monitor

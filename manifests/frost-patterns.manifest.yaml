@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: frost-patterns
+  title: "Frost Patterns"
+  description: "DLA ice crystal formation on glass with branching structures and warm background glow"
+  tags:
+    - organic
+  color: "#88ccff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: frost-patterns

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: equalizer-city
+  title: "Equalizer City"
+  description: "Cityscape of 200 instanced buildings with heights animated by simulated frequency band data"
+  tags:
+    - audio
+  color: "#ff0066"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: equalizer-city

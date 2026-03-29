@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: city-generator
+  title: "City Generator"
+  description: "Procedural city blocks with roads, varied building heights, neon window lights, and traffic signals"
+  tags:
+    - procedural
+  color: "#ff6600"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: city-generator

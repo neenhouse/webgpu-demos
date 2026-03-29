@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: lissajous-web
+  title: "Lissajous Web"
+  description: "3D Lissajous curves forming web structures with animated phase morphing"
+  tags:
+    - math
+  color: "#00ddff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: lissajous-web

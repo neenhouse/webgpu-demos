@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: voronoi-shatter
+  title: "Voronoi Shatter"
+  description: "Animated Voronoi cell pattern on a sphere with neon crack lines, per-cell coloring, and pulsing emissive edges"
+  tags:
+    - emergent
+  color: "#ff3366"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: voronoi-shatter

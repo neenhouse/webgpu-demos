@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: vector-arcade
+  title: "Vector Arcade"
+  description: "Wireframe vector graphics with phosphor glow trails in Asteroids/Tempest aesthetic"
+  tags:
+    - retro
+  color: "#00ffff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: vector-arcade

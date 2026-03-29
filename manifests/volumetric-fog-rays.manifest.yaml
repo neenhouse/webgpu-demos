@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: volumetric-fog-rays
+  title: "Volumetric Fog Rays"
+  description: "God rays streaming through window openings with dust motes and atmospheric fog"
+  tags:
+    - game-ready
+  color: "#aabb88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: volumetric-fog-rays

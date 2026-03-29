@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: neural-net
+  title: "Neural Network"
+  description: "5-layer neural network with 48 nodes, 420 glowing edges, and traveling data pulses"
+  tags:
+    - shader-art
+  color: "#44ccbb"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: neural-net

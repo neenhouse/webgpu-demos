@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: volumetric-cloud
+  title: "Volumetric Cloud"
+  description: "Layered shell volumetric nebula with TSL Fn() noise-driven density, animated swirling, and warm-to-cool emissive glow"
+  tags:
+    - shader-art
+  color: "#aa44cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: volumetric-cloud

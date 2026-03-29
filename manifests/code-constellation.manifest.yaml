@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: code-constellation
+  title: "Code Constellation"
+  description: "Codebase files as a star constellation with directory clusters, import connections, type-based coloring, and zoom-to-cluster interactivity"
+  tags:
+    - data-viz
+  color: "#3178c6"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: code-constellation

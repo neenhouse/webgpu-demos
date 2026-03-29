@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: lava-planet
+  title: "Lava Planet"
+  description: "Molten planet with hash noise lava cracks, atmospheric halo shells, and 250 orbiting debris rocks"
+  tags:
+    - shader-art
+  color: "#ff3300"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: lava-planet

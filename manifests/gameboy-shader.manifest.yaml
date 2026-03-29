@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: gameboy-shader
+  title: "Gameboy Shader"
+  description: "DMG-style 4-color rendering with ordered dithering, LCD pixel grid, and screen border frame"
+  tags:
+    - retro
+  color: "#88bb22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: gameboy-shader

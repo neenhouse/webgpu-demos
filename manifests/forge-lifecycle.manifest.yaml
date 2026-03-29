@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: forge-lifecycle
+  title: "Forge Lifecycle"
+  description: "Interactive 3D visualization of the Forge developer workflow with clickable phases, orbiting skills, and particle flow connections"
+  tags:
+    - data-viz
+  color: "#22cc88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: forge-lifecycle

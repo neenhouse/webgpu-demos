@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: drum-machine-cubes
+  title: "Drum Machine Cubes"
+  description: "4x4 instrument grid with cubes triggering scale and emissive pulses on rhythmic beat patterns"
+  tags:
+    - audio
+  color: "#ff8800"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: drum-machine-cubes

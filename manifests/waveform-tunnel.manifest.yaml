@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: waveform-tunnel
+  title: "Waveform Tunnel"
+  description: "Fly-through tunnel with walls deforming to scrolling waveform sine patterns"
+  tags:
+    - audio
+  color: "#00ffaa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: waveform-tunnel

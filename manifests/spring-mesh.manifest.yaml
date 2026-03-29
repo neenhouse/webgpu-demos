@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: spring-mesh
+  title: "Spring Mesh"
+  description: "Spring-connected grid that ripples and deforms from periodic impact points with height-based coloring"
+  tags:
+    - physics
+  color: "#44ffaa"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: spring-mesh

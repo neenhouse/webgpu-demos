@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: elastic-waves
+  title: "Elastic Waves"
+  description: "2D wave equation on 128x128 grid with compute-driven propagation and periodic point-source disturbances"
+  tags:
+    - physics
+  color: "#00aaff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: elastic-waves

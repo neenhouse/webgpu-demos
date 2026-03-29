@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: neural-pipeline-flow
+  title: "Neural Pipeline Flow"
+  description: "Interactive AI inference pipeline with transformer stages, flowing data particles, and click-to-zoom detail views"
+  tags:
+    - data-viz
+  color: "#44aaff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: neural-pipeline-flow

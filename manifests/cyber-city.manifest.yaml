@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cyber-city
+  title: "Cyber City"
+  description: "Procedural cyberpunk skyline with 350 instanced neon buildings, reflective ground plane, and atmospheric fog"
+  tags:
+    - shader-art
+  color: "#ff1177"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: cyber-city

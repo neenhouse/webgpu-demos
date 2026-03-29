@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: smoke-tendrils
+  title: "Smoke Tendrils"
+  description: "6000 wispy smoke particles rising and curling with GPU compute curl-noise turbulence"
+  tags:
+    - emergent
+  color: "#aaaaaa"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: smoke-tendrils

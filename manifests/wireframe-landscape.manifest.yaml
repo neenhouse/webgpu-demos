@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: wireframe-landscape
+  title: "Wireframe Landscape"
+  description: "Retro Tron-style scrolling wireframe terrain with neon glow"
+  tags:
+    - tsl
+  color: "#00ffff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: wireframe-landscape

@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: aurora-cascade
+  title: "Aurora Cascade"
+  description: "1200 compute-driven aurora strips with 5-stop color gradient, ground reflections, and bloom sky glow"
+  tags:
+    - shader-art
+    - compute
+  color: "#00ff66"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: aurora-cascade

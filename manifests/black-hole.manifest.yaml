@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: black-hole
+  title: "Black Hole"
+  description: "Event horizon with gravitational lensing, swirling accretion disk, photon ring, and warped starfield"
+  tags:
+    - shader-art
+  color: "#221133"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: black-hole

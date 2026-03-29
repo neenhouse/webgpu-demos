@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: particle-field
+  title: "Particle Field"
+  description: "2000 instanced spheres with position-driven color gradients and fresnel glow"
+  tags:
+    - tsl
+  color: "#ff44aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: particle-field

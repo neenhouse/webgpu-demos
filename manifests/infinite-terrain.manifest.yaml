@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: infinite-terrain
+  title: "Infinite Terrain"
+  description: "Endless scrolling terrain with multi-octave noise displacement, 4 biomes, and LOD detail rings"
+  tags:
+    - procedural
+  color: "#44aa22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: infinite-terrain

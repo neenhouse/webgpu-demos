@@ -1,0 +1,16 @@
+version: "2.0"
+
+meta:
+  name: fluid-sim
+  title: "Fluid Simulation"
+  description: "256x256 GPU compute fluid with semi-Lagrangian advection, vorticity confinement, and multi-color dye injection"
+  tags:
+    - shader-art
+    - compute
+    - physics
+  color: "#11ccaa"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: fluid-sim

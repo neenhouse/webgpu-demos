@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: boids-murmuration
+  title: "Boids Murmuration"
+  description: "10,000 bird-like particles flocking via GPU compute with separation, alignment, and cohesion rules"
+  tags:
+    - emergent
+  color: "#6644ff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: boids-murmuration

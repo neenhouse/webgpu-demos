@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: glitch-portrait
+  title: "Glitch Portrait"
+  description: "Abstract face mesh with block displacement, RGB split, scan distortion, and periodic glitch bursts"
+  tags:
+    - retro
+  color: "#ff22aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: glitch-portrait

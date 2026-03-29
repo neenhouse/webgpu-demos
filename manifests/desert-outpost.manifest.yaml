@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: desert-outpost
+  title: "Desert Outpost"
+  description: "Remote desert camp with outpost building, rock formations, old truck, and supply crates"
+  tags:
+    - scene
+  color: "#cc8833"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: desert-outpost.scene.yaml

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: sprite-sparks
+  title: "Sprite Sparks"
+  description: "Billboard point-sprite particle fountain with TSL-driven size, color gradients, and pulsing opacity"
+  tags:
+    - shader-art
+  color: "#ff8844"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: sprite-sparks

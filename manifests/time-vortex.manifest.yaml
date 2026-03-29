@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: time-vortex
+  title: "Time Vortex"
+  description: "Spiraling temporal distortion with SDF vortex funnel, compute-driven particles, clock elements, gravitational UV warping, and bloom halos"
+  tags:
+    - shader-art
+  color: "#ddaa33"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: time-vortex

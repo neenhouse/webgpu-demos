@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: toon-outline
+  title: "Toon Outline"
+  description: "Cel shading with N-tone lighting quantization and inverted hull outline technique"
+  tags:
+    - game-ready
+  color: "#ffaa22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: toon-outline

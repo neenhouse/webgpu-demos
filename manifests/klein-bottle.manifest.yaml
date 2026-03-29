@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: klein-bottle
+  title: "Klein Bottle"
+  description: "Non-orientable Klein bottle surface with parametric mesh, inside/outside coloring, and wireframe overlay"
+  tags:
+    - math
+  color: "#ff8822"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: klein-bottle

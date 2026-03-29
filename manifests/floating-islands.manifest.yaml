@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: floating-islands
+  title: "Floating Islands"
+  description: "Sky islands with waterfalls, vegetation tufts, cloud wisps, and atmospheric depth"
+  tags:
+    - procedural
+  color: "#44ccff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: floating-islands

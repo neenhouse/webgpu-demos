@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cloth-wind
+  title: "Cloth in Wind"
+  description: "GPU compute cloth simulation with 64x64 particle grid, spring constraints, wind forces, and pinned top edge"
+  tags:
+    - physics
+  color: "#44aaff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: cloth-wind

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: rope-bridge
+  title: "Rope Bridge"
+  description: "Verlet integration rope bridge with gravity, wind sway, fixed endpoints, and plank segments"
+  tags:
+    - physics
+  color: "#88cc22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: rope-bridge

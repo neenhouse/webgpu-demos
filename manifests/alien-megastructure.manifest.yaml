@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: alien-megastructure
+  title: "Alien Megastructure"
+  description: "Non-euclidean architecture with nested rotating frames, energy conduits, and portal distortion"
+  tags:
+    - procedural
+  color: "#aa22ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: alien-megastructure

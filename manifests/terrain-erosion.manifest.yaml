@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: terrain-erosion
+  title: "Terrain Erosion"
+  description: "128x128 GPU compute hydraulic erosion with rain, water flow, sediment transport, and height-based terrain coloring"
+  tags:
+    - emergent
+  color: "#886633"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: terrain-erosion

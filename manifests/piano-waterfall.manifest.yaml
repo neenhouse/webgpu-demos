@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: piano-waterfall
+  title: "Piano Waterfall"
+  description: "88-key MIDI waterfall with cascading note blocks and velocity-based glow"
+  tags:
+    - audio
+  color: "#0088ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: piano-waterfall

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: dependency-graph-3d
+  title: "Dependency Graph 3D"
+  description: "Force-directed 3D graph of package dependencies with click-to-select nodes, edge highlighting, and smooth camera transitions"
+  tags:
+    - data-viz
+  color: "#61dafb"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: dependency-graph-3d

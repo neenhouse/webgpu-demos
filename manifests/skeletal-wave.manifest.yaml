@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: skeletal-wave
+  title: "Skeletal Wave"
+  description: "Programmatic skinned mesh tentacles with CPU-driven bone animation and TSL height-based color gradients"
+  tags:
+    - shader-art
+  color: "#bb44ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: skeletal-wave

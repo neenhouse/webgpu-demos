@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: spiral-galaxy
+  title: "Spiral Galaxy"
+  description: "3000 instanced stars in three spiral arms with warm-to-cool gradient"
+  tags:
+    - tsl
+  color: "#ffcc44"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: spiral-galaxy

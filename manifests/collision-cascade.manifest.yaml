@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: collision-cascade
+  title: "Collision Cascade"
+  description: "Chain reaction of 200 rigid spheres with elastic collision response and kinetic energy coloring"
+  tags:
+    - physics
+  color: "#ffaa00"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: collision-cascade

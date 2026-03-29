@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: vhs-glitch
+  title: "VHS Glitch"
+  description: "VHS tape degradation with tracking errors, chromatic aberration, noise bands, and color shift"
+  tags:
+    - retro
+  color: "#ff3333"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: vhs-glitch

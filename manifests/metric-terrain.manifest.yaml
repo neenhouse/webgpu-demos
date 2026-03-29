@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: metric-terrain
+  title: "Metric Terrain"
+  description: "Data metrics visualized as 3D terrain with height-mapped values, sweeping time cursor, and interactive peak markers"
+  tags:
+    - data-viz
+  color: "#ffaa22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: metric-terrain

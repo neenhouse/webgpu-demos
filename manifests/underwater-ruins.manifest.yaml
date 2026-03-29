@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: underwater-ruins
+  title: "Underwater Ruins"
+  description: "Submerged ancient temple with broken columns, coral growths, kelp, and bioluminescent lighting"
+  tags:
+    - scene
+  color: "#1177aa"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: underwater-ruins.scene.yaml

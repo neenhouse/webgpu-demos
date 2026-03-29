@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cosmic-jellyfish
+  title: "Cosmic Jellyfish"
+  description: "Bioluminescent space jellyfish with bone-animated tentacles, volumetric dome, bloom halos, and compute-driven particle trails"
+  tags:
+    - shader-art
+  color: "#00eebb"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: cosmic-jellyfish

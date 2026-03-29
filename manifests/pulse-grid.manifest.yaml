@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: pulse-grid
+  title: "Pulse Grid"
+  description: "400 boxes pulsing in expanding circular ripple waves"
+  tags:
+    - tsl
+  color: "#1144aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: pulse-grid

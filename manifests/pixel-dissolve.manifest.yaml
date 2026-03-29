@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: pixel-dissolve
+  title: "Pixel Dissolve"
+  description: "3D scene progressively pixelating with color quantization and ordered dithering at the transition edge"
+  tags:
+    - retro
+  color: "#00ff88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: pixel-dissolve

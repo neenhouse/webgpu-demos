@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: procedural-planet
+  title: "Procedural Planet"
+  description: "Rotating planet with hash-noise biome coloring, transparent cloud layer, atmospheric fresnel glow, and instanced starfield"
+  tags:
+    - shader-art
+  color: "#2288aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: procedural-planet

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: neon-rings
+  title: "Neon Rings"
+  description: "Concentric torus rings with pulsing neon emissive glow"
+  tags:
+    - tsl
+  color: "#ff00ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: neon-rings

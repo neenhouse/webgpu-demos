@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: uv-kaleidoscope
+  title: "UV Kaleidoscope"
+  description: "Procedural mandala with polar UV folding, spherize warping, and animated concentric patterns"
+  tags:
+    - shader-art
+  color: "#dd2288"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: uv-kaleidoscope

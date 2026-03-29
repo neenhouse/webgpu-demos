@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: frequency-mountains
+  title: "Frequency Mountains"
+  description: "3D terrain with vertex displacement driven by simulated 64-band frequency spectrum"
+  tags:
+    - audio
+  color: "#4400ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: frequency-mountains

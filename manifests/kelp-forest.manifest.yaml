@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: kelp-forest
+  title: "Kelp Forest"
+  description: "Underwater kelp strands swaying in current with light shafts, fish, and rising bubbles"
+  tags:
+    - organic
+  color: "#22aa44"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: kelp-forest

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: timeline-helix
+  title: "Timeline Helix"
+  description: "Project timeline rendered as a DNA-like double helix with clickable event spheres, traveling particles, and type-colored rungs"
+  tags:
+    - data-viz
+  color: "#ff4488"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: timeline-helix

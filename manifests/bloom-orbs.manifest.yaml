@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: bloom-orbs
+  title: "Bloom Orbs"
+  description: "Floating orbs with TSL-driven glow halos, fresnel rims, additive blending, and pulsing emissive bloom"
+  tags:
+    - shader-art
+  color: "#ccff00"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: bloom-orbs

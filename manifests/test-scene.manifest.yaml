@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: test-scene
+  title: "Test Scene (Pipeline)"
+  description: "Integration test: terrain, rocks, and CSG archway rendered from scene YAML"
+  tags:
+    - scene
+  color: "#66aa44"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: test-scene.scene.yaml

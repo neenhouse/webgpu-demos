@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: moebius-flow
+  title: "Moebius Flow"
+  description: "Particles flowing along Möbius strip surface showing topology with color-shift on traversal"
+  tags:
+    - math
+  color: "#44ff88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: moebius-flow

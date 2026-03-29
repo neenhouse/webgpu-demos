@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: synthwave-grid
+  title: "Synthwave Grid"
+  description: "80s retrowave infinite perspective grid with neon sun, mountain silhouette, and chrome aesthetic"
+  tags:
+    - retro
+  color: "#ff00ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: synthwave-grid

@@ -33,6 +33,7 @@ A gallery of 146 WebGPU experiments built with Three.js WebGPURenderer. Each dem
 | 17 | Abstract math art demos (Batch 11) | COMPLETE | | 10 demos: strange-attractor, hyperbolic-plane, lissajous-web, klein-bottle, mandelbulb-3d, fibonacci-spiral, moebius-flow, penrose-tiles, hopf-fibration, julia-morph |
 | 18 | Game-ready technique demos (Batch 12) | COMPLETE | | 10 demos: shadow-cascade, ssao-showcase, pbr-material-lab, gpu-culling, lod-transition, deferred-lights, volumetric-fog-rays, screen-reflections, motion-blur-demo, toon-outline |
 | 19 | Gallery search & filter | COMPLETE | | Text search + 13-tag category filtering with sticky filter bar, result counts, empty state |
+| 20 | Unified Scene Manifest | COMPLETE | | manifest.yaml for all 146 demos, Zod schema, build-time registry generation |
 
 ## Active Requirements
 
@@ -188,6 +189,13 @@ Detect WebGPU support and gracefully fall back to WebGL.
 - [x] **REQ-49**: Tag-based category filtering with 13 tags matching batch themes `COMPLETE`
 - [x] **REQ-50**: Sticky filter bar with search input, tag pills, result count, and clear button `COMPLETE`
 - [x] **REQ-51**: Combined AND/OR filter logic (search AND any-active-tag) `COMPLETE`
+
+### 20. Unified Scene Manifest (2026-03-28)
+
+- [x] **REQ-52**: Zod-validated manifest schema (v2.0) with meta, renderer, camera, environment, techniques, quality fields `COMPLETE`
+- [x] **REQ-53**: 146 manifest.yaml files generated from registry data `COMPLETE`
+- [x] **REQ-54**: Build-time registry generation from manifests via Vite plugin `COMPLETE`
+- [x] **REQ-55**: Manifest validation tests — schema, file integrity, uniqueness `COMPLETE`
 
 ## Intent Backlog
 

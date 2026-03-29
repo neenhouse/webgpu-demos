@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: penrose-tiles
+  title: "Penrose Tiles"
+  description: "Aperiodic Penrose tiling extruded into 3D with thick/thin rhombus coloring"
+  tags:
+    - math
+  color: "#ff44cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: penrose-tiles

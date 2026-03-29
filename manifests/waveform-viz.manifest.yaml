@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: waveform-viz
+  title: "Waveform Visualizer"
+  description: "Concentric rings of instanced spheres deform to simulated audio frequencies with intensity-driven color shifts"
+  tags:
+    - shader-art
+  color: "#0055ee"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: waveform-viz

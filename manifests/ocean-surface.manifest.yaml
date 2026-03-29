@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ocean-surface
+  title: "Ocean Surface"
+  description: "Stylized ocean with layered wave displacement and glossy surface"
+  tags:
+    - tsl
+  color: "#0066cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ocean-surface

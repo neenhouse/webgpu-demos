@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: fractal-zoom
+  title: "Fractal Zoom"
+  description: "Mandelbrot set with infinite zoom, smooth coloring, and cycling vivid gradients rendered in TSL"
+  tags:
+    - shader-art
+  color: "#ff6622"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: fractal-zoom

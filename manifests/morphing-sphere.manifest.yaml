@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: morphing-sphere
+  title: "Morphing Sphere"
+  description: "Organic alien blob with layered sine-wave vertex displacement"
+  tags:
+    - tsl
+  color: "#ff6600"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: morphing-sphere

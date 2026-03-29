@@ -33,3 +33,6 @@ dist-ssr
 
 # Test artifacts
 test-results/
+
+# Auto-generated registry from manifests
+src/lib/registry-generated.ts

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: pendulum-chaos
+  title: "Pendulum Chaos"
+  description: "Triple pendulum with chaotic diverging trajectories, RK4 integration, and trail rendering"
+  tags:
+    - physics
+  color: "#ff2244"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: pendulum-chaos

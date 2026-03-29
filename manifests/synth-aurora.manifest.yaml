@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: synth-aurora
+  title: "Synth Aurora"
+  description: "Aurora ribbon curtains with color and sway driven by simulated synthesizer tones"
+  tags:
+    - audio
+  color: "#8800ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: synth-aurora

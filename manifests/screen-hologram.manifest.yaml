@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: screen-hologram
+  title: "Screen Hologram"
+  description: "Holographic projection with screen-space scanlines, glitch bands, and fresnel rim glow"
+  tags:
+    - shader-art
+  color: "#22ddcc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: screen-hologram

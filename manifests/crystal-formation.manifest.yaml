@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: crystal-formation
+  title: "Crystal Formation"
+  description: "Crystals growing from seed points with animated extension, branching, and refraction glow"
+  tags:
+    - organic
+  color: "#aa44ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: crystal-formation

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ssao-showcase
+  title: "SSAO Showcase"
+  description: "Screen-space ambient occlusion on a dense scene demonstrating contact shadows in corners and crevices"
+  tags:
+    - game-ready
+  color: "#556677"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ssao-showcase

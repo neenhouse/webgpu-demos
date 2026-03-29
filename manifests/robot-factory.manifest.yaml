@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: robot-factory
+  title: "Robot Factory"
+  description: "Automated manufacturing floor with robot workers, workbenches, pipes, and industrial lighting"
+  tags:
+    - scene
+  color: "#4488cc"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: robot-factory.scene.yaml

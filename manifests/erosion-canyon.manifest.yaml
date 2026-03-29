@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: erosion-canyon
+  title: "Erosion Canyon"
+  description: "Hydraulic erosion carving a canyon with layered rock strata, river flow, and rim vegetation"
+  tags:
+    - organic
+  color: "#aa6633"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: erosion-canyon

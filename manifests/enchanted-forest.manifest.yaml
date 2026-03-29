@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: enchanted-forest
+  title: "Enchanted Forest"
+  description: "Magical woodland with giant glowing mushrooms, dense trees, mossy boulders, and ancient stone arch"
+  tags:
+    - scene
+  color: "#22bb44"
+  requiresWebGPU: false
+
+renderer:
+  type: scene
+  scene: enchanted-forest.scene.yaml

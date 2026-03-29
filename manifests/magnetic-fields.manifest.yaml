@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: magnetic-fields
+  title: "Magnetic Fields"
+  description: "3000 particles tracing magnetic field lines between dipole pairs with field-strength coloring"
+  tags:
+    - physics
+  color: "#8844ff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: magnetic-fields

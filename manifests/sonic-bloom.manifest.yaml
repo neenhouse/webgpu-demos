@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: sonic-bloom
+  title: "Sonic Bloom"
+  description: "Procedural flowers that bloom and pulse in response to simulated harmonic overtone series"
+  tags:
+    - audio
+  color: "#ff44ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: sonic-bloom

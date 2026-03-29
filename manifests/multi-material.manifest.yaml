@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: multi-material
+  title: "Multi-Material"
+  description: "Cube assembled from 6 planes, each with a unique TSL material: fire, ice, electric, gold, nature, and plasma"
+  tags:
+    - shader-art
+  color: "#33cc99"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: multi-material

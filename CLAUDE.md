@@ -15,7 +15,7 @@ Batch experiments showcasing Three.js WebGPURenderer — procedural scenes, comp
 - `pnpm dev` — Start dev server
 - `pnpm build` — Production build
 - `pnpm preview` — Preview production build
-- `pnpm test` — Run test suite (336 tests via Vitest)
+- `pnpm test` — Run test suite (367 tests via Vitest)
 
 ## Concept
 
@@ -86,6 +86,9 @@ Archived plans from earlier phases live in `docs/archive/` for reference.
 |------|-------|
 | Demo registry | `src/lib/registry.ts` |
 | Scene YAML files | `public/scenes/*.scene.yaml` |
+| Manifest schema | `src/pipeline/spec/manifest-schema.ts` |
+| Demo manifests | `manifests/*.manifest.yaml` |
+| Registry generator | `scripts/build-registry.mjs` |
 | Pipeline spec (portable) | `docs/specs/scene-pipeline-spec-v1.md` |
 | Model pipeline design | `docs/specs/model-pipeline-design.md` |
 | Batch generation design | `docs/specs/batch-generation-design.md` |

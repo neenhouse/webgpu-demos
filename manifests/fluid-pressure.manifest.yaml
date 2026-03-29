@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: fluid-pressure
+  title: "Fluid Pressure"
+  description: "SPH-inspired fluid particles with pressure forces, viscosity, and container boundaries"
+  tags:
+    - physics
+  color: "#2288ff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: fluid-pressure

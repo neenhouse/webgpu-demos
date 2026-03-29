@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ragdoll-fall
+  title: "Ragdoll Fall"
+  description: "Articulated stick figure with joint constraints tumbling through horizontal bar obstacles"
+  tags:
+    - physics
+  color: "#ff4488"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ragdoll-fall

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: noise-dissolve
+  title: "Noise Dissolve"
+  description: "Dodecahedron dissolving and reforming with hash noise, burning edges, and fresnel rim"
+  tags:
+    - shader-art
+  color: "#ee8833"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: noise-dissolve

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: interference-waves
+  title: "Interference Waves"
+  description: "Multiple wave sources creating constructive/destructive interference patterns with rainbow color mapping"
+  tags:
+    - emergent
+  color: "#00ddff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: interference-waves

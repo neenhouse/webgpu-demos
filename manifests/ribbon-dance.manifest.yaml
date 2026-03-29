@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ribbon-dance
+  title: "Ribbon Dance"
+  description: "Colorful ribbons twisting and spiraling through space"
+  tags:
+    - tsl
+  color: "#ff2244"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ribbon-dance

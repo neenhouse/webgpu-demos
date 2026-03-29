@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: gpu-culling
+  title: "GPU Culling"
+  description: "10000 instanced objects with compute frustum culling showing visible vs culled counts"
+  tags:
+    - game-ready
+  color: "#44cc44"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: gpu-culling

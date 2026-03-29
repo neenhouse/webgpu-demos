@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: soft-body-bounce
+  title: "Soft Body Bounce"
+  description: "Deformable pressure-based soft body sphere bouncing off a floor with stress-based coloring"
+  tags:
+    - physics
+  color: "#ff6644"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: soft-body-bounce

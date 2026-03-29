@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: tsl-torus
+  title: "TSL Torus Knot"
+  description: "Animated torus knot with TSL fresnel glow and color oscillation"
+  tags:
+    - tsl
+  color: "#0088ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: tsl-torus

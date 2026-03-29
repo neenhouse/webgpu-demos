@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: architecture-blueprint
+  title: "Architecture Blueprint"
+  description: "System architecture diagram with 3D floating service platforms, animated data flow particles, and interactive zoom"
+  tags:
+    - data-viz
+  color: "#4488ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: architecture-blueprint

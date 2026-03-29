@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: neon-noir
+  title: "Neon Noir"
+  description: "Rain-soaked neon street with wet reflections, volumetric light cones, and film noir palette"
+  tags:
+    - retro
+  color: "#ff0044"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: neon-noir

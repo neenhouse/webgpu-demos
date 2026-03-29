@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: phoenix-rising
+  title: "Phoenix Rising"
+  description: "Flaming bird with bone-animated wings, dissolve fire effect, 1500 trailing particles, and falling ash"
+  tags:
+    - shader-art
+  color: "#ff4400"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: phoenix-rising

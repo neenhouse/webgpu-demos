@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: decision-forest
+  title: "Decision Forest"
+  description: "Forge drive decision tree as a 3D branching structure with click-to-highlight paths and flowing edge particles"
+  tags:
+    - data-viz
+  color: "#ffaa22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: decision-forest

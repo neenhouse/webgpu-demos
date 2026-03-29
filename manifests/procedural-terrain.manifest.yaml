@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: procedural-terrain
+  title: "Procedural Terrain"
+  description: "Rolling hills with layered sine-wave displacement and height-based coloring"
+  tags:
+    - tsl
+  color: "#1a9926"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: procedural-terrain

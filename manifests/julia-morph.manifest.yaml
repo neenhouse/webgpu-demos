@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: julia-morph
+  title: "Julia Morph"
+  description: "Animated Julia set with morphing c-parameter creating continuously evolving fractal shapes"
+  tags:
+    - math
+  color: "#ff2266"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: julia-morph

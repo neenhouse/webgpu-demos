@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: strange-attractor
+  title: "Strange Attractor"
+  description: "Lorenz and Rössler attractors with 5000 instanced trail particles and velocity-based color gradients"
+  tags:
+    - math
+  color: "#ff4400"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: strange-attractor

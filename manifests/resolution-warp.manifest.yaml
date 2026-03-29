@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: resolution-warp
+  title: "Resolution Warp"
+  description: "CRT pixelation sphere using TSL screenSize for pixel-scale grids, phosphor sub-pixels, scanlines, and moiré patterns"
+  tags:
+    - shader-art
+  color: "#44bbdd"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: resolution-warp

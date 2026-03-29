@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: aurora-waves
+  title: "Aurora Waves"
+  description: "Translucent ribbons flowing through green, cyan, purple, and pink"
+  tags:
+    - tsl
+  color: "#00ff88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: aurora-waves

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: hyperbolic-plane
+  title: "Hyperbolic Plane"
+  description: "Poincaré disk tessellation with hyperbolic reflections and distance-based coloring"
+  tags:
+    - math
+  color: "#8822ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: hyperbolic-plane

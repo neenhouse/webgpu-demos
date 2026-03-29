@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: vinyl-grooves
+  title: "Vinyl Grooves"
+  description: "Spinning vinyl record with concentric groove displacement and tonearm animation"
+  tags:
+    - audio
+  color: "#cc8800"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: vinyl-grooves

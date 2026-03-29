@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: cyber-tunnel
+  title: "Cyber Tunnel"
+  description: "Infinite SDF hexagonal tunnel fly-through with neon rings, speed lines, and color cycling"
+  tags:
+    - shader-art
+  color: "#ff22cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: cyber-tunnel

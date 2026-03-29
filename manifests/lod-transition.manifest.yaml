@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: lod-transition
+  title: "LOD Transition"
+  description: "3 LOD levels of torus knots with smooth cross-fade transitions and color-coded detail visualization"
+  tags:
+    - game-ready
+  color: "#ff8844"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: lod-transition

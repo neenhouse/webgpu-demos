@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: weather-system
+  title: "Weather System"
+  description: "Cycling weather states with volumetric clouds, compute-driven rain, lightning, and dynamic lighting"
+  tags:
+    - organic
+  color: "#4488cc"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: weather-system

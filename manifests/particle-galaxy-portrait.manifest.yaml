@@ -1,0 +1,15 @@
+version: "2.0"
+
+meta:
+  name: particle-galaxy-portrait
+  title: "Particle Galaxy Portrait"
+  description: "10000 compute particles forming a skull shape with proximity-based coloring and orbital shimmer"
+  tags:
+    - shader-art
+    - compute
+  color: "#3355ff"
+  requiresWebGPU: true
+
+renderer:
+  type: component
+  module: particle-galaxy-portrait

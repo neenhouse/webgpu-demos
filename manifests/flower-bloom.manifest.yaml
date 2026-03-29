@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: flower-bloom
+  title: "Flower Bloom"
+  description: "Time-lapse flower opening with petal unfurling animation, stem growth, and floating pollen"
+  tags:
+    - organic
+  color: "#ff66aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: flower-bloom

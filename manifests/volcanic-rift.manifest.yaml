@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: volcanic-rift
+  title: "Volcanic Rift"
+  description: "Lava river through cracked terrain with smoke particles, ember sparks, and heat distortion"
+  tags:
+    - procedural
+  color: "#ff3300"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: volcanic-rift

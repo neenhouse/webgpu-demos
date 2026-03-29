@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: plasma-globe
+  title: "Plasma Globe"
+  description: "Electric purple-blue sphere with swirling plasma discharge patterns"
+  tags:
+    - tsl
+  color: "#6600ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: plasma-globe
