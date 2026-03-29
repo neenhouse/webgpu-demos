@@ -170,6 +170,7 @@ export default function Viewer({ demoName }: { demoName: string }) {
         <>
           <Suspense fallback={<LoadingSpinner />}>
             <Canvas
+              key={demo.name}
               className="viewer-canvas"
               camera={{ position: [0, 0, 4], fov: 70 }}
               gl={glCreator}
