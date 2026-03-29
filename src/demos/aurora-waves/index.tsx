@@ -1,4 +1,5 @@
 import { useRef, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
@@ -30,7 +31,7 @@ function AuroraRibbon({
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
 
@@ -149,6 +150,16 @@ function Stars({ count }: { count: number }) {
 }
 
 export default function AuroraWaves() {
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Gentle slow drift: subtle Y oscillation and slight yaw for a floating aurora effect
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.position.y = Math.sin(t * 0.12) * 0.08;
+    groupRef.current.rotation.y = Math.sin(t * 0.07) * 0.03;
+  });
+
   const ribbons = useMemo(
     () => [
       {
@@ -190,10 +201,12 @@ export default function AuroraWaves() {
   return (
     <>
       <ambientLight intensity={0.05} />
-      {ribbons.map((props, i) => (
-        <AuroraRibbon key={i} {...props} />
-      ))}
-      <Stars count={200} />
+      <group ref={groupRef}>
+        {ribbons.map((props, i) => (
+          <AuroraRibbon key={i} {...props} />
+        ))}
+        <Stars count={200} />
+      </group>
     </>
   );
 }

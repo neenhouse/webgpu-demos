@@ -6,13 +6,17 @@ import {
   color,
   time,
   positionLocal,
+  positionWorld,
   normalLocal,
+  normalWorld,
+  cameraPosition,
   Fn,
   float,
   mix,
   smoothstep,
   hash,
   vec3,
+  sin,
 } from 'three/tsl';
 
 /**
@@ -24,6 +28,10 @@ import {
  * 3. 6-stop biome gradient (deep water, shallow water, beach, grass, rock, snow)
  * 4. Distance fog via smoothstep on positionLocal.z
  * 5. Vertex normal recalculation for smooth lighting
+ * 6. BackSide bloom halo shells on the sky dome for atmospheric glow
+ * 7. Fresnel rim glow on terrain highlighting ridges
+ * 8. Instanced background cloud particles (40 white puffs)
+ * 9. 3 colored point lights (sun-warm, sky-cool, below-water)
  */
 
 function makeTerrainMaterial() {
@@ -93,32 +101,85 @@ function makeTerrainMaterial() {
 
   mat.colorNode = colorFn();
 
-  // Distance fog: fade to hazy sky color far away
-  const fogFn = Fn(() => {
+  // Fresnel rim glow on ridgelines
+  const ridgeFn = Fn(() => {
+    const viewDir = cameraPosition.sub(positionWorld).normalize();
+    const nDotV = normalWorld.dot(viewDir).saturate();
+    const rim = float(1.0).sub(nDotV).pow(float(4.0));
+
+    // Distance fog: fade to hazy sky color far away
     const dist = positionLocal.z.abs().div(40.0).saturate();
     const fogColor = color(0xaaccdd);
-    return smoothstep(float(0.5), float(1.0), dist).mul(vec3(fogColor.r, fogColor.g, fogColor.b));
+    const fog = smoothstep(float(0.5), float(1.0), dist).mul(vec3(fogColor.r, fogColor.g, fogColor.b));
+
+    // Combine rim glow + fog
+    return vec3(0.8, 0.9, 1.0).mul(rim).mul(float(0.4)).add(fog);
   });
 
-  // Blend emissive fog for atmospheric effect
-  mat.emissiveNode = fogFn();
-
+  mat.emissiveNode = ridgeFn();
   mat.roughness = 0.88;
   mat.metalness = 0.02;
 
   return mat;
 }
 
-const terrainSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x88bbdd) });
+// Sky dome material
+const terrainSkyMat = new THREE.MeshBasicNodeMaterial({
+  side: THREE.BackSide,
+  colorNode: Fn(() => {
+    const py = positionWorld.y.add(float(10.0)).div(float(30.0)).saturate();
+    return mix(color(0x5588bb), color(0x2244aa), py);
+  })(),
+});
+
+// Bloom halo on sky dome
+const skyHaloMat = (() => {
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.transparent = true;
+  mat.blending = THREE.AdditiveBlending;
+  mat.depthWrite = false;
+  mat.side = THREE.BackSide;
+  mat.colorNode = Fn(() => {
+    const py = positionWorld.y.add(float(10.0)).div(float(30.0)).saturate();
+    const glow = smoothstep(float(0.3), float(0.7), py).mul(float(0.025));
+    return vec3(0.6, 0.8, 1.0).mul(glow);
+  })();
+  return mat;
+})();
 
 export default function InfiniteTerrain() {
   const terrainRef = useRef<THREE.Mesh>(null);
   const material = useMemo(() => makeTerrainMaterial(), []);
 
+  // Cloud positions (40 puffs scattered above terrain)
+  const cloudPositions = useMemo(() => {
+    const pos: [number, number, number][] = [];
+    for (let i = 0; i < 40; i++) {
+      pos.push([
+        (Math.random() - 0.5) * 60,
+        4 + Math.random() * 8,
+        (Math.random() - 0.5) * 60,
+      ]);
+    }
+    return pos;
+  }, []);
+
+  const cloudMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(3.3).add(positionWorld.z.mul(5.1)));
+      const drift = sin(time.mul(h.mul(0.5).add(0.1))).mul(float(0.06)).add(float(0.94));
+      return vec3(0.9, 0.92, 0.95).mul(drift);
+    });
+    mat.colorNode = fn();
+    mat.opacity = 0.45;
+    return mat;
+  }, []);
+
   // Slow rotation for slight camera pan feel
   useFrame((_, delta) => {
     if (terrainRef.current) {
-      // Slight roll for dynamism
       terrainRef.current.rotation.z += delta * 0.003;
     }
   });
@@ -129,13 +190,26 @@ export default function InfiniteTerrain() {
       <ambientLight intensity={0.55} color="#bbd8ee" />
       <directionalLight position={[6, 12, -4]} intensity={1.6} color="#fff5e0" />
       <directionalLight position={[-4, 5, 8]} intensity={0.4} color="#aaddff" />
-      {/* Subtle fill from below for water shimmer */}
+      {/* Sun-warm, sky-cool, water-fill lights */}
       <pointLight position={[0, -2, 0]} intensity={1.0} color="#2266aa" distance={30} />
+      <pointLight position={[15, 10, 0]} intensity={2.5} color="#ffcc88" distance={50} />
+      <pointLight position={[-10, 8, 10]} intensity={1.5} color="#88ccff" distance={40} />
 
       {/* Sky dome — large BackSide sphere */}
       <mesh material={terrainSkyMat}>
         <sphereGeometry args={[80, 16, 10]} />
       </mesh>
+      {/* Sky bloom halo */}
+      <mesh material={skyHaloMat} scale={0.99}>
+        <sphereGeometry args={[80, 16, 10]} />
+      </mesh>
+
+      {/* Cloud particles above terrain */}
+      {cloudPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={cloudMat}>
+          <sphereGeometry args={[1.2 + Math.random(), 8, 6]} />
+        </mesh>
+      ))}
 
       {/* Main terrain — 128x128 subdivisions for smooth height variation */}
       <mesh

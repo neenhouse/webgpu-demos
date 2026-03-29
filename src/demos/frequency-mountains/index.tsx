@@ -13,6 +13,7 @@ import {
   mix,
   smoothstep,
   sin,
+  hash,
 } from 'three/tsl';
 
 /**
@@ -20,7 +21,8 @@ import {
  *
  * Techniques: high-subdivision plane geometry, TSL positionNode vertex
  * displacement, layered sine waves simulating spectrum data, 5-stop biome
- * color gradient, Fresnel rim glow, camera orbit.
+ * color gradient, Fresnel rim glow, bloom halo shells, background atmosphere
+ * sphere, instanced background stars, colored point lights. Camera orbit.
  *
  * 64 frequency bands are simulated by sine waves at different frequencies.
  * The terrain's vertex Y displacement sums contributions from each band,
@@ -99,6 +101,65 @@ export default function FrequencyMountains() {
     return mat;
   }, []);
 
+  // BackSide halo shells: additive glow around the terrain group
+  const haloMaterials = useMemo(() => {
+    return [
+      { scale: 1.06, opacity: 0.03, color: vec3(0.3, 0.5, 1.0) },
+      { scale: 1.12, opacity: 0.02, color: vec3(0.6, 0.2, 1.0) },
+      { scale: 1.20, opacity: 0.015, color: vec3(0.8, 0.1, 0.9) },
+    ].map(({ opacity, color }) => {
+      const mat = new THREE.MeshBasicNodeMaterial();
+      mat.transparent = true;
+      mat.blending = THREE.AdditiveBlending;
+      mat.depthWrite = false;
+      mat.side = THREE.BackSide;
+      mat.colorNode = color.mul(float(opacity));
+      return mat;
+    });
+  }, []);
+
+  // Background atmosphere: large BackSide sphere with vertical gradient
+  const atmMaterial = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const atmFn = Fn(() => {
+      const py = positionWorld.y.add(float(5.0)).div(float(20.0)).saturate();
+      const horizonColor = vec3(0.02, 0.04, 0.18);
+      const zenithColor = vec3(0.0, 0.0, 0.05);
+      return mix(horizonColor, zenithColor, py);
+    });
+    mat.colorNode = atmFn();
+    return mat;
+  }, []);
+
+  // Instanced background stars (60 tiny spheres)
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 60; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1) * 0.5; // upper hemisphere
+      const r = 14 + Math.random() * 4;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    // Hash-based twinkle: color varies per star using positionWorld hash
+    const twinkleFn = Fn(() => {
+      const h = hash(positionWorld.x.mul(7.3).add(positionWorld.y.mul(13.1)));
+      const pulse = sin(time.mul(h.mul(3.0).add(1.0))).mul(float(0.3)).add(float(0.7));
+      return vec3(0.7, 0.8, 1.0).mul(pulse);
+    });
+    mat.colorNode = twinkleFn();
+    return mat;
+  }, []);
+
   // Slow orbit for camera effect — we rotate the terrain
   useFrame((state) => {
     if (groupRef.current) {
@@ -113,15 +174,40 @@ export default function FrequencyMountains() {
       <directionalLight position={[8, 10, 5]} intensity={0.8} color="#8899ff" />
       <directionalLight position={[-6, 5, -8]} intensity={0.5} color="#ff88aa" />
       <pointLight position={[0, 5, 0]} intensity={6} color="#6644ff" distance={30} />
+      {/* Atmosphere point lights */}
+      <pointLight position={[5, 3, -5]} intensity={3} color="#3322aa" distance={25} />
+      <pointLight position={[-5, 2, 5]} intensity={2} color="#aa3388" distance={20} />
+
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMaterial}>
+        <sphereGeometry args={[20, 16, 10]} />
+      </mesh>
+
+      {/* Background star field */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.03, 4, 4]} />
+        </mesh>
+      ))}
 
       <group ref={groupRef} rotation={[-Math.PI / 4, 0, 0]}>
         <mesh material={material} receiveShadow>
           <planeGeometry args={[12, 12, 128, 128]} />
         </mesh>
+
+        {/* Bloom halo shells around terrain */}
+        {haloMaterials.map((haloMat, i) => {
+          const scales = [1.06, 1.12, 1.20];
+          return (
+            <mesh key={i} material={haloMat} scale={scales[i]}>
+              <planeGeometry args={[12, 12, 16, 16]} />
+            </mesh>
+          );
+        })}
       </group>
 
       {/* Reflection of terrain below */}
-      <group ref={null} rotation={[-Math.PI / 4 + Math.PI, 0, 0]} position={[0, -3, 0]}>
+      <group rotation={[-Math.PI / 4 + Math.PI, 0, 0]} position={[0, -3, 0]}>
         <mesh material={material}>
           <planeGeometry args={[12, 12, 64, 64]} />
         </mesh>

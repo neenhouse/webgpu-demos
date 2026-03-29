@@ -10,6 +10,8 @@ import {
   mix,
   smoothstep,
   hash,
+  time,
+  sin,
 } from 'three/tsl';
 
 /**
@@ -21,13 +23,55 @@ import {
  * Simulates 4 frequency bands (sub-bass, bass, mid, high) using sharp
  * sine pulses. Each pillar responds to its assigned band based on column
  * position with added per-instance variation from hash noise.
+ *
+ * Additional: BackSide halo shells (2) on floor for bloom reflection,
+ * instanced background ambient particles (50), 3 colored atmosphere
+ * point lights, subtle vertex breathing on pillar tops.
  */
 
 const GRID_SIZE = 20;
 const PILLAR_COUNT = GRID_SIZE * GRID_SIZE;
 const SPACING = 0.6;
 
-const floorMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x050520); m.roughness = 0.1; m.metalness = 0.9; return m; })();
+const floorMat = (() => {
+  const m = new THREE.MeshStandardNodeMaterial();
+  m.color.set(0x050520);
+  m.roughness = 0.1;
+  m.metalness = 0.9;
+  return m;
+})();
+
+// Floor halo material (BackSide additive bloom reflection)
+const floorHaloMat1 = (() => {
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.transparent = true;
+  mat.blending = THREE.AdditiveBlending;
+  mat.depthWrite = false;
+  mat.side = THREE.BackSide;
+  const fn = Fn(() => {
+    const dist = positionWorld.x.mul(positionWorld.x).add(positionWorld.z.mul(positionWorld.z)).sqrt();
+    const radial = smoothstep(float(15.0), float(0.0), dist).mul(float(0.03));
+    const pulse = sin(time.mul(2.0)).mul(float(0.3)).add(float(0.7));
+    return vec3(1.0, 0.1, 0.8).mul(radial).mul(pulse);
+  });
+  mat.colorNode = fn();
+  return mat;
+})();
+
+const floorHaloMat2 = (() => {
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.transparent = true;
+  mat.blending = THREE.AdditiveBlending;
+  mat.depthWrite = false;
+  mat.side = THREE.BackSide;
+  const fn = Fn(() => {
+    const dist = positionWorld.x.mul(positionWorld.x).add(positionWorld.z.mul(positionWorld.z)).sqrt();
+    const radial = smoothstep(float(12.0), float(0.0), dist).mul(float(0.02));
+    return vec3(0.0, 0.8, 1.0).mul(radial);
+  });
+  mat.colorNode = fn();
+  return mat;
+})();
 
 export default function BeatPulseGrid() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -41,6 +85,32 @@ export default function BeatPulseGrid() {
       heights.push(0.05 + Math.random() * 0.15);
     }
     return heights;
+  }, []);
+
+  // Background ambient particles (50 tiny floating spheres)
+  const ambientParticlePositions = useMemo(() => {
+    const pos: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      pos.push([
+        (Math.random() - 0.5) * 20,
+        Math.random() * 6,
+        (Math.random() - 0.5) * 20,
+      ]);
+    }
+    return pos;
+  }, []);
+
+  const particleMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(4.1).add(positionWorld.y.mul(7.3)));
+      const twinkle = sin(time.mul(h.mul(4.0).add(1.0))).mul(float(0.4)).add(float(0.6));
+      return mix(vec3(0.0, 0.8, 1.0), vec3(1.0, 0.1, 0.8), h).mul(twinkle).mul(float(0.5));
+    });
+    mat.colorNode = fn();
+    mat.opacity = 0.6;
+    return mat;
   }, []);
 
   // Initialize instance matrices flat
@@ -92,7 +162,7 @@ export default function BeatPulseGrid() {
     });
     mat.emissiveNode = emissiveFn();
 
-    // Subtle vertex wobble on top
+    // Subtle vertex breathing on pillar tips
     mat.positionNode = positionWorld.add(
       normalLocal.mul(
         float(0.01).mul(
@@ -113,13 +183,9 @@ export default function BeatPulseGrid() {
     if (!mesh) return;
 
     // Simulate frequency bands with sharp beat pulses
-    // sub-bass: ~30Hz feel at 120bpm = 2Hz pulse
     freqBands.current.sub = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 2.0)), 8);
-    // bass: ~60Hz feel at slight offset
     freqBands.current.bass = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 2.0 + 0.3)), 6);
-    // mid: 4Hz (fills between beats)
     freqBands.current.mid = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 4.0 + 0.5)), 4) * 0.7;
-    // high: faster 8Hz flutter
     freqBands.current.high = Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * 8.0)), 3) * 0.5;
 
     const { sub, bass, mid, high } = freqBands.current;
@@ -130,8 +196,8 @@ export default function BeatPulseGrid() {
       const x = (col - GRID_SIZE / 2 + 0.5) * SPACING;
       const z = (row - GRID_SIZE / 2 + 0.5) * SPACING;
 
-      // Band assignment based on column: 0-4=sub, 5-9=bass, 10-14=mid, 15-19=high
-      const bandFactor = col / GRID_SIZE; // 0..1
+      // Band assignment based on column
+      const bandFactor = col / GRID_SIZE;
       let amp: number;
       if (bandFactor < 0.25) {
         amp = sub;
@@ -178,6 +244,21 @@ export default function BeatPulseGrid() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} material={floorMat}>
         <planeGeometry args={[30, 30]} />
       </mesh>
+
+      {/* Floor bloom halo shells */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} material={floorHaloMat1}>
+        <planeGeometry args={[32, 32]} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} material={floorHaloMat2}>
+        <planeGeometry args={[34, 34]} />
+      </mesh>
+
+      {/* Ambient background particles */}
+      {ambientParticlePositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={particleMat}>
+          <sphereGeometry args={[0.035, 4, 4]} />
+        </mesh>
+      ))}
     </>
   );
 }

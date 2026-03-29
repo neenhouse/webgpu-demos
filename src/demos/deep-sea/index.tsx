@@ -372,7 +372,7 @@ function LightShaft({
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
 

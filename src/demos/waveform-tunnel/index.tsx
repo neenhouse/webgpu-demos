@@ -4,6 +4,7 @@ import * as THREE from 'three/webgpu';
 import {
   time,
   positionLocal,
+  positionWorld,
   uv,
   Fn,
   float,
@@ -13,6 +14,7 @@ import {
   sin,
   fract,
   abs,
+  hash,
 } from 'three/tsl';
 
 /**
@@ -20,7 +22,9 @@ import {
  *
  * Techniques: CylinderGeometry with BackSide rendering (view from inside),
  * TSL positionNode for radial vertex displacement, animated sine waveform,
- * fract/smoothstep neon grid lines, 3-stop color gradient, camera auto-advance.
+ * fract/smoothstep neon grid lines, 3-stop color gradient, camera auto-advance,
+ * BackSide bloom halo shells around the tunnel, instanced background star
+ * particles with hash-based twinkle, colored atmosphere point lights.
  *
  * Vertices are displaced radially outward by layered sine waves that scroll
  * in time, creating the illusion of waveform walls rushing past as the camera
@@ -112,6 +116,49 @@ export default function WaveformTunnel() {
     return mat;
   }, []);
 
+  // BackSide bloom halo shells (outer glow layers)
+  const haloMats = useMemo(() => {
+    return [
+      { scale: 1.04, opacity: 0.025 },
+      { scale: 1.09, opacity: 0.018 },
+    ].map(({ opacity }) => {
+      const mat = new THREE.MeshBasicNodeMaterial();
+      mat.transparent = true;
+      mat.blending = THREE.AdditiveBlending;
+      mat.depthWrite = false;
+      mat.side = THREE.BackSide;
+      mat.colorNode = vec3(0.0, 0.8, 1.0).mul(float(opacity));
+      return mat;
+    });
+  }, []);
+
+  // Star field outside the tunnel: 70 tiny spheres
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 70; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const r = 4 + Math.random() * 2;
+      const y = (Math.random() - 0.5) * 35;
+      positions.push([
+        r * Math.cos(theta),
+        y,
+        r * Math.sin(theta),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(5.1).add(positionWorld.y.mul(9.7)));
+      const twinkle = sin(time.mul(h.mul(4.0).add(0.5))).mul(float(0.3)).add(float(0.7));
+      return vec3(0.8, 0.9, 1.0).mul(twinkle);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
   useFrame((state) => {
     // Auto-advance camera through the tunnel along Y axis
     const speed = 2.5;
@@ -132,11 +179,31 @@ export default function WaveformTunnel() {
       <pointLight position={[0, 0, 0]} intensity={20} color="#00ffff" distance={8} />
       <pointLight position={[0, -10, 0]} intensity={15} color="#ff00ff" distance={12} />
       <pointLight position={[0, -20, 0]} intensity={12} color="#8800ff" distance={15} />
+      {/* Additional atmosphere lights */}
+      <pointLight position={[2, -5, 0]} intensity={6} color="#00aaff" distance={10} />
+      <pointLight position={[-2, -15, 0]} intensity={5} color="#ff44ff" distance={10} />
 
       <mesh ref={meshRef} material={material}>
         {/* CylinderGeometry(radiusTop, radiusBottom, height, radialSegs, heightSegs) */}
         <cylinderGeometry args={[3, 3, 30, 64, 128]} />
       </mesh>
+
+      {/* Bloom halo shells (slightly larger cylinder, BackSide) */}
+      {haloMats.map((haloMat, i) => {
+        const scales = [1.04, 1.09];
+        return (
+          <mesh key={i} material={haloMat} scale={scales[i]}>
+            <cylinderGeometry args={[3, 3, 30, 32, 32]} />
+          </mesh>
+        );
+      })}
+
+      {/* Star field particles */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.025, 4, 4]} />
+        </mesh>
+      ))}
     </>
   );
 }

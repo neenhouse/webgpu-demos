@@ -1306,7 +1306,7 @@ function TraceCompletionBall({ position, color }: { position: THREE.Vector3; col
     m.blending = THREE.AdditiveBlending;
     m.color = new THREE.Color(color);
     m.emissive = new THREE.Color(color);
-    m.emissiveIntensity = 5.0;
+    m.emissiveIntensity = 3.0;
     m.opacity = 1.0;
     return m;
   }, [color]);
@@ -1364,7 +1364,7 @@ function TraceRequestBall({
     m.blending = THREE.AdditiveBlending;
     m.color = new THREE.Color(0xffee44);
     m.emissive = new THREE.Color(0xffee44);
-    m.emissiveIntensity = 4.0;
+    m.emissiveIntensity = 3.0;
     return m;
   }, []);
 

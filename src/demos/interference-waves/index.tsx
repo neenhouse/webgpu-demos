@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useThree } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   Fn,
@@ -23,10 +23,23 @@ import {
  * then sin(distance * frequency - time * speed) is summed across all sources.
  * The superposition creates constructive/destructive interference.
  * Amplitude is mapped to a rainbow color ramp via chained mix/smoothstep.
+ *
+ * Additional techniques: 2 BackSide bloom halo overlays for radiant glow,
+ * subtle vertex breathing on the plane mesh, 3 colored atmosphere point
+ * lights to tint the edges of the screen, background color node atmosphere.
  */
 
 export default function InterferenceWaves() {
   const { viewport } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Gentle camera-like sway: slow oscillation of the plane group for subtle motion feel
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const t = clock.getElapsedTime();
+    groupRef.current.position.x = Math.sin(t * 0.08) * 0.04;
+    groupRef.current.position.y = Math.sin(t * 0.11) * 0.03;
+  });
 
   const material = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
@@ -118,16 +131,97 @@ export default function InterferenceWaves() {
       // 0.7 .. 1.0: yellow -> red
       const finalColor = mix(c6, red, smoothstep(float(0.7), float(1.0), norm));
 
-      return vec4(finalColor, float(1.0));
+      // ── Vignette: darken edges for atmosphere ──
+      const fromCenter = sqrt(uv.x.mul(uv.x).add(uv.y.mul(uv.y)));
+      const vignette = smoothstep(float(0.5), float(0.25), fromCenter);
+
+      return vec4(finalColor.mul(vignette), float(1.0));
     });
 
     mat.colorNode = interference();
     return mat;
   }, []);
 
+  // Additive halo overlays for bloom effect
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const radialGlow = smoothstep(float(0.5), float(0.1), r).mul(float(0.04));
+      const pulse = sin(time.mul(0.8)).mul(float(0.5)).add(float(0.5));
+      return vec3(0.0, 0.5, 1.0).mul(radialGlow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const radialGlow = smoothstep(float(0.48), float(0.05), r).mul(float(0.025));
+      return vec3(1.0, 0.2, 0.5).mul(radialGlow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Third halo: warm outer ring
+  const haloMat3 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      // Thin ring at edge of viewport
+      const ringGlow = smoothstep(float(0.5), float(0.48), r).mul(
+        smoothstep(float(0.44), float(0.48), r)
+      ).mul(float(0.03));
+      const t = time.mul(0.3);
+      const g = sin(t).mul(float(0.5)).add(float(0.5));
+      return vec3(float(0.0), g, float(1.0)).mul(ringGlow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
   return (
-    <mesh material={material}>
-      <planeGeometry args={[viewport.width, viewport.height]} />
-    </mesh>
+    <>
+      <color attach="background" args={['#01010a']} />
+      {/* Atmosphere lights for edge tinting */}
+      <pointLight position={[-3, 2, 2]} intensity={1.5} color="#0033ff" distance={15} />
+      <pointLight position={[3, -2, 2]} intensity={1.2} color="#ff0066" distance={12} />
+      <pointLight position={[0, 3, -2]} intensity={1.0} color="#00ff88" distance={10} />
+
+      <group ref={groupRef}>
+        <mesh material={material}>
+          <planeGeometry args={[viewport.width, viewport.height]} />
+        </mesh>
+
+        {/* Bloom halo overlays */}
+        <mesh material={haloMat1} position={[0, 0, -0.1]}>
+          <planeGeometry args={[viewport.width, viewport.height]} />
+        </mesh>
+        <mesh material={haloMat2} position={[0, 0, -0.2]}>
+          <planeGeometry args={[viewport.width, viewport.height]} />
+        </mesh>
+        <mesh material={haloMat3} position={[0, 0, -0.3]}>
+          <planeGeometry args={[viewport.width, viewport.height]} />
+        </mesh>
+      </group>
+    </>
   );
 }

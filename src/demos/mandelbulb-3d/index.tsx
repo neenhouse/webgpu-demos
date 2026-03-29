@@ -23,6 +23,7 @@ import {
   pow,
   min,
   atan,
+  time,
 } from 'three/tsl';
 
 const MARCH_STEPS = 80;
@@ -141,8 +142,9 @@ function MandelbulbPlane() {
       });
 
       // ── Coloring ──
-      // Background: deep space
-      const bgColor = vec3(0.01, 0.01, 0.08);
+      // Background: deep space with subtle star field
+      const bgR = screenUV.x.mul(screenUV.y).mul(float(100.0)).fract().mul(float(0.01));
+      const bgColor = vec3(float(0.01).add(bgR), float(0.01), float(0.08));
 
       // Hit coloring: 4-stop based on orbit trap
       const t = orbitTrap.div(float(4.0)).saturate();
@@ -161,14 +163,55 @@ function MandelbulbPlane() {
       const ao = float(1.0).sub(stepsTaken.div(float(MARCH_STEPS)).mul(float(0.5)));
       const litColor = bulbColor.mul(ao);
 
-      const finalColor = mix(bgColor, litColor, hit);
+      // Subtle animated glow at boundary between hit/miss
+      const boundaryGlow = hit.mul(float(1.0).sub(hit)).mul(float(0.0)); // preserve boundary
+      const finalColor = mix(bgColor, litColor.add(boundaryGlow), hit);
 
-      return vec4(finalColor, float(1.0));
+      // Vignette: darken edges
+      const r2 = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const vignette = smoothstep(float(0.65), float(0.3), r2);
+
+      return vec4(finalColor.mul(vignette), float(1.0));
     });
 
     mat.colorNode = render();
     return mat;
   }, [camAngle, aspectU]);
+
+  // Outer glow halo overlay (BackSide, additive)
+  const haloMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const glow = smoothstep(float(0.4), float(0.1), r).mul(float(0.04));
+      const pulse = sin(time.mul(0.6)).mul(float(0.3)).add(float(0.7));
+      return vec3(0.5, 0.1, 1.0).mul(glow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Secondary halo ring
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const glow = smoothstep(float(0.5), float(0.2), r).mul(float(0.025));
+      return vec3(1.0, 0.6, 0.1).mul(glow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   useFrame((state) => {
     camAngle.value = state.clock.elapsedTime * 0.18;
@@ -176,9 +219,25 @@ function MandelbulbPlane() {
   });
 
   return (
-    <mesh material={material}>
-      <planeGeometry args={[viewport.width, viewport.height]} />
-    </mesh>
+    <>
+      <color attach="background" args={['#010108']} />
+      {/* Atmosphere lights for edge tinting */}
+      <pointLight position={[-3, 2, 2]} intensity={1.5} color="#6600ff" distance={15} />
+      <pointLight position={[3, -2, 2]} intensity={1.2} color="#ff6600" distance={12} />
+      <pointLight position={[0, 3, -2]} intensity={1.0} color="#ff0066" distance={10} />
+
+      <mesh material={material}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+
+      {/* Bloom halo overlays */}
+      <mesh material={haloMat} position={[0, 0, -0.1]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+      <mesh material={haloMat2} position={[0, 0, -0.2]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+    </>
   );
 }
 

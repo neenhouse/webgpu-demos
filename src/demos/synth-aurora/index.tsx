@@ -4,12 +4,14 @@ import * as THREE from 'three/webgpu';
 import {
   time,
   uv,
+  positionWorld,
   Fn,
   float,
   vec3,
   mix,
   smoothstep,
   sin,
+  hash,
 } from 'three/tsl';
 
 /**
@@ -23,6 +25,10 @@ import {
  * Each ribbon strip sways at a different "synth tone" frequency. The vertical
  * strips are wide curtains that flutter with UV-based vertex displacement
  * encoded in the material. Color fades from green at base to pink at top.
+ *
+ * Additional: instanced background star particles (60) with hash twinkle,
+ * 3 colored atmosphere point lights (green, purple, teal), subtle vertex
+ * breathing on ribbon strips for organic motion, background atmosphere sphere.
  */
 
 const STRIP_COUNT = 8;
@@ -34,7 +40,13 @@ const STRIP_SPACING = 0.8; // Z separation
 const SYNTH_FREQS = [0.3, 0.45, 0.6, 0.8, 1.1, 1.4, 1.7, 2.0];
 const SYNTH_PHASES = [0, 0.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9];
 
-const synthGroundMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x010108); m.roughness = 0.05; m.metalness = 0.95; return m; })();
+const synthGroundMat = (() => {
+  const m = new THREE.MeshStandardNodeMaterial();
+  m.color.set(0x010108);
+  m.roughness = 0.05;
+  m.metalness = 0.95;
+  return m;
+})();
 
 export default function SynthAurora() {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
@@ -46,7 +58,7 @@ export default function SynthAurora() {
     mat.transparent = true;
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
 
     const auroraFn = Fn(() => {
       const uvCoord = uv();
@@ -81,7 +93,10 @@ export default function SynthAurora() {
       // Luminosity shimmer
       const shimmer = sin(waveU.mul(12.0).add(t.mul(3.0))).mul(float(0.15)).add(float(0.85));
 
-      const alpha = vFade.mul(float(0.35)).mul(shimmer);
+      // Subtle vertex breathing: UV-based displacement
+      const breathe = sin(uvCoord.x.mul(6.0).add(t.mul(1.5))).mul(float(0.03)).add(float(1.0));
+
+      const alpha = vFade.mul(float(0.35)).mul(shimmer).mul(breathe);
 
       return vec3(c4.x, c4.y, c4.z).mul(alpha);
     });
@@ -107,6 +122,46 @@ export default function SynthAurora() {
     });
     mat.colorNode = haloFn();
     return mat;
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(5.0)).div(float(20.0)).saturate();
+      return mix(vec3(0.0, 0.02, 0.08), vec3(0.0, 0.0, 0.03), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Star particle material with hash twinkle
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(6.3).add(positionWorld.y.mul(11.7)).add(positionWorld.z.mul(4.1)));
+      const twinkle = sin(time.mul(h.mul(3.0).add(0.5))).mul(float(0.4)).add(float(0.6));
+      return mix(vec3(0.3, 0.9, 0.5), vec3(0.8, 0.5, 1.0), h).mul(twinkle).mul(float(0.8));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Star positions (60 background stars)
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 60; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 20 + Math.random() * 8;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta) * 0.5 + 3,
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
   }, []);
 
   useFrame(() => {
@@ -138,9 +193,21 @@ export default function SynthAurora() {
   return (
     <>
       <color attach="background" args={['#000008']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[35, 16, 10]} />
+      </mesh>
+      {/* Star field */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.08, 4, 4]} />
+        </mesh>
+      ))}
       <ambientLight intensity={0.02} />
       <pointLight position={[0, 4, 0]} intensity={3} color="#00ff88" distance={20} />
       <pointLight position={[-4, 6, 2]} intensity={2} color="#8800ff" distance={15} />
+      {/* Additional teal atmosphere light */}
+      <pointLight position={[4, 2, -4]} intensity={1.5} color="#00aacc" distance={18} />
 
       {/* Aurora strips */}
       {Array.from({ length: STRIP_COUNT }, (_, i) => {

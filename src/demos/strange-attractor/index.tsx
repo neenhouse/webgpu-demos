@@ -10,6 +10,9 @@ import {
   normalWorld,
   mix,
   smoothstep,
+  sin,
+  hash,
+  time,
 } from 'three/tsl';
 
 // Lorenz attractor parameters
@@ -53,6 +56,7 @@ interface AttractorState {
 export default function StrangeAttractor() {
   const groupRef = useRef<THREE.Group>(null);
   const meshRefs = useRef<(THREE.InstancedMesh | null)[]>([null, null, null]);
+  const haloMeshRefs = useRef<(THREE.InstancedMesh | null)[]>([null, null, null]);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   // Initialize 3 attractors with their own trails
@@ -75,7 +79,7 @@ export default function StrangeAttractor() {
     });
   }, []);
 
-  // TSL materials per attractor with velocity-based coloring
+  // TSL materials per attractor with velocity-based coloring + hash shimmer
   const materials = useMemo(() => {
     return ATTRACTOR_COLORS.map((col) => {
       const mat = new THREE.MeshStandardNodeMaterial();
@@ -90,12 +94,14 @@ export default function StrangeAttractor() {
 
       mat.colorNode = heightColor();
 
-      // Fresnel emissive glow
+      // Fresnel emissive glow + hash shimmer
       const fresnel = Fn(() => {
         const viewDir = cameraPosition.sub(positionWorld).normalize();
         const nDotV = normalWorld.dot(viewDir).saturate();
         const f = float(1.0).sub(nDotV).pow(float(3.0));
-        return vec3(col.r, col.g, col.b).mul(f).mul(float(2.5));
+        const hv = hash(positionWorld.x.mul(5.3).add(positionWorld.z.mul(7.1)));
+        const shimmer = sin(time.mul(hv.mul(4.0).add(1.0))).mul(float(0.2)).add(float(0.8));
+        return vec3(col.r, col.g, col.b).mul(f).mul(float(2.5)).mul(shimmer);
       });
       mat.emissiveNode = fresnel();
       mat.roughness = 0.3;
@@ -105,6 +111,63 @@ export default function StrangeAttractor() {
     });
   }, []);
 
+  // BackSide bloom halo materials
+  const haloMaterials = useMemo(() => {
+    return ATTRACTOR_COLORS.map((col) => {
+      const mat = new THREE.MeshBasicNodeMaterial();
+      mat.transparent = true;
+      mat.blending = THREE.AdditiveBlending;
+      mat.depthWrite = false;
+      mat.side = THREE.BackSide;
+      const fn = Fn(() => {
+        const viewDir = cameraPosition.sub(positionWorld).normalize();
+        const nDotV = normalWorld.dot(viewDir).saturate();
+        const rim = float(1.0).sub(nDotV).pow(float(2.5));
+        return vec3(col.r, col.g, col.b).mul(rim).mul(float(0.025));
+      });
+      mat.colorNode = fn();
+      return mat;
+    });
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(4.0)).div(float(10.0)).saturate();
+      return mix(vec3(0.02, 0.01, 0.0), vec3(0.0, 0.01, 0.03), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background star particles (50 tiny spheres)
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 9 + Math.random() * 4;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const hv = hash(positionWorld.x.mul(8.1).add(positionWorld.y.mul(5.7)));
+      return vec3(0.8, 0.6, 1.0).mul(hv.mul(0.5).add(0.5));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
   // Step each attractor forward each frame, updating instance matrices
   useFrame(() => {
     const stepsPerFrame = 3;
@@ -112,6 +175,7 @@ export default function StrangeAttractor() {
     for (let a = 0; a < NUM_ATTRACTORS; a++) {
       const attractor = attractors[a];
       const mesh = meshRefs.current[a];
+      const haloMesh = haloMeshRefs.current[a];
       if (!mesh) continue;
 
       // Advance attractor and update ring buffer
@@ -142,8 +206,14 @@ export default function StrangeAttractor() {
         dummy.scale.setScalar(scale);
         dummy.updateMatrix();
         mesh.setMatrixAt(i, dummy.matrix);
+
+        // Halo: slightly larger sphere
+        dummy.scale.setScalar(scale * 1.8);
+        dummy.updateMatrix();
+        if (haloMesh) haloMesh.setMatrixAt(i, dummy.matrix);
       }
       mesh.instanceMatrix.needsUpdate = true;
+      if (haloMesh) haloMesh.instanceMatrix.needsUpdate = true;
     }
 
     // Slow rotation of the group
@@ -156,18 +226,46 @@ export default function StrangeAttractor() {
     meshRefs.current[a] = el;
   }, []);
 
+  const setHaloMeshRef = useCallback((a: number) => (el: THREE.InstancedMesh | null) => {
+    haloMeshRefs.current[a] = el;
+  }, []);
+
   return (
     <>
+      <color attach="background" args={['#050205']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[15, 16, 10]} />
+      </mesh>
+      {/* Background stars */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.02, 4, 4]} />
+        </mesh>
+      ))}
       <ambientLight intensity={0.15} />
       <pointLight position={[0, 3, 5]} intensity={3} color={0xff6600} />
       <pointLight position={[-3, -2, -4]} intensity={2} color={0x0088ff} />
       <pointLight position={[3, 0, -5]} intensity={1.5} color={0xff00ff} />
 
       <group ref={groupRef}>
+        {/* Main attractor trails */}
         {materials.map((mat, a) => (
           <instancedMesh
             key={a}
             ref={setMeshRef(a)}
+            args={[undefined, undefined, TRAIL_LENGTH]}
+            material={mat}
+          >
+            <icosahedronGeometry args={[1, 0]} />
+          </instancedMesh>
+        ))}
+
+        {/* Bloom halo shells on trails */}
+        {haloMaterials.map((mat, a) => (
+          <instancedMesh
+            key={`halo-${a}`}
+            ref={setHaloMeshRef(a)}
             args={[undefined, undefined, TRAIL_LENGTH]}
             material={mat}
           >

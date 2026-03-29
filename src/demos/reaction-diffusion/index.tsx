@@ -10,11 +10,14 @@ import {
   int,
   vec2,
   vec4,
+  vec3,
   mix,
   smoothstep,
   screenUV,
   floor,
   hash,
+  time,
+  sin,
 } from 'three/tsl';
 
 /**
@@ -29,6 +32,9 @@ import {
  * Seeded with A=1 everywhere, random B patches.
  * Color: B concentration mapped to dark blue -> cyan -> white -> yellow.
  * Runs 8 simulation steps per frame for faster evolution.
+ *
+ * Additional: vignette overlay, animated border glow halo, 3 colored
+ * atmosphere point lights, background color tint.
  */
 
 const WIDTH = 256;
@@ -63,7 +69,6 @@ export default function ReactionDiffusion() {
       const cellB = float(0.0).toVar();
 
       // Seed ~20 spots by hashing instanceIndex to determine proximity to seed centers
-      // Generate 20 seed centers using hash of seed index
       const seedCount = 20;
       for (let s = 0; s < seedCount; s++) {
         const seedCenterX = hash(float(s).mul(7.31)).mul(widthUniform);
@@ -148,22 +153,50 @@ export default function ReactionDiffusion() {
       const cell = compute.gridA.element(int(idx.max(0.0).min(maxIdx)));
       const b = cell.y;
 
-      // Color gradient: dark blue -> cyan -> white -> yellow
+      // 5-stop Color gradient: dark blue -> cyan -> white -> yellow -> orange
       const darkBlue = vec4(0.02, 0.02, 0.15, 1.0);
       const cyan = vec4(0.0, 0.7, 0.85, 1.0);
       const white = vec4(1.0, 1.0, 1.0, 1.0);
       const yellow = vec4(1.0, 0.9, 0.2, 1.0);
+      const orange = vec4(1.0, 0.45, 0.05, 1.0);
 
       const c1 = mix(darkBlue, cyan, smoothstep(0.0, 0.15, b));
       const c2 = mix(c1, white, smoothstep(0.15, 0.35, b));
       const c3 = mix(c2, yellow, smoothstep(0.35, 0.6, b));
+      const c4 = mix(c3, orange, smoothstep(0.6, 0.85, b));
 
-      return c3;
+      // Vignette darkening at edges
+      const uCentered = uvX.sub(float(0.5));
+      const vCentered = uvY.sub(float(0.5));
+      const r = uCentered.mul(uCentered).add(vCentered.mul(vCentered)).sqrt();
+      const vignette = smoothstep(float(0.7), float(0.3), r);
+
+      return vec4(vec3(c4.x, c4.y, c4.z).mul(vignette), float(1.0));
     });
 
     mat.colorNode = renderColor();
     return mat;
   }, [compute]);
+
+  // Animated border glow halo
+  const haloMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uCentered = screenUV.x.sub(float(0.5));
+      const vCentered = screenUV.y.sub(float(0.5));
+      const r = uCentered.mul(uCentered).add(vCentered.mul(vCentered)).sqrt();
+      // Glow at edges
+      const edgeGlow = smoothstep(float(0.3), float(0.5), r).mul(float(0.05));
+      const pulse = sin(time.mul(0.7)).mul(float(0.3)).add(float(0.7));
+      return vec3(0.0, 0.6, 0.9).mul(edgeGlow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   // ── Init compute ──
   useEffect(() => {
@@ -189,8 +222,21 @@ export default function ReactionDiffusion() {
   });
 
   return (
-    <mesh material={material}>
-      <planeGeometry args={[viewport.width, viewport.height]} />
-    </mesh>
+    <>
+      <color attach="background" args={['#010112']} />
+      {/* Atmosphere lights */}
+      <pointLight position={[-3, 2, 2]} intensity={1.5} color="#0044ff" distance={15} />
+      <pointLight position={[3, -2, 2]} intensity={1.2} color="#00aacc" distance={12} />
+      <pointLight position={[0, 3, -2]} intensity={1.0} color="#ffcc00" distance={10} />
+
+      <mesh material={material}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+
+      {/* Border glow halo */}
+      <mesh material={haloMat} position={[0, 0, -0.1]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+    </>
   );
 }

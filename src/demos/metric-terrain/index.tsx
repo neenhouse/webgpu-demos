@@ -183,7 +183,7 @@ function TimeCursor() {
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
     mat.depthWrite = false;
     mat.blending = THREE.AdditiveBlending;
     mat.color = new THREE.Color(0x44aaff);

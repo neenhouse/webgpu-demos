@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
@@ -11,7 +11,10 @@ import {
   mix,
   smoothstep,
   positionLocal,
+  positionWorld,
   normalLocal,
+  normalWorld,
+  cameraPosition,
   Loop,
 } from 'three/tsl';
 
@@ -25,6 +28,10 @@ import {
  * - Per-cell unique colors with dark interiors
  * - Emissive neon glow on crack edges
  * - Subtle vertex displacement for cracked look
+ * - BackSide bloom halo shells (3 shells) for glow aura
+ * - Background atmosphere sphere with radial gradient
+ * - Instanced background star particles with hash twinkle
+ * - 3 colored point lights matching cyan palette
  */
 
 const CELL_COUNT = 16;
@@ -80,8 +87,6 @@ export default function VoronoiShatter() {
         const dist = dx.mul(dx).add(dy.mul(dy)).add(dz.mul(dz)).sqrt();
 
         // Update nearest and second-nearest
-        // If this is closer than d1, shift d1 to d2 and update d1
-        // If between d1 and d2, just update d2
         const isNearest = dist.lessThan(d1);
         const isBetween = dist.greaterThanEqual(d1).and(dist.lessThan(d2));
 
@@ -146,6 +151,71 @@ export default function VoronoiShatter() {
     return mat;
   })();
 
+  // BackSide bloom halo shells (3 shells)
+  const haloMaterials = useMemo(() => {
+    return [
+      { scale: 1.06, opacity: 0.035 },
+      { scale: 1.12, opacity: 0.025 },
+      { scale: 1.20, opacity: 0.018 },
+    ].map(({ opacity }) => {
+      const mat = new THREE.MeshBasicNodeMaterial();
+      mat.transparent = true;
+      mat.blending = THREE.AdditiveBlending;
+      mat.depthWrite = false;
+      mat.side = THREE.BackSide;
+      // Fresnel-like radial glow on shell
+      const fn = Fn(() => {
+        const viewDir = cameraPosition.sub(positionWorld).normalize();
+        const nDotV = normalWorld.dot(viewDir).saturate();
+        const rim = float(1.0).sub(nDotV).pow(float(2.5));
+        return vec3(0.2, 0.9, 1.0).mul(rim).mul(float(opacity));
+      });
+      mat.colorNode = fn();
+      return mat;
+    });
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(6.0)).div(float(12.0)).saturate();
+      const bottom = vec3(0.0, 0.02, 0.06);
+      const top = vec3(0.0, 0.0, 0.02);
+      return mix(bottom, top, py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background star particles
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 60; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 8 + Math.random() * 4;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(6.1).add(positionWorld.y.mul(11.3)));
+      const twinkle = float(0.5).add(float(0.5).mul(h));
+      return vec3(0.6, 0.9, 1.0).mul(twinkle);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
   // Slow rotation
   useFrame((_, delta) => {
     if (meshRef.current) {
@@ -156,14 +226,36 @@ export default function VoronoiShatter() {
 
   return (
     <>
+      <color attach="background" args={['#000810']} />
+      {/* Background atmosphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[14, 16, 10]} />
+      </mesh>
+      {/* Star particles */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.025, 4, 4]} />
+        </mesh>
+      ))}
       <ambientLight intensity={0.1} />
       <directionalLight position={[3, 4, 5]} intensity={0.3} />
       <pointLight position={[2, 2, 2]} intensity={3.0} color="#00ccff" distance={10} />
       <pointLight position={[-2, -1, -2]} intensity={2.0} color="#0088ff" distance={8} />
+      <pointLight position={[0, 3, -3]} intensity={2.5} color="#00ffcc" distance={12} />
 
       <mesh ref={meshRef} material={material}>
         <icosahedronGeometry args={[2, 5]} />
       </mesh>
+
+      {/* Bloom halo shells */}
+      {haloMaterials.map((haloMat, i) => {
+        const scales = [1.06, 1.12, 1.20];
+        return (
+          <mesh key={i} material={haloMat} scale={scales[i]}>
+            <icosahedronGeometry args={[2, 3]} />
+          </mesh>
+        );
+      })}
     </>
   );
 }

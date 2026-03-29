@@ -14,6 +14,7 @@ import {
   fract,
   mix,
   smoothstep,
+  sin,
   Loop,
   Break,
   If,
@@ -110,12 +111,72 @@ function JuliaPlane() {
       const interior = vec3(0.02, 0.0, 0.08);
       const outColor = mix(interior, finalColor, escaped);
 
-      return vec4(outColor, float(1.0));
+      // Vignette: subtle dark edge
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const vignette = smoothstep(float(0.7), float(0.3), r);
+
+      return vec4(outColor.mul(vignette), float(1.0));
     });
 
     mat.colorNode = juliaMorph();
     return mat;
   }, [cRe, cIm, aspectU]);
+
+  // Additive halo overlay for bloom
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const glow = smoothstep(float(0.45), float(0.0), r).mul(float(0.04));
+      const pulse = sin(time.mul(1.2)).mul(float(0.4)).add(float(0.6));
+      return vec3(0.6, 0.1, 1.0).mul(glow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Third halo: faint outer atmospheric ring
+  const haloMat3 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      // Thin ring at viewport edge
+      const ringGlow = smoothstep(float(0.5), float(0.48), r).mul(
+        smoothstep(float(0.44), float(0.48), r)
+      ).mul(float(0.035));
+      const pulse = sin(time.mul(0.5)).mul(float(0.4)).add(float(0.6));
+      return vec3(1.0, 0.0, 0.5).mul(ringGlow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Second halo ring
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const glow = smoothstep(float(0.5), float(0.1), r).mul(float(0.025));
+      return vec3(1.0, 0.2, 0.5).mul(glow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -127,9 +188,27 @@ function JuliaPlane() {
   });
 
   return (
-    <mesh material={material}>
-      <planeGeometry args={[viewport.width, viewport.height]} />
-    </mesh>
+    <>
+      <color attach="background" args={['#020008']} />
+      {/* Atmosphere lights */}
+      <pointLight position={[-3, 2, 2]} intensity={1.5} color="#6600ff" distance={15} />
+      <pointLight position={[3, -2, 2]} intensity={1.2} color="#ff0066" distance={12} />
+      <pointLight position={[0, 3, -2]} intensity={1.0} color="#ff8800" distance={10} />
+
+      <mesh material={material}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+      {/* Bloom halo overlays */}
+      <mesh material={haloMat1} position={[0, 0, -0.1]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+      <mesh material={haloMat2} position={[0, 0, -0.2]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+      <mesh material={haloMat3} position={[0, 0, -0.3]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+    </>
   );
 }
 

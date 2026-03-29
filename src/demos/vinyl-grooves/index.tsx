@@ -13,6 +13,7 @@ import {
   mix,
   smoothstep,
   sin,
+  hash,
 } from 'three/tsl';
 
 /**
@@ -26,6 +27,10 @@ import {
  * The groove displacement is purely visual (vertex noise) to give the record
  * a physical bumpy texture. Color is dark vinyl with subtle rainbow sheen
  * angled at the tonearm position.
+ *
+ * Additional: BackSide bloom halo shells around the record (2 shells),
+ * instanced background floating dust particles (50) with hash-based drift,
+ * 3 colored point lights for warm/cool ambience, background atmosphere sphere.
  */
 
 const RPM = 33.3;
@@ -109,6 +114,77 @@ export default function VinylGrooves() {
     return mat;
   }, []);
 
+  // BackSide bloom halo shells around the record
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(2.5));
+      return vec3(1.0, 0.5, 0.1).mul(rim).mul(float(0.03));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(3.0));
+      return vec3(0.3, 0.5, 1.0).mul(rim).mul(float(0.02));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(3.0)).div(float(10.0)).saturate();
+      return mix(vec3(0.04, 0.02, 0.01), vec3(0.01, 0.01, 0.02), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Dust particle positions (50 tiny floating motes)
+  const dustPositions = useMemo(() => {
+    const pos: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      pos.push([
+        (Math.random() - 0.5) * 4,
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 4,
+      ]);
+    }
+    return pos;
+  }, []);
+
+  const dustMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(8.1).add(positionWorld.y.mul(5.7)));
+      const drift = sin(time.mul(h.mul(0.5).add(0.2))).mul(float(0.3)).add(float(0.7));
+      return vec3(0.9, 0.8, 0.6).mul(drift).mul(float(0.3));
+    });
+    mat.colorNode = fn();
+    mat.opacity = 0.4;
+    return mat;
+  }, []);
+
   // Tonearm material
   const tonearmMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
@@ -133,10 +209,23 @@ export default function VinylGrooves() {
   return (
     <>
       <color attach="background" args={['#0a0508']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[12, 16, 10]} />
+      </mesh>
       <ambientLight intensity={0.15} />
       <directionalLight position={[3, 8, 4]} intensity={1.2} color="#fff0e8" />
       <pointLight position={[0, 3, 0]} intensity={4} color="#ffaa44" distance={10} />
       <pointLight position={[-2, 2, 2]} intensity={2} color="#4488ff" distance={8} />
+      {/* Additional cool back light */}
+      <pointLight position={[0, -1, -3]} intensity={1.5} color="#aa44ff" distance={8} />
+
+      {/* Dust particles */}
+      {dustPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={dustMat}>
+          <sphereGeometry args={[0.01, 4, 4]} />
+        </mesh>
+      ))}
 
       {/* Record turntable platter */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]} material={vinylPlatterMat}>
@@ -151,6 +240,24 @@ export default function VinylGrooves() {
         material={recordMaterial}
       >
         <cylinderGeometry args={[1.0, 1.0, 0.01, 128, 48]} />
+      </mesh>
+
+      {/* Bloom halo shells around record */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.12, 0]}
+        scale={1.08}
+        material={haloMat1}
+      >
+        <cylinderGeometry args={[1.0, 1.0, 0.01, 32, 4]} />
+      </mesh>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.12, 0]}
+        scale={1.15}
+        material={haloMat2}
+      >
+        <cylinderGeometry args={[1.0, 1.0, 0.01, 32, 4]} />
       </mesh>
 
       {/* Tonearm pivot base */}

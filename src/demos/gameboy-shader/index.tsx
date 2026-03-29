@@ -10,6 +10,7 @@ import {
   uniform,
   screenUV,
   screenSize,
+  time,
   sin,
   fract,
   floor,
@@ -28,6 +29,9 @@ import {
  * 3. Bayer 4x4 ordered dithering before quantization
  * 4. Dark frame border around viewport edges
  * 5. Terrain and tree scene
+ * 6. Additive BackSide outer glow bloom shells (2 shells)
+ * 7. Subtle screen scanline flicker based on time
+ * 8. 2 colored point lights for warm ambience
  */
 
 function GameboyPlane() {
@@ -44,7 +48,6 @@ function GameboyPlane() {
       const uv = screenUV;
 
       // ── DMG-style frame border ──
-      // Thick dark bezels around screen
       const bezelX = float(0.06);
       const bezelY = float(0.08);
       const inScreen = smoothstep(float(0.0), bezelX, uv.x)
@@ -53,7 +56,6 @@ function GameboyPlane() {
         .mul(smoothstep(float(1.0), float(1.0).sub(bezelY), uv.y));
 
       // ── Sample the scene at this pixel ──
-      // Normalize UV within the screen area
       const screenMin = vec2(bezelX, bezelY);
       const screenMax = vec2(float(1.0).sub(bezelX), float(1.0).sub(bezelY));
       const screenUVLocal = uv.sub(screenMin).div(screenMax.sub(screenMin)).clamp(vec2(0.0, 0.0), vec2(1.0, 1.0));
@@ -61,7 +63,6 @@ function GameboyPlane() {
       const sUV = screenUVLocal.sub(0.5);
 
       // Simple terrain + tree scene
-      // Sky
       const skyLuma = float(0.85);
 
       // Ground plane
@@ -111,13 +112,11 @@ function GameboyPlane() {
       const px = screenUV.x.mul(screenSize.x).floor().mod(float(4.0));
       const py = screenUV.y.mul(screenSize.y).floor().mod(float(4.0));
 
-      // Bayer 4x4 matrix values as piecewise
       const b00 = float(0.0/16); const b01 = float(8.0/16); const b02 = float(2.0/16); const b03 = float(10.0/16);
       const b10 = float(12.0/16); const b11 = float(4.0/16); const b12 = float(14.0/16); const b13 = float(6.0/16);
       const b20 = float(3.0/16); const b21 = float(11.0/16); const b22 = float(1.0/16); const b23 = float(9.0/16);
       const b30 = float(15.0/16); const b31 = float(7.0/16); const b32 = float(13.0/16); const b33 = float(5.0/16);
 
-      // Row 0 or row 1
       const row0val = mix(mix(b00, b01, smoothstep(float(0.5), float(1.5), px)),
                          mix(b02, b03, smoothstep(float(1.5), float(2.5), px)),
                          smoothstep(float(0.5), float(2.5), px));
@@ -158,10 +157,14 @@ function GameboyPlane() {
       const lcdGrid = lcdBorderX.mul(lcdBorderY);
       const withLCD = mix(palette.mul(float(0.5)), palette, lcdGrid);
 
+      // ── Subtle scanline flicker using time ──
+      const scanY = screenUV.y.mul(screenSize.y).floor().mod(float(2.0));
+      const scanFlicker = sin(time.mul(30.0).add(scanY.mul(3.14))).mul(float(0.01)).add(float(1.0));
+      const withScan = withLCD.mul(scanFlicker);
+
       // ── Frame border (bezel) ──
-      // Frame color: dark gray plastic
       const frameColor = vec3(float(0.15), float(0.13), float(0.12));
-      const gameResult = mix(frameColor, withLCD, inScreen);
+      const gameResult = mix(frameColor, withScan, inScreen);
 
       return vec4(gameResult, float(1.0));
     });
@@ -169,6 +172,41 @@ function GameboyPlane() {
     mat.colorNode = gameboy();
     return mat;
   }, [timeUniform]);
+
+  // Additive outer glow bloom halo shells
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      // Screen-edge glow: DMG green tint
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const edgeGlow = smoothstep(float(0.35), float(0.5), r).mul(float(0.035));
+      const pulse = sin(time.mul(0.4)).mul(float(0.2)).add(float(0.8));
+      return vec3(float(0x8b/255.0), float(0xac/255.0), float(0x0f/255.0)).mul(edgeGlow).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const uv = screenUV.sub(float(0.5));
+      const r = uv.x.mul(uv.x).add(uv.y.mul(uv.y)).sqrt();
+      const edgeGlow = smoothstep(float(0.4), float(0.5), r).mul(float(0.02));
+      return vec3(0.2, 0.5, 0.1).mul(edgeGlow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   useFrame((_, delta) => {
     timeUniform.value += delta;
@@ -179,7 +217,19 @@ function GameboyPlane() {
 
   return (
     <>
+      {/* Warm DMG-style backlighting */}
+      <pointLight position={[0, 0, 3]} intensity={2} color="#a8c030" distance={12} />
+      <pointLight position={[-2, 1, 2]} intensity={1} color="#305030" distance={8} />
+
       <mesh ref={meshRef} material={material} position={[0, 0, 0]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+
+      {/* Bloom halo overlays */}
+      <mesh material={haloMat1} position={[0, 0, -0.1]}>
+        <planeGeometry args={[viewport.width, viewport.height]} />
+      </mesh>
+      <mesh material={haloMat2} position={[0, 0, -0.2]}>
         <planeGeometry args={[viewport.width, viewport.height]} />
       </mesh>
     </>

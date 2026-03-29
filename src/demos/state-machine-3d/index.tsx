@@ -196,12 +196,12 @@ function makeOrbitalHaloMaterial(hexColor: number) {
 function makeShockwaveMaterial(hexColor: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
-  mat.side = THREE.DoubleSide;
+  mat.side = THREE.BackSide;
   mat.depthWrite = false;
   mat.blending = THREE.AdditiveBlending;
   mat.color = new THREE.Color(hexColor);
   mat.emissive = new THREE.Color(hexColor);
-  mat.emissiveIntensity = 4.0;
+  mat.emissiveIntensity = 3.0;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
 

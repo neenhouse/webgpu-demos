@@ -12,6 +12,9 @@ import {
   mix,
   smoothstep,
   length,
+  time,
+  sin,
+  hash,
 } from 'three/tsl';
 
 const COUNT = 500;
@@ -44,7 +47,7 @@ export default function FibonacciSpiral() {
     return data;
   }, []);
 
-  // TSL material: 4-stop color gradient by radius
+  // TSL material: 4-stop color gradient by radius + Fresnel emissive
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
 
@@ -66,7 +69,7 @@ export default function FibonacciSpiral() {
 
     mat.colorNode = colorByRadius();
 
-    // Emissive glow: stronger on outer rings
+    // Fresnel emissive: stronger on outer rings + hash twinkle
     const glowOuter = Fn(() => {
       const xz = positionWorld.xz;
       const r = length(xz).div(float(maxRadius)).saturate();
@@ -74,12 +77,14 @@ export default function FibonacciSpiral() {
       const viewDir = cameraPosition.sub(positionWorld).normalize();
       const nDotV = normalWorld.dot(viewDir).saturate();
       const fresnel = float(1.0).sub(nDotV).pow(float(2.0));
+      const h = hash(positionWorld.x.mul(7.1).add(positionWorld.z.mul(3.3)));
+      const pulse = sin(time.mul(h.mul(3.0).add(1.0))).mul(float(0.2)).add(float(0.8));
       const emissiveColor = mix(
         vec3(1.0, 0.5, 0.0),
         vec3(1.0, 0.1, 0.1),
         r
       );
-      return emissiveColor.mul(glow).mul(fresnel).mul(float(2.0));
+      return emissiveColor.mul(glow).mul(fresnel).mul(float(2.0)).mul(pulse);
     });
 
     mat.emissiveNode = glowOuter();
@@ -88,6 +93,52 @@ export default function FibonacciSpiral() {
 
     return mat;
   }, [maxRadius]);
+
+  // BackSide bloom halo shells around the central core
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(2.5));
+      const pulse = sin(time.mul(1.5)).mul(float(0.3)).add(float(0.7));
+      return vec3(1.0, 0.7, 0.0).mul(rim).mul(float(0.035)).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(3.0));
+      return vec3(1.0, 0.3, 0.0).mul(rim).mul(float(0.02));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(6.0)).div(float(14.0)).saturate();
+      return mix(vec3(0.04, 0.02, 0.0), vec3(0.01, 0.01, 0.0), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   const setRef = useCallback((el: THREE.InstancedMesh | null) => {
     meshRef.current = el;
@@ -138,6 +189,11 @@ export default function FibonacciSpiral() {
 
   return (
     <>
+      <color attach="background" args={['#0a0500']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[18, 16, 10]} />
+      </mesh>
       <ambientLight intensity={0.2} />
       <pointLight position={[0, 5, 5]} intensity={2.5} color={0xffcc00} />
       <pointLight position={[3, 2, -4]} intensity={1.5} color={0xff6600} />
@@ -162,6 +218,14 @@ export default function FibonacciSpiral() {
             transparent
             opacity={0.6}
           />
+        </mesh>
+
+        {/* Bloom halo shells around center */}
+        <mesh position={[0, 0, 0]} scale={0.55} material={haloMat1}>
+          <sphereGeometry args={[1, 12, 10]} />
+        </mesh>
+        <mesh position={[0, 0, 0]} scale={0.7} material={haloMat2}>
+          <sphereGeometry args={[1, 12, 10]} />
         </mesh>
       </group>
     </>

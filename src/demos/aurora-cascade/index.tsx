@@ -136,7 +136,7 @@ export default function AuroraCascade() {
     mat.opacityNode = brightness.mul(0.08);
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
     mat.roughness = 1.0;
     mat.metalness = 0.0;
 
@@ -176,7 +176,7 @@ export default function AuroraCascade() {
     mat.opacityNode = brightness.mul(0.03);
     mat.blending = THREE.AdditiveBlending;
     mat.depthWrite = false;
-    mat.side = THREE.DoubleSide;
+    mat.side = THREE.BackSide;
     mat.roughness = 1.0;
     mat.metalness = 0.0;
 

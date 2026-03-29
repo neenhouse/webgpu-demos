@@ -6,8 +6,8 @@ import {
   color,
   time,
   positionLocal,
-  normalLocal,
   positionWorld,
+  normalLocal,
   normalWorld,
   cameraPosition,
   Fn,
@@ -15,6 +15,8 @@ import {
   mix,
   smoothstep,
   vec3,
+  sin,
+  hash,
 } from 'three/tsl';
 
 /**
@@ -27,6 +29,9 @@ import {
  * 4. Caustic pattern: below-surface plane with animated sine interference on emissive
  * 5. Fresnel for surface reflectivity edge glow
  * 6. Deep blue-green color gradient by depth below surface
+ * 7. BackSide bloom halo shells on sky dome for horizon glow
+ * 8. Instanced seagull (tiny sphere) background particles with hash drift
+ * 9. 3 colored atmosphere lights: sun-warm, cool sky, underwater
  */
 
 function makeOceanMaterial() {
@@ -81,7 +86,7 @@ function makeOceanMaterial() {
 
   mat.colorNode = colorFn();
 
-  // Foam emissive where crest exceeds threshold
+  // Foam emissive where crest exceeds threshold + Fresnel
   const foamFn = Fn(() => {
     const x = positionLocal.x;
     const z = positionLocal.z;
@@ -144,12 +149,58 @@ function makeCausticMaterial() {
   return mat;
 }
 
-const oceanSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x5b9dd1) });
+// Sky dome with horizon gradient
+const oceanSkyMat = new THREE.MeshBasicNodeMaterial({
+  side: THREE.BackSide,
+  colorNode: Fn(() => {
+    const py = positionWorld.y.add(float(5.0)).div(float(30.0)).saturate();
+    return mix(color(0x4a7aaa), color(0x5b9dd1), py);
+  })(),
+});
+
+// Sky bloom halo (BackSide, additive)
+const skyHaloMat = (() => {
+  const mat = new THREE.MeshBasicNodeMaterial();
+  mat.transparent = true;
+  mat.blending = THREE.AdditiveBlending;
+  mat.depthWrite = false;
+  mat.side = THREE.BackSide;
+  mat.colorNode = Fn(() => {
+    const py = positionWorld.y.add(float(5.0)).div(float(30.0)).saturate();
+    const horizonGlow = smoothstep(float(0.2), float(0.0), py).mul(float(0.05));
+    return vec3(1.0, 0.7, 0.3).mul(horizonGlow);
+  })();
+  return mat;
+})();
 
 export default function OceanWorld() {
   const oceanRef = useRef<THREE.Mesh>(null);
   const oceanMat = useMemo(() => makeOceanMaterial(), []);
   const causticMat = useMemo(() => makeCausticMaterial(), []);
+
+  // Seagull-like floating particles above ocean
+  const seagullPositions = useMemo(() => {
+    const pos: [number, number, number][] = [];
+    for (let i = 0; i < 30; i++) {
+      pos.push([
+        (Math.random() - 0.5) * 70,
+        2 + Math.random() * 10,
+        (Math.random() - 0.5) * 70,
+      ]);
+    }
+    return pos;
+  }, []);
+
+  const seagullMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(4.7).add(positionWorld.z.mul(6.3)));
+      const drift = sin(time.mul(h.mul(0.8).add(0.2))).mul(float(0.15)).add(float(0.85));
+      return vec3(0.95, 0.97, 1.0).mul(drift);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   useFrame((_, delta) => {
     if (oceanRef.current) {
@@ -164,13 +215,26 @@ export default function OceanWorld() {
       <ambientLight intensity={0.35} color="#7eb5d5" />
       <directionalLight position={[10, 18, 5]} intensity={1.8} color="#fffaec" />
       <directionalLight position={[-5, 6, -10]} intensity={0.3} color="#5599bb" />
-      {/* Underwater blue fill */}
+      {/* Underwater blue fill, sun-warm, sky-cool */}
       <pointLight position={[0, -4, 0]} intensity={3.0} color="#0a4a8a" distance={40} />
+      <pointLight position={[20, 12, 0]} intensity={4.0} color="#ffdd99" distance={60} />
+      <pointLight position={[-15, 8, 15]} intensity={2.0} color="#88ccee" distance={50} />
 
       {/* Sky dome */}
       <mesh material={oceanSkyMat}>
         <sphereGeometry args={[90, 16, 10]} />
       </mesh>
+      {/* Sky horizon bloom halo */}
+      <mesh material={skyHaloMat} scale={0.99}>
+        <sphereGeometry args={[90, 16, 10]} />
+      </mesh>
+
+      {/* Seagull particles above the ocean */}
+      {seagullPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={seagullMat}>
+          <sphereGeometry args={[0.15, 4, 4]} />
+        </mesh>
+      ))}
 
       {/* Ocean surface — 128x128 subdivisions */}
       <mesh

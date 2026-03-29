@@ -8,6 +8,11 @@ import {
   cameraPosition,
   positionWorld,
   normalWorld,
+  mix,
+  sin,
+  hash,
+  time,
+  smoothstep,
 } from 'three/tsl';
 
 const NUM_FIBERS = 30;
@@ -80,7 +85,7 @@ export default function HopfFibration() {
     return bases;
   }, []);
 
-  // Per-fiber materials with rainbow gradient
+  // Per-fiber materials with rainbow gradient + hash twinkle emissive
   const fiberMaterials = useMemo(() => {
     return fiberBases.map((_, i) => {
       const col = fiberColor(i);
@@ -90,7 +95,9 @@ export default function HopfFibration() {
         const viewDir = cameraPosition.sub(positionWorld).normalize();
         const nDotV = normalWorld.dot(viewDir).saturate();
         const f = float(1.0).sub(nDotV).pow(float(3.0));
-        return vec3(col.r, col.g, col.b).mul(f).mul(float(3.5));
+        const h = hash(positionWorld.x.mul(5.3).add(positionWorld.z.mul(7.1)));
+        const pulse = sin(time.mul(h.mul(3.0).add(float(i * 0.3)))).mul(float(0.2)).add(float(0.8));
+        return vec3(col.r, col.g, col.b).mul(f).mul(float(3.5)).mul(pulse);
       });
 
       mat.colorNode = vec3(col.r * 0.4, col.g * 0.4, col.b * 0.4);
@@ -101,6 +108,66 @@ export default function HopfFibration() {
       return mat;
     });
   }, [fiberBases]);
+
+  // BackSide bloom halo material for the whole structure
+  const haloMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(2.5));
+      const t = time.mul(0.5);
+      const r = sin(t).mul(float(0.5)).add(float(0.5));
+      const g = sin(t.add(float(2.1))).mul(float(0.5)).add(float(0.5));
+      const b = sin(t.add(float(4.2))).mul(float(0.5)).add(float(0.5));
+      return vec3(r, g, b).mul(rim).mul(float(0.03));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(4.0)).div(float(10.0)).saturate();
+      return mix(vec3(0.0, 0.01, 0.04), vec3(0.0, 0.0, 0.01), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background star particles (50 tiny spheres)
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 7 + Math.random() * 3;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(7.3).add(positionWorld.y.mul(11.1)));
+      const glow = smoothstep(float(0.0), float(1.0), h).mul(float(0.8)).add(float(0.2));
+      return vec3(0.7, 0.8, 1.0).mul(glow);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
 
   const setFiberRef = useCallback((i: number) => (el: THREE.InstancedMesh | null) => {
     fiberMeshRefs.current[i] = el;
@@ -142,6 +209,17 @@ export default function HopfFibration() {
 
   return (
     <>
+      <color attach="background" args={['#000108']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[12, 16, 10]} />
+      </mesh>
+      {/* Background stars */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.02, 4, 4]} />
+        </mesh>
+      ))}
       <ambientLight intensity={0.1} />
       <pointLight position={[0, 4, 4]} intensity={2} color={0x4488ff} />
       <pointLight position={[-4, -2, 3]} intensity={1.5} color={0xff44aa} />
@@ -158,6 +236,11 @@ export default function HopfFibration() {
             <sphereGeometry args={[1, 8, 6]} />
           </instancedMesh>
         ))}
+
+        {/* Halo shell around the fibration volume */}
+        <mesh scale={4.5} material={haloMat}>
+          <sphereGeometry args={[1, 16, 10]} />
+        </mesh>
       </group>
     </>
   );

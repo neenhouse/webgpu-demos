@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useThree } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   Fn,
@@ -34,6 +34,15 @@ import {
 
 function MorphscapePlane() {
   const { viewport } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  // Subtle slow camera-like drift: gently shift the fullscreen plane for a parallax feel
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime();
+    meshRef.current.position.x = Math.sin(t * 0.05) * 0.02;
+    meshRef.current.position.y = Math.sin(t * 0.07) * 0.015;
+  });
 
   const material = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
@@ -284,7 +293,7 @@ function MorphscapePlane() {
   }, [viewport.width, viewport.height]);
 
   return (
-    <mesh material={material}>
+    <mesh ref={meshRef} material={material}>
       <planeGeometry args={[viewport.width, viewport.height]} />
     </mesh>
   );

@@ -12,6 +12,9 @@ import {
   normalWorld,
   mix,
   smoothstep,
+  sin,
+  hash,
+  time,
 } from 'three/tsl';
 
 const U_SEGS = 80;
@@ -124,7 +127,7 @@ export default function KleinBottle() {
 
     mat.colorNode = surfaceColor();
 
-    // Fresnel glow at edges
+    // Fresnel glow at edges + hash-based shimmer
     const fresnelGlow = Fn(() => {
       const viewDir = cameraPosition.sub(positionWorld).normalize();
       const nDotV = normalWorld.dot(viewDir).abs().saturate();
@@ -136,7 +139,10 @@ export default function KleinBottle() {
         vec3(0.2, 0.6, 1.0),
         uCoord
       );
-      return glowColor.mul(f).mul(float(2.5));
+      // Hash shimmer for sparkle effect
+      const h = hash(positionWorld.x.mul(8.1).add(positionWorld.y.mul(5.3)));
+      const shimmer = sin(time.mul(h.mul(4.0).add(1.0))).mul(float(0.2)).add(float(0.8));
+      return glowColor.mul(f).mul(float(2.5)).mul(shimmer);
     });
 
     mat.emissiveNode = fresnelGlow();
@@ -156,6 +162,78 @@ export default function KleinBottle() {
     return mat;
   }, []);
 
+  // BackSide bloom halo shells (2 shells)
+  const haloMat1 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).abs().saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(2.5));
+      const pulse = sin(time.mul(0.8)).mul(float(0.3)).add(float(0.7));
+      return vec3(1.0, 0.45, 0.1).mul(rim).mul(float(0.03)).mul(pulse);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  const haloMat2 = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.blending = THREE.AdditiveBlending;
+    mat.depthWrite = false;
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const viewDir = cameraPosition.sub(positionWorld).normalize();
+      const nDotV = normalWorld.dot(viewDir).abs().saturate();
+      const rim = float(1.0).sub(nDotV).pow(float(3.0));
+      return vec3(0.2, 0.5, 1.0).mul(rim).mul(float(0.02));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background atmosphere sphere
+  const atmMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.side = THREE.BackSide;
+    const fn = Fn(() => {
+      const py = positionWorld.y.add(float(3.0)).div(float(8.0)).saturate();
+      return mix(vec3(0.02, 0.01, 0.0), vec3(0.0, 0.01, 0.03), py);
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
+  // Background star particles (50 tiny spheres)
+  const starPositions = useMemo(() => {
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 6 + Math.random() * 3;
+      positions.push([
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi),
+      ]);
+    }
+    return positions;
+  }, []);
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    const fn = Fn(() => {
+      const h = hash(positionWorld.x.mul(5.7).add(positionWorld.y.mul(8.3)));
+      return vec3(0.8, 0.7, 1.0).mul(h.mul(0.5).add(0.5));
+    });
+    mat.colorNode = fn();
+    return mat;
+  }, []);
+
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.rotation.y = state.clock.elapsedTime * 0.2;
@@ -166,6 +244,17 @@ export default function KleinBottle() {
 
   return (
     <>
+      <color attach="background" args={['#060204']} />
+      {/* Background atmosphere sphere */}
+      <mesh material={atmMat}>
+        <sphereGeometry args={[11, 16, 10]} />
+      </mesh>
+      {/* Star particles */}
+      {starPositions.map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} material={starMat}>
+          <sphereGeometry args={[0.02, 4, 4]} />
+        </mesh>
+      ))}
       <ambientLight intensity={0.2} />
       <pointLight position={[3, 3, 5]} intensity={2.5} color={0xff8822} />
       <pointLight position={[-3, -2, 4]} intensity={2.0} color={0x2244ff} />
@@ -174,6 +263,9 @@ export default function KleinBottle() {
       <group ref={groupRef}>
         <mesh ref={meshRef} geometry={geometry} material={material} />
         <mesh ref={wireMeshRef} geometry={geometry} material={wireMaterial} />
+        {/* Halo shells on Klein bottle surface */}
+        <mesh geometry={geometry} material={haloMat1} scale={1.05} />
+        <mesh geometry={geometry} material={haloMat2} scale={1.10} />
       </group>
     </>
   );
