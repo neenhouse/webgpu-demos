@@ -876,12 +876,16 @@ function FlowParticles({
 
   const active = hoveredService ?? selectedService;
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const scratchFlowDir = useMemo(() => new THREE.Vector3(), []);
+  const scratchPerpVec = useMemo(() => new THREE.Vector3(), []);
+  const scratchUpVec = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+
   useFrame((state) => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
     const currentTime = state.clock.elapsedTime;
-    const dummy = new THREE.Object3D();
     const colors = colorsRef.current;
 
     for (let fi = 0; fi < flowData.length; fi++) {
@@ -907,11 +911,11 @@ function FlowParticles({
       }
 
       // #54: Compute perpendicular vector for sinusoidal wavy offset
-      const flowDir = new THREE.Vector3().subVectors(to, from).normalize();
+      scratchFlowDir.subVectors(to, from).normalize();
       // Cross with up to get a sideways perpendicular
-      const perpVec = new THREE.Vector3().crossVectors(flowDir, new THREE.Vector3(0, 1, 0)).normalize();
+      scratchPerpVec.crossVectors(scratchFlowDir, scratchUpVec).normalize();
       // If flow is mostly vertical, use X axis instead
-      if (perpVec.lengthSq() < 0.01) perpVec.set(1, 0, 0);
+      if (scratchPerpVec.lengthSq() < 0.01) scratchPerpVec.set(1, 0, 0);
 
       // #93: Detect when any particle crosses t>0.95 (arrives at destination)
       let arrivedThisFrame = false;
@@ -945,8 +949,8 @@ function FlowParticles({
         const wavePhase = currentTime * 1.5 + pi * (Math.PI * 2 / PARTICLES_PER_FLOW);
         const waveAmplitude = 0.12;
         const waveSin = Math.sin(waveFreq * t * Math.PI + wavePhase) * waveAmplitude;
-        dummy.position.x += perpVec.x * waveSin;
-        dummy.position.z += perpVec.z * waveSin;
+        dummy.position.x += scratchPerpVec.x * waveSin;
+        dummy.position.z += scratchPerpVec.z * waveSin;
 
         // #25: Every 3rd particle is 1.5x scale (data packet effect)
         const isDataPacket = pi % 3 === 0;
@@ -963,7 +967,7 @@ function FlowParticles({
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL_PARTICLES]} material={particleMat}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL_PARTICLES]} material={particleMat} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
     </instancedMesh>
   );
@@ -1227,12 +1231,14 @@ function TraceBurstParticles({ position, color }: { position: [number, number, n
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const burstDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((_, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     ageRef.current += delta;
     const age = ageRef.current;
-    const dummy = new THREE.Object3D();
+    const dummy = burstDummy;
     for (let i = 0; i < BURST_PARTICLE_COUNT; i++) {
       const v = startRef.current[i];
       if (!v) { dummy.scale.setScalar(0); dummy.updateMatrix(); mesh.setMatrixAt(i, dummy.matrix); continue; }
@@ -1252,7 +1258,7 @@ function TraceBurstParticles({ position, color }: { position: [number, number, n
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, BURST_PARTICLE_COUNT]} material={mat}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, BURST_PARTICLE_COUNT]} material={mat} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
     </instancedMesh>
   );
@@ -1271,13 +1277,15 @@ function FloorLightTrail({ positions, fadeTime }: { positions: THREE.Vector3[]; 
     return m;
   }, []);
 
+  const trailDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
     // Fade: full at fadeTime=0, gone at fadeTime=3
     const alpha = Math.max(0, 1 - fadeTime / 3.0);
     mat.opacity = 0.35 * alpha;
-    const dummy = new THREE.Object3D();
+    const dummy = trailDummy;
     for (let i = 0; i < positions.length; i++) {
       dummy.position.set(positions[i].x, -2.49, positions[i].z);
       dummy.scale.setScalar(0.08);
@@ -1289,7 +1297,7 @@ function FloorLightTrail({ positions, fadeTime }: { positions: THREE.Vector3[]; 
 
   if (positions.length === 0) return null;
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, positions.length)]} material={mat}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, Math.max(1, positions.length)]} material={mat} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
     </instancedMesh>
   );
@@ -1528,7 +1536,7 @@ function TraceRequestBall({
       </group>
 
       {/* Original trail */}
-      <instancedMesh ref={trailRef} args={[undefined, undefined, TRAIL_COUNT]} material={trailMat}>
+      <instancedMesh ref={trailRef} args={[undefined, undefined, TRAIL_COUNT]} material={trailMat} frustumCulled={false}>
         <sphereGeometry args={[1, 6, 6]} />
       </instancedMesh>
 
@@ -1669,12 +1677,15 @@ function BackgroundStars() {
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
 
+  const starsDummy = useMemo(() => new THREE.Object3D(), []);
+  const starsMat4 = useMemo(() => new THREE.Matrix4(), []);
+
   useFrame((state, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = state.clock.elapsedTime;
-    const dummy = new THREE.Object3D();
-    const mat = new THREE.Matrix4();
+    const dummy = starsDummy;
+    const mat = starsMat4;
     for (let i = 0; i < COUNT; i++) {
       mesh.getMatrixAt(i, mat);
       dummy.position.setFromMatrixPosition(mat);
@@ -1696,7 +1707,7 @@ function BackgroundStars() {
   return (
     // #53: Wrap in a group to rotate all stars together
     <group ref={groupRef}>
-      <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} material={starMat}>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} material={starMat} frustumCulled={false}>
         <sphereGeometry args={[1, 4, 4]} />
       </instancedMesh>
     </group>
@@ -1762,11 +1773,13 @@ function AmbientParticleClusters() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const ambientDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((state) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = state.clock.elapsedTime;
-    const dummy = new THREE.Object3D();
+    const dummy = ambientDummy;
     const data = initDataRef.current;
     for (let i = 0; i < data.length; i++) {
       const d = data[i];
@@ -1783,7 +1796,7 @@ function AmbientParticleClusters() {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL]} material={mat}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, TOTAL]} material={mat} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
     </instancedMesh>
   );
@@ -2099,6 +2112,9 @@ export default function ArchitectureBlueprint() {
   // #76: Ambient light ref for slow color cycling
   const ambientLightRef = useRef<THREE.AmbientLight>(null);
 
+  const scratchCompletionPos = useMemo(() => new THREE.Vector3(), []);
+  const scratchDriftedTarget = useMemo(() => new THREE.Vector3(), []);
+
   useFrame((_, delta) => {
     timeRef.current += delta;
 
@@ -2217,7 +2233,7 @@ export default function ArchitectureBlueprint() {
             const lastS = serviceMap.get(lastId);
             if (lastS) {
               setCompletionBall({
-                position: new THREE.Vector3(...lastS.position),
+                position: scratchCompletionPos.set(...lastS.position).clone(),
                 color: getTypeHex(lastS.type),
               });
               completionBallTimerRef.current = 0;
@@ -2285,12 +2301,12 @@ export default function ArchitectureBlueprint() {
     // Ease-out lerp factor
     const lerpFactor = 0.04 + 0.06 * (1 - Math.exp(-delta * 3));
 
-    const driftedTarget = new THREE.Vector3(
+    scratchDriftedTarget.set(
       targetPos.current.x + driftX,
       targetPos.current.y,
       targetPos.current.z + driftZ,
     );
-    camera.position.lerp(driftedTarget, lerpFactor);
+    camera.position.lerp(scratchDriftedTarget, lerpFactor);
 
     // #85: Camera follow — lerp lookAt 30% toward trace ball position during trace
     const baseLookAt = targetLookAt.current.clone();

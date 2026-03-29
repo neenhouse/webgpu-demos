@@ -182,6 +182,7 @@ export default function SpriteSparks() {
           ref={meshRef}
           args={[undefined, undefined, PARTICLE_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <icosahedronGeometry args={[1, 2]} />
         </instancedMesh>

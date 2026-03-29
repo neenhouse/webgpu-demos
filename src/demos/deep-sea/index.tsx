@@ -326,12 +326,13 @@ function Plankton() {
     return mat;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Slowly drift plankton
   useFrame((state) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = state.clock.elapsedTime;
-    const dummy = new THREE.Object3D();
     for (let i = 0; i < PLANKTON_COUNT; i++) {
       mesh.getMatrixAt(i, dummy.matrix);
       dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
@@ -348,6 +349,7 @@ function Plankton() {
       ref={meshRef}
       args={[undefined, undefined, PLANKTON_COUNT]}
       material={material}
+      frustumCulled={false}
     >
       <icosahedronGeometry args={[1, 1]} />
     </instancedMesh>

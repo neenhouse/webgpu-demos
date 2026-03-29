@@ -400,6 +400,10 @@ function ImportConnection({
     [blendedHex, connIdx],
   );
 
+  const scratchDir = useMemo(() => new THREE.Vector3(), []);
+  const scratchUp = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const scratchQuat = useMemo(() => new THREE.Quaternion(), []);
+
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -418,10 +422,9 @@ function ImportConnection({
     const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (length < 0.001) return;
 
-    const dir = new THREE.Vector3(dx, dy, dz).normalize();
-    const up = new THREE.Vector3(0, 1, 0);
-    const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-    mesh.quaternion.copy(quat);
+    scratchDir.set(dx, dy, dz).normalize();
+    scratchQuat.setFromUnitVectors(scratchUp, scratchDir);
+    mesh.quaternion.copy(scratchQuat);
     mesh.scale.set(1, length, 1);
 
     const targetMat = isHighlighted ? highlightMat : normalMat;

@@ -209,11 +209,13 @@ function SmokeParticles() {
     })),
   []);
 
+  const smokeDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = clock.getElapsedTime();
-    const dummy = new THREE.Object3D();
+    const dummy = smokeDummy;
     for (let i = 0; i < SMOKE_COUNT; i++) {
       const d = smokeData[i];
       const y = d.startY + ((t * d.speed + d.phase) % 5.0);
@@ -248,11 +250,13 @@ function EmberParticles() {
     })),
   []);
 
+  const emberDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = clock.getElapsedTime();
-    const dummy = new THREE.Object3D();
+    const dummy = emberDummy;
     for (let i = 0; i < EMBER_COUNT; i++) {
       const d = emberData[i];
       const y = ((t * d.speed + d.phase) % 4.0);

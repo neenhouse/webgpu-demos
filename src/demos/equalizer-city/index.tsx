@@ -196,6 +196,7 @@ export default function EqualizerCity() {
         args={[undefined, undefined, BUILDING_COUNT]}
         material={buildingMaterial}
         castShadow
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>
@@ -205,6 +206,7 @@ export default function EqualizerCity() {
         ref={reflMeshRef}
         args={[undefined, undefined, BUILDING_COUNT]}
         material={buildingMaterial}
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>

@@ -240,7 +240,7 @@ export default function SynthwaveGrid() {
       ))}
 
       {/* Stars */}
-      <instancedMesh ref={starsRef} args={[undefined, undefined, STAR_COUNT]} material={starMat}>
+      <instancedMesh ref={starsRef} args={[undefined, undefined, STAR_COUNT]} material={starMat} frustumCulled={false}>
         <sphereGeometry args={[1, 4, 2]} />
       </instancedMesh>
 

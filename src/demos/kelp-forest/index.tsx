@@ -126,10 +126,11 @@ export default function KelpForest() {
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((_, delta) => {
     totalTimeRef.current += delta;
     const t = totalTimeRef.current;
-    const dummy = new THREE.Object3D();
 
     // Animate kelp sway
     const kelpMesh = kelpRef.current;

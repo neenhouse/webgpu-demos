@@ -338,6 +338,7 @@ export default function NeuralNet() {
           ref={nodeMeshRef}
           args={[undefined, undefined, TOTAL_NODES]}
           material={nodeMaterial}
+          frustumCulled={false}
         >
           <icosahedronGeometry args={[1, 2]} />
         </instancedMesh>
@@ -347,6 +348,7 @@ export default function NeuralNet() {
           ref={edgeMeshRef}
           args={[undefined, undefined, TOTAL_EDGES]}
           material={edgeMaterial}
+          frustumCulled={false}
         >
           <cylinderGeometry args={[1, 1, 1, 6, 1]} />
         </instancedMesh>

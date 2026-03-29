@@ -593,6 +593,7 @@ function BackgroundStars() {
       ref={meshRef}
       args={[undefined, undefined, STAR_COUNT]}
       material={material}
+      frustumCulled={false}
     >
       <icosahedronGeometry args={[1, 0]} />
     </instancedMesh>

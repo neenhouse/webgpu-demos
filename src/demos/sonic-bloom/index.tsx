@@ -55,6 +55,9 @@ export default function SonicBloom() {
   const pollenMeshRef = useRef<THREE.InstancedMesh>(null);
   const haloRefs = useRef<(THREE.Mesh | null)[]>([]);
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  const tiltMatrix = useMemo(() => new THREE.Matrix4(), []);
+  const translateMatrix = useMemo(() => new THREE.Matrix4(), []);
+  const scaleMatrix = useMemo(() => new THREE.Matrix4(), []);
 
   // Pollen particle positions (CPU-driven)
   const pollenData = useMemo(() => {
@@ -192,9 +195,9 @@ export default function SonicBloom() {
         dummy.updateMatrix();
 
         // Pivot around flower center — place petal tip outward
-        const tiltMatrix = new THREE.Matrix4().makeRotationX(-(openAngle));
-        const translateMatrix = new THREE.Matrix4().makeTranslation(0, petalLength * 0.5, 0);
-        const scaleMatrix = new THREE.Matrix4().makeScale(petalLength * 0.35, petalLength, 0.01);
+        tiltMatrix.makeRotationX(-(openAngle));
+        translateMatrix.makeTranslation(0, petalLength * 0.5, 0);
+        scaleMatrix.makeScale(petalLength * 0.35, petalLength, 0.01);
 
         dummy.matrix.multiply(tiltMatrix).multiply(translateMatrix).multiply(scaleMatrix);
 
@@ -255,6 +258,7 @@ export default function SonicBloom() {
         ref={petalMeshRef}
         args={[undefined, undefined, TOTAL_PETALS]}
         material={petalMaterial}
+        frustumCulled={false}
       >
         <planeGeometry args={[1, 1, 4, 8]} />
       </instancedMesh>
@@ -264,6 +268,7 @@ export default function SonicBloom() {
         ref={pollenMeshRef}
         args={[undefined, undefined, POLLEN_COUNT]}
         material={pollenMaterial}
+        frustumCulled={false}
       >
         <sphereGeometry args={[1, 6, 6]} />
       </instancedMesh>

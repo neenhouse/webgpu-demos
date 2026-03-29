@@ -204,6 +204,7 @@ export default function FibonacciSpiral() {
           ref={setRef}
           args={[undefined, undefined, COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <sphereGeometry args={[1, 10, 8]} />
         </instancedMesh>

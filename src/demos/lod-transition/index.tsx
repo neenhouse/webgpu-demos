@@ -141,6 +141,9 @@ export default function LodTransition() {
   const cameraRadius = useRef(8);
   const dollyDir = useRef(1);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const scratchVec = useMemo(() => new THREE.Vector3(), []);
+
   useFrame((state, delta) => {
     // Dolly camera in/out to trigger LOD transitions
     cameraRadius.current += dollyDir.current * delta * 3.0;
@@ -159,14 +162,14 @@ export default function LodTransition() {
     cameraDistUniform.value = r;
 
     // Rotate instances and update matrices per-mesh
-    const dummy = new THREE.Object3D();
     const t = state.clock.getElapsedTime();
 
     // For each mesh level, set opacity based on distance and blend
     for (let i = 0; i < INSTANCE_COUNT; i++) {
       const inst = instances[i];
       dummy.position.set(...inst.position);
-      const instDist = new THREE.Vector3(...inst.position).length();
+      scratchVec.set(...inst.position);
+      const instDist = scratchVec.length();
 
       // Rotation animation
       dummy.rotation.x = t * inst.rotSpeed[0];

@@ -143,7 +143,7 @@ function Stars({ count }: { count: number }) {
   }, []);
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} material={starMaterial}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} material={starMaterial} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
     </instancedMesh>
   );

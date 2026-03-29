@@ -125,6 +125,13 @@ export default function DrumMachineCubes() {
       }
     }
     mesh.instanceMatrix.needsUpdate = true;
+
+    // Initialize instance color buffer
+    if (!mesh.instanceColor) {
+      mesh.instanceColor = new THREE.InstancedBufferAttribute(
+        new Float32Array(TOTAL_CUBES * 3), 3
+      );
+    }
   }, [dummy, basePositions]);
 
   useFrame(() => {
@@ -181,12 +188,7 @@ export default function DrumMachineCubes() {
   useFrame(() => {
     const t = performance.now() * 0.001;
     const mesh = meshRef.current;
-    if (!mesh) return;
-    if (!mesh.instanceColor) {
-      mesh.instanceColor = new THREE.InstancedBufferAttribute(
-        new Float32Array(TOTAL_CUBES * 3), 3
-      );
-    }
+    if (!mesh || !mesh.instanceColor) return;
 
     let idx = 0;
     for (let col = 0; col < GRID_W; col++) {
@@ -221,6 +223,7 @@ export default function DrumMachineCubes() {
         ref={meshRef}
         args={[undefined, undefined, TOTAL_CUBES]}
         material={material}
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>

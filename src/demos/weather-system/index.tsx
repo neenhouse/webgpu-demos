@@ -134,6 +134,9 @@ export default function WeatherSystem() {
     mesh.count = 0;
   }, []);
 
+  const scratchSunColor = useMemo(() => new THREE.Color(), []);
+  const scratchCloudScale = useMemo(() => new THREE.Vector3(), []);
+
   useFrame((_, delta) => {
     totalTimeRef.current += delta;
     const t = totalTimeRef.current;
@@ -153,8 +156,8 @@ export default function WeatherSystem() {
     if (sunLightRef.current) {
       const targetIntensity = isClear ? 1.6 : isStormy ? 0.1 : 0.5;
       sunLightRef.current.intensity += (targetIntensity - sunLightRef.current.intensity) * delta * 1.5;
-      const sunColor = isClear ? new THREE.Color(0xfffde7) : new THREE.Color(0x6688aa);
-      sunLightRef.current.color.lerp(sunColor, delta * 1.5);
+      scratchSunColor.set(isClear ? 0xfffde7 : 0x6688aa);
+      sunLightRef.current.color.lerp(scratchSunColor, delta * 1.5);
     }
 
     // Ambient light
@@ -181,7 +184,8 @@ export default function WeatherSystem() {
     cloudRefs.current.forEach((cloud, i) => {
       if (!cloud) return;
       const targetScale = isClear ? 0.5 : isStormy ? 1.8 + i * 0.15 : 1.2 + i * 0.1;
-      cloud.scale.lerp(new THREE.Vector3(targetScale, targetScale * 0.5, targetScale), delta * 0.8);
+      scratchCloudScale.set(targetScale, targetScale * 0.5, targetScale);
+      cloud.scale.lerp(scratchCloudScale, delta * 0.8);
       cloud.position.x += delta * 0.05 * (i % 2 === 0 ? 1 : -1);
       if (Math.abs(cloud.position.x) > 8) cloud.position.x *= -0.9;
     });

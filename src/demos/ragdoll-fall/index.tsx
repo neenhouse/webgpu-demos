@@ -141,6 +141,8 @@ export default function RagdollFall() {
   const tmpDir = useMemo(() => new THREE.Vector3(), []);
   const tmpMid = useMemo(() => new THREE.Vector3(), []);
   const tmpQ = useMemo(() => new THREE.Quaternion(), []);
+  const scratchVel = useMemo(() => new THREE.Vector3(), []);
+  const scratchDiff = useMemo(() => new THREE.Vector3(), []);
 
   const jointMaterials = useMemo(() => {
     return JOINT_COLORS.map(c => new THREE.MeshStandardMaterial({
@@ -178,9 +180,9 @@ export default function RagdollFall() {
     // Verlet integration
     for (const p of particles) {
       if (p.pinned) continue;
-      const vel = new THREE.Vector3().subVectors(p.pos, p.prev).multiplyScalar(DAMPING);
+      scratchVel.subVectors(p.pos, p.prev).multiplyScalar(DAMPING);
       p.prev.copy(p.pos);
-      p.pos.add(vel);
+      p.pos.add(scratchVel);
       p.pos.y += GRAVITY * dt * dt;
     }
 
@@ -189,10 +191,10 @@ export default function RagdollFall() {
       for (const c of constraints) {
         const a = particles[c.a];
         const b = particles[c.b];
-        const diff = new THREE.Vector3().subVectors(b.pos, a.pos);
-        const dist = diff.length();
+        scratchDiff.subVectors(b.pos, a.pos);
+        const dist = scratchDiff.length();
         if (dist < 0.0001) continue;
-        const correction = diff.multiplyScalar((dist - c.restLen) / dist * 0.5);
+        const correction = scratchDiff.multiplyScalar((dist - c.restLen) / dist * 0.5);
         if (!a.pinned) a.pos.add(correction);
         if (!b.pinned) b.pos.sub(correction);
       }
@@ -205,8 +207,8 @@ export default function RagdollFall() {
           if (p.prev.y > barY) {
             // Falling onto bar
             p.pos.y = barY + 0.12;
-            const vel = new THREE.Vector3().subVectors(p.pos, p.prev);
-            p.prev.y = p.pos.y + vel.y * 0.6; // bounce
+            scratchVel.subVectors(p.pos, p.prev);
+            p.prev.y = p.pos.y + scratchVel.y * 0.6; // bounce
           }
         }
       }

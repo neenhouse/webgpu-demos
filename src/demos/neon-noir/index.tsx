@@ -130,16 +130,21 @@ export default function NeonNoir() {
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
 
+  const scratchMat4 = useMemo(() => new THREE.Matrix4(), []);
+  const scratchPos = useMemo(() => new THREE.Vector3(), []);
+  const scratchScale = useMemo(() => new THREE.Vector3(), []);
+  const scratchQuat = useMemo(() => new THREE.Quaternion(), []);
+
   // Animate rain
   useFrame((_, delta) => {
     rainTime.current += delta;
     const mesh = rainRef.current;
     if (!mesh) return;
 
-    const mat4 = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const scale = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
+    const mat4 = scratchMat4;
+    const pos = scratchPos;
+    const scale = scratchScale;
+    const quat = scratchQuat;
 
     for (let i = 0; i < RAIN_COUNT; i++) {
       mesh.getMatrixAt(i, mat4);
@@ -224,7 +229,7 @@ export default function NeonNoir() {
       </mesh>
 
       {/* Rain */}
-      <instancedMesh ref={rainRef} args={[undefined, undefined, RAIN_COUNT]} material={rainMat}>
+      <instancedMesh ref={rainRef} args={[undefined, undefined, RAIN_COUNT]} material={rainMat} frustumCulled={false}>
         <cylinderGeometry args={[1, 1, 1, 3, 1]} />
       </instancedMesh>
 

@@ -192,6 +192,10 @@ export default function ButterflySwarm() {
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const q = useMemo(() => new THREE.Quaternion(), []);
+  const fwdVec = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+
   useFrame((_, delta) => {
     updateBoids(boids, Math.min(delta, 0.03));
 
@@ -200,9 +204,6 @@ export default function ButterflySwarm() {
     const body = bodyRef.current;
     if (!lWing || !rWing || !body) return;
 
-    const dummy = new THREE.Object3D();
-    const q = new THREE.Quaternion();
-
     for (let i = 0; i < BUTTERFLY_COUNT; i++) {
       const boid = boids[i];
       const flapAngle = Math.sin(boid.phase) * (Math.PI * 0.45);
@@ -210,7 +211,7 @@ export default function ButterflySwarm() {
       // Orientation: body faces velocity direction
       const velDir = boid.velocity.clone().normalize();
       if (velDir.lengthSq() > 0.001) {
-        q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), velDir);
+        q.setFromUnitVectors(fwdVec, velDir);
       }
 
       // Left wing

@@ -232,6 +232,7 @@ export default function HopfFibration() {
             ref={setFiberRef(fi)}
             args={[undefined, undefined, POINTS_PER_FIBER]}
             material={fiberMaterials[fi]}
+            frustumCulled={false}
           >
             <sphereGeometry args={[1, 8, 6]} />
           </instancedMesh>

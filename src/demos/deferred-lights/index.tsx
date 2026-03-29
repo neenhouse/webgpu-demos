@@ -164,12 +164,13 @@ export default function DeferredLights() {
     }
   }, [furnitureMatrices, lightData]);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     timeUniform.value = t;
 
     // Update light sphere positions to match orbiting lights
-    const dummy = new THREE.Object3D();
     lightData.forEach((ld, i) => {
       const angle = t * ld.orbitSpeed + ld.orbitPhase;
       const px = ld.basePos.x + Math.cos(angle) * ld.orbitRadius;

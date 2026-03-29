@@ -117,6 +117,7 @@ export default function SpiralGalaxy() {
           ref={meshRef}
           args={[undefined, undefined, PARTICLE_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <sphereGeometry args={[1, 6, 6]} />
         </instancedMesh>

@@ -228,10 +228,11 @@ function TravelingParticles() {
     return mat;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const dummy = new THREE.Object3D();
     const t = clock.getElapsedTime();
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -255,7 +256,7 @@ function TravelingParticles() {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT * (1 + GHOST_COPIES)]} material={particleMat}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT * (1 + GHOST_COPIES)]} material={particleMat} frustumCulled={false}>
       <sphereGeometry args={[1, 8, 8]} />
     </instancedMesh>
   );
@@ -492,10 +493,12 @@ function AmbientParticles() {
     return mat;
   }, []);
 
+  const ambientDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const dummy = new THREE.Object3D();
+    const dummy = ambientDummy;
     const t = clock.getElapsedTime();
 
     for (let i = 0; i < AMBIENT_PARTICLE_COUNT; i++) {
@@ -514,7 +517,7 @@ function AmbientParticles() {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, AMBIENT_PARTICLE_COUNT]} material={material}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, AMBIENT_PARTICLE_COUNT]} material={material} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
     </instancedMesh>
   );

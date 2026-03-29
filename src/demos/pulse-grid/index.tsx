@@ -79,12 +79,12 @@ export default function PulseGrid() {
     return mat;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate: expanding circular ripple waves from center
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-
-    const dummy = new THREE.Object3D();
     const elapsed = performance.now() * 0.001;
 
     for (let i = 0; i < gridData.length; i++) {
@@ -117,6 +117,7 @@ export default function PulseGrid() {
           ref={meshRef}
           args={[undefined, undefined, INSTANCE_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <boxGeometry args={[BOX_SIZE, BOX_SIZE, BOX_SIZE]} />
         </instancedMesh>

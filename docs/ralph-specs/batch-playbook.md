@@ -50,6 +50,13 @@ These combinations produced the best visual results in Batch 3:
 - positionNode for instance transforms — offsets vertices, not instances
 - viewportResolution — deprecated, use screenSize
 
+## Performance Rules (ALWAYS FOLLOW)
+
+1. **NEVER allocate objects in useFrame** — `new THREE.Object3D()`, `new THREE.Vector3()`, `new THREE.Matrix4()`, `new THREE.Color()`, `new THREE.Quaternion()`, `new THREE.Euler()` must be created in `useMemo` or module scope, never inside `useFrame`. Use a single `dummy = useMemo(() => new THREE.Object3D(), [])` per component for instance matrix updates.
+2. **Materials MUST be in useMemo** — `new THREE.MeshStandardNodeMaterial()` and all material creation must be wrapped in `useMemo(() => { ... }, [deps])`. Creating materials in helper functions is OK if those functions are called from useMemo.
+3. **InstancedMesh MUST have frustumCulled={false}** — per-instance frustum culling is wasted CPU for our demos where all instances are typically visible.
+4. **Share geometry via useMemo** — if the same geometry type appears 3+ times in a component, create it once with `useMemo` and pass via the `geometry` prop instead of using inline JSX geometry elements.
+
 ## Demo Naming Convention
 - Evocative, 2-3 word names (not technical descriptions)
 - Good: "Cosmic Jellyfish", "Phoenix Rising", "Crystal Cavern"

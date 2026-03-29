@@ -400,6 +400,7 @@ function BackgroundSphere() {
 function CameraController({ selectedStage }: { selectedStage: string | null }) {
   const targetPos = useRef(new THREE.Vector3(0, 3, 16));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const scratchLookAt = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ camera }) => {
     if (selectedStage) {
@@ -415,10 +416,9 @@ function CameraController({ selectedStage }: { selectedStage: string | null }) {
 
     camera.position.lerp(targetPos.current, 0.05);
     // Smooth look-at
-    const currentLookAt = new THREE.Vector3();
-    camera.getWorldDirection(currentLookAt);
-    currentLookAt.multiplyScalar(10).add(camera.position);
-    currentLookAt.lerp(targetLookAt.current, 0.05);
+    camera.getWorldDirection(scratchLookAt);
+    scratchLookAt.multiplyScalar(10).add(camera.position);
+    scratchLookAt.lerp(targetLookAt.current, 0.05);
     camera.lookAt(targetLookAt.current);
   });
 

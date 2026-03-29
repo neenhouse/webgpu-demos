@@ -198,13 +198,14 @@ function ClockElements() {
     return data;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate clock elements spiraling into vortex
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
     const elapsed = performance.now() * 0.001;
-    const dummy = new THREE.Object3D();
 
     for (let i = 0; i < elementData.length; i++) {
       const d = elementData[i];

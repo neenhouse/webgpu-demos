@@ -258,11 +258,12 @@ function DebrisField() {
     mesh.instanceMatrix.needsUpdate = true;
   }, [orbitData]);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate orbiting debris
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const dummy = new THREE.Object3D();
     const data = orbitDataRef.current;
     const t = performance.now() * 0.001;
 
@@ -288,7 +289,7 @@ function DebrisField() {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, DEBRIS_COUNT]} material={debrisMaterial}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, DEBRIS_COUNT]} material={debrisMaterial} frustumCulled={false}>
       <icosahedronGeometry args={[1, 0]} />
     </instancedMesh>
   );
@@ -341,7 +342,7 @@ function Starfield() {
   }, []);
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, STAR_COUNT]} material={starMaterial}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, STAR_COUNT]} material={starMaterial} frustumCulled={false}>
       <icosahedronGeometry args={[1, 1]} />
     </instancedMesh>
   );

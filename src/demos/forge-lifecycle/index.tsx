@@ -428,6 +428,7 @@ function FlowParticles({ time: t }: { time: number }) {
       ref={meshRef}
       args={[undefined, undefined, TOTAL_PARTICLES]}
       material={particleMaterial}
+      frustumCulled={false}
     >
       <sphereGeometry args={[1, 8, 6]} />
     </instancedMesh>
@@ -473,14 +474,18 @@ function DriveTorus({
 
   // Cycle torus color through phase colors over time
   const phaseHexColors = useMemo(() => [0x22cc88, 0x4488ff, 0xffaa22, 0xcc44ff, 0xff4466], []);
+  const scratchColorA = useMemo(() => new THREE.Color(), []);
+  const scratchColorB = useMemo(() => new THREE.Color(), []);
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
     const idx = Math.floor((elapsed * 0.2) % phaseHexColors.length);
     const nextIdx = (idx + 1) % phaseHexColors.length;
     const frac = (elapsed * 0.2) % 1;
-    const c = new THREE.Color(phaseHexColors[idx]).lerp(new THREE.Color(phaseHexColors[nextIdx]), frac);
-    torusMaterial.color.copy(c);
-    torusMaterial.emissive.copy(c);
+    scratchColorA.set(phaseHexColors[idx]);
+    scratchColorB.set(phaseHexColors[nextIdx]);
+    scratchColorA.lerp(scratchColorB, frac);
+    torusMaterial.color.copy(scratchColorA);
+    torusMaterial.emissive.copy(scratchColorA);
   });
 
   return (

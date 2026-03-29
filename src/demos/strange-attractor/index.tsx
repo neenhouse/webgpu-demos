@@ -256,6 +256,7 @@ export default function StrangeAttractor() {
             ref={setMeshRef(a)}
             args={[undefined, undefined, TRAIL_LENGTH]}
             material={mat}
+            frustumCulled={false}
           >
             <icosahedronGeometry args={[1, 0]} />
           </instancedMesh>
@@ -268,6 +269,7 @@ export default function StrangeAttractor() {
             ref={setHaloMeshRef(a)}
             args={[undefined, undefined, TRAIL_LENGTH]}
             material={mat}
+            frustumCulled={false}
           >
             <icosahedronGeometry args={[1, 0]} />
           </instancedMesh>

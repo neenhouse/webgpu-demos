@@ -170,13 +170,14 @@ export default function WaveformViz() {
     mesh.instanceMatrix.needsUpdate = true;
   }, [instanceData]);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate: update instance positions based on simulated audio
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
     const t = clock.getElapsedTime();
-    const dummy = new THREE.Object3D();
 
     for (let i = 0; i < TOTAL_INSTANCES; i++) {
       const { angle, baseRadius, ringIdx } = instanceData[i];
@@ -236,6 +237,7 @@ export default function WaveformViz() {
           ref={meshRef}
           args={[undefined, undefined, TOTAL_INSTANCES]}
           material={ringMaterial}
+          frustumCulled={false}
         >
           <icosahedronGeometry args={[1, 2]} />
         </instancedMesh>

@@ -96,9 +96,13 @@ export default function RopeBridge() {
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const up = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const right = useMemo(() => new THREE.Vector3(1, 0, 0), []);
   const tmpDir = useMemo(() => new THREE.Vector3(), []);
   const tmpMid = useMemo(() => new THREE.Vector3(), []);
   const tmpQ = useMemo(() => new THREE.Quaternion(), []);
+  const scratchVel = useMemo(() => new THREE.Vector3(), []);
+  const scratchDiff = useMemo(() => new THREE.Vector3(), []);
+  const scratchCorr = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.033);
@@ -118,16 +122,16 @@ export default function RopeBridge() {
       for (const p of rope) {
         if (p.pinned) continue;
 
-        const vel = new THREE.Vector3().subVectors(p.pos, p.prev);
-        vel.multiplyScalar(DAMPING);
+        scratchVel.subVectors(p.pos, p.prev);
+        scratchVel.multiplyScalar(DAMPING);
 
         // Store prev
         p.prev.copy(p.pos);
 
         // Integrate: pos += vel + accel * dt²
-        p.pos.x += vel.x + windX * dt * dt;
-        p.pos.y += vel.y + (GRAVITY + windY) * dt * dt;
-        p.pos.z += vel.z + windZ * dt * dt;
+        p.pos.x += scratchVel.x + windX * dt * dt;
+        p.pos.y += scratchVel.y + (GRAVITY + windY) * dt * dt;
+        p.pos.z += scratchVel.z + windZ * dt * dt;
       }
 
       // Constraint relaxation
@@ -135,10 +139,10 @@ export default function RopeBridge() {
         for (let i = 0; i < rope.length - 1; i++) {
           const a = rope[i];
           const b = rope[i + 1];
-          const diff = new THREE.Vector3().subVectors(b.pos, a.pos);
-          const dist = diff.length();
+          scratchDiff.subVectors(b.pos, a.pos);
+          const dist = scratchDiff.length();
           if (dist < 0.0001) continue;
-          const correction = diff.multiplyScalar((dist - SEGMENT_LENGTH) / dist * 0.5);
+          const correction = scratchDiff.multiplyScalar((dist - SEGMENT_LENGTH) / dist * 0.5);
           if (!a.pinned) a.pos.add(correction);
           if (!b.pinned) b.pos.sub(correction);
         }
@@ -146,32 +150,31 @@ export default function RopeBridge() {
     }
 
     // Cross-links between main cable and handrails (plank constraints)
+    const crossRestLen = Math.sqrt(1.1 * 1.1 + HANDRAIL_OFFSET * HANDRAIL_OFFSET);
     for (let iter = 0; iter < 5; iter++) {
       for (let i = 0; i < ROPE_PARTICLES; i++) {
         // Left handrail to main cable vertical post
         {
           const a = ropes[0][i]; // main cable
           const b = ropes[1][i]; // left rail
-          const diff = new THREE.Vector3().subVectors(b.pos, a.pos);
-          const dist = diff.length();
-          const restLen = Math.sqrt(1.1 * 1.1 + HANDRAIL_OFFSET * HANDRAIL_OFFSET);
+          scratchDiff.subVectors(b.pos, a.pos);
+          const dist = scratchDiff.length();
           if (dist > 0.0001) {
-            const correction = diff.multiplyScalar((dist - restLen) / dist * 0.3);
-            if (!a.pinned) a.pos.add(correction.clone().multiplyScalar(0.5));
-            if (!b.pinned) b.pos.sub(correction.clone().multiplyScalar(0.5));
+            scratchCorr.copy(scratchDiff).multiplyScalar((dist - crossRestLen) / dist * 0.3);
+            if (!a.pinned) a.pos.addScaledVector(scratchCorr, 0.5);
+            if (!b.pinned) b.pos.addScaledVector(scratchCorr, -0.5);
           }
         }
         // Right handrail to main cable
         {
           const a = ropes[0][i]; // main cable
           const b = ropes[2][i]; // right rail
-          const diff = new THREE.Vector3().subVectors(b.pos, a.pos);
-          const dist = diff.length();
-          const restLen = Math.sqrt(1.1 * 1.1 + HANDRAIL_OFFSET * HANDRAIL_OFFSET);
+          scratchDiff.subVectors(b.pos, a.pos);
+          const dist = scratchDiff.length();
           if (dist > 0.0001) {
-            const correction = diff.multiplyScalar((dist - restLen) / dist * 0.3);
-            if (!a.pinned) a.pos.add(correction.clone().multiplyScalar(0.5));
-            if (!b.pinned) b.pos.sub(correction.clone().multiplyScalar(0.5));
+            scratchCorr.copy(scratchDiff).multiplyScalar((dist - crossRestLen) / dist * 0.3);
+            if (!a.pinned) a.pos.addScaledVector(scratchCorr, 0.5);
+            if (!b.pinned) b.pos.addScaledVector(scratchCorr, -0.5);
           }
         }
       }
@@ -227,7 +230,7 @@ export default function RopeBridge() {
         tmpDir.subVectors(right.pos, left.pos);
         const len = tmpDir.length();
         tmpDir.normalize();
-        tmpQ.setFromUnitVectors(new THREE.Vector3(1, 0, 0), tmpDir);
+        tmpQ.setFromUnitVectors(right, tmpDir);
 
         dummy.position.copy(tmpMid);
         dummy.quaternion.copy(tmpQ);

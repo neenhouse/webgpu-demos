@@ -261,11 +261,12 @@ function FrostParticles() {
     })),
   []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const t = clock.getElapsedTime();
-    const dummy = new THREE.Object3D();
     for (let i = 0; i < FROST_COUNT; i++) {
       const d = frostData[i];
       const theta = d.theta + t * d.speed;

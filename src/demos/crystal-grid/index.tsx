@@ -123,6 +123,8 @@ export default function CrystalGrid() {
     return mat;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate: slowly rotate group + bob crystals up and down
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -131,8 +133,6 @@ export default function CrystalGrid() {
 
     const mesh = meshRef.current;
     if (!mesh) return;
-
-    const dummy = new THREE.Object3D();
     const elapsed = performance.now() * 0.001;
 
     for (let i = 0; i < basePositions.length; i++) {
@@ -161,6 +161,7 @@ export default function CrystalGrid() {
           ref={meshRef}
           args={[undefined, undefined, CRYSTAL_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <icosahedronGeometry args={[1, 0]} />
         </instancedMesh>

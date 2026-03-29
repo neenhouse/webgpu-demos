@@ -213,6 +213,7 @@ export default function PianoWaterfall() {
         ref={noteMeshRef}
         args={[undefined, undefined, NOTE_SLOTS]}
         material={noteMaterial}
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>
@@ -222,6 +223,7 @@ export default function PianoWaterfall() {
         ref={keyMeshRef}
         args={[undefined, undefined, KEY_COUNT]}
         material={keyMaterial}
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>

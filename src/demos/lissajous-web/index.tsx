@@ -251,6 +251,7 @@ export default function LissajousWeb() {
             ref={setCurveMeshRef(curveIdx)}
             args={[undefined, undefined, POINTS_PER_CURVE]}
             material={materials[curveIdx]}
+            frustumCulled={false}
           >
             <sphereGeometry args={[1, 8, 6]} />
           </instancedMesh>
@@ -263,6 +264,7 @@ export default function LissajousWeb() {
             ref={setHaloMeshRef(curveIdx)}
             args={[undefined, undefined, POINTS_PER_CURVE]}
             material={haloMaterials[curveIdx]}
+            frustumCulled={false}
           >
             <sphereGeometry args={[1, 6, 4]} />
           </instancedMesh>

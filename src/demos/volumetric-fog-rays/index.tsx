@@ -126,12 +126,13 @@ export default function VolumetricFogRays() {
     }
   }, [dustMatrices]);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((state, delta) => {
     timeUniform.value = state.clock.getElapsedTime();
 
     // Slowly drift dust particles upward
     const t = state.clock.getElapsedTime();
-    const dummy = new THREE.Object3D();
     for (let i = 0; i < DUST_COUNT; i++) {
       const h = (i / DUST_COUNT);
       const baseY = (h * 4.5);

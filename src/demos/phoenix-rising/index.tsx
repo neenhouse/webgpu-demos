@@ -526,12 +526,13 @@ function AshParticles() {
     return mat;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate ash falling
   useFrame((_, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
     const dt = Math.min(delta, 0.03);
-    const dummy = new THREE.Object3D();
     const { positions, velocities } = dataRef.current;
 
     for (let i = 0; i < ASH_PARTICLE_COUNT; i++) {

@@ -169,6 +169,7 @@ export default function DnaHelix() {
           ref={meshRef}
           args={[undefined, undefined, INSTANCE_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <sphereGeometry args={[1, 8, 8]} />
         </instancedMesh>

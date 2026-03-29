@@ -333,6 +333,7 @@ function Starfield() {
       ref={meshRef}
       args={[undefined, undefined, STAR_COUNT]}
       material={starMaterial}
+      frustumCulled={false}
     >
       <icosahedronGeometry args={[1, 1]} />
     </instancedMesh>

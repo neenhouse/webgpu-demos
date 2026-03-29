@@ -151,6 +151,8 @@ export default function MyceliumNetwork() {
     mesh.count = 0; // starts hidden, grows in useFrame
   }, [segments]);
 
+  const pulseDummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((_, delta) => {
     totalTimeRef.current += delta;
     const t = totalTimeRef.current;
@@ -163,7 +165,6 @@ export default function MyceliumNetwork() {
     // Animate pulses along segments
     const pulseMesh = pulseRef.current;
     if (pulseMesh) {
-      const dummy = new THREE.Object3D();
       let activeCount = 0;
       for (let i = 0; i < PULSE_COUNT; i++) {
         const p = pulseData[i];
@@ -171,10 +172,10 @@ export default function MyceliumNetwork() {
         const seg = segments[p.segmentIndex];
         const progress = ((t * p.speed + p.phase) % 1.0);
         const pos = seg.start.clone().lerp(seg.end, progress);
-        dummy.position.copy(pos);
-        dummy.scale.setScalar(p.size);
-        dummy.updateMatrix();
-        pulseMesh.setMatrixAt(activeCount, dummy.matrix);
+        pulseDummy.position.copy(pos);
+        pulseDummy.scale.setScalar(p.size);
+        pulseDummy.updateMatrix();
+        pulseMesh.setMatrixAt(activeCount, pulseDummy.matrix);
         activeCount++;
       }
       pulseMesh.instanceMatrix.needsUpdate = true;

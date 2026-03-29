@@ -141,6 +141,7 @@ export default function ParticleField() {
           ref={meshRef}
           args={[undefined, undefined, PARTICLE_COUNT]}
           material={material}
+          frustumCulled={false}
         >
           <sphereGeometry args={[1, 8, 6]} />
         </instancedMesh>

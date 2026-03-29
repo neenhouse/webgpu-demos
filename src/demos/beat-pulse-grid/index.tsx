@@ -236,6 +236,7 @@ export default function BeatPulseGrid() {
         args={[undefined, undefined, PILLAR_COUNT]}
         material={material}
         castShadow
+        frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
       </instancedMesh>

@@ -569,7 +569,7 @@ function EdgeParticles({
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]} material={coreMaterial}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, totalParticles]} material={coreMaterial} frustumCulled={false}>
       <sphereGeometry args={[1, 8, 6]} />
     </instancedMesh>
   );

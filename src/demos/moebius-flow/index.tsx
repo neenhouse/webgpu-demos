@@ -226,6 +226,7 @@ export default function MoebiusFlow() {
           ref={setParticleRef}
           args={[undefined, undefined, PARTICLE_COUNT]}
           material={particleMaterial}
+          frustumCulled={false}
         >
           <sphereGeometry args={[1, 8, 6]} />
         </instancedMesh>

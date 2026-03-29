@@ -343,6 +343,7 @@ export default function CyberCity() {
           ref={buildingRef}
           args={[undefined, undefined, BUILDING_COUNT]}
           material={buildingMaterial}
+          frustumCulled={false}
         >
           <boxGeometry args={[1, 1, 1]} />
         </instancedMesh>
@@ -352,6 +353,7 @@ export default function CyberCity() {
           ref={reflectionRef}
           args={[undefined, undefined, BUILDING_COUNT]}
           material={reflectionMaterial}
+          frustumCulled={false}
         >
           <boxGeometry args={[1, 1, 1]} />
         </instancedMesh>

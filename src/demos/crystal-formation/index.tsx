@@ -181,10 +181,11 @@ export default function CrystalFormation() {
     mesh.instanceMatrix.needsUpdate = true;
   }, [crystals]);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   useFrame((_, delta) => {
     totalTimeRef.current += delta;
     const t = totalTimeRef.current % CYCLE_DURATION;
-    const dummy = new THREE.Object3D();
 
     const mesh = meshRef.current;
     const halo = haloRef.current;

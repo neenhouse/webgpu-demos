@@ -137,6 +137,24 @@ function auditDemo(slug, src, tags) {
     warnings.push('IMPORT: Imports from "three" instead of "three/webgpu"');
   }
 
+  // === OBJECT ALLOCATION IN useFrame ===
+  const useFrameBlocks = [...src.matchAll(/useFrame\(\s*\([\s\S]*?\n\s*\}\)/g)];
+  for (const block of useFrameBlocks) {
+    const blockText = block[0];
+    const newMatches = blockText.match(/new THREE\.\w+/g);
+    if (newMatches) {
+      issues.push(`PERF: Object allocation in useFrame: ${newMatches[0]} (hoist to useMemo)`);
+    }
+  }
+
+  // === MISSING frustumCulled ON INSTANCED MESH ===
+  const instancedLines = [...src.matchAll(/<instancedMesh[^>]*>/g)];
+  for (const m of instancedLines) {
+    if (!m[0].includes('frustumCulled')) {
+      warnings.push('PERF: <instancedMesh> missing frustumCulled={false}');
+    }
+  }
+
   return { slug, lines, issues, warnings };
 }
 

@@ -57,6 +57,8 @@ export default function FlowerBloom() {
     return mat;
   }, []);
 
+  const frameDummy = useMemo(() => new THREE.Object3D(), []);
+
   // Build pollen instance matrices
   useEffect(() => {
     const mesh = pollenRef.current;
@@ -115,20 +117,19 @@ export default function FlowerBloom() {
         if (progress > 0.6) pollenCount += Math.floor(POLLEN_COUNT / FLOWERS.length);
       }
       // Animate pollen floating
-      const dummy = new THREE.Object3D();
       for (let i = 0; i < POLLEN_COUNT; i++) {
         const flowerIdx = i % FLOWERS.length;
         const flower = FLOWERS[flowerIdx];
         const angle = (i / POLLEN_COUNT) * Math.PI * 2 * 5 + t * 0.3;
         const r = 0.15 + (i % 5) * 0.08;
-        dummy.position.set(
+        frameDummy.position.set(
           flower.position.x + Math.cos(angle) * r,
           flower.position.y + 0.35 + Math.sin(t * 0.5 + i * 0.3) * 0.08,
           flower.position.z + Math.sin(angle) * r,
         );
-        dummy.scale.setScalar(0.02 + (i % 3) * 0.01);
-        dummy.updateMatrix();
-        pollen.setMatrixAt(i, dummy.matrix);
+        frameDummy.scale.setScalar(0.02 + (i % 3) * 0.01);
+        frameDummy.updateMatrix();
+        pollen.setMatrixAt(i, frameDummy.matrix);
       }
       pollen.instanceMatrix.needsUpdate = true;
       pollen.count = pollenCount;

@@ -208,6 +208,8 @@ export default function CoralReef() {
     mesh.instanceMatrix.needsUpdate = true;
   }, []);
 
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
   // Animate fish and anemones
   useFrame((_, delta) => {
     totalTimeRef.current += delta;
@@ -216,7 +218,6 @@ export default function CoralReef() {
     // Fish figure-8 paths
     const fishMesh = fishMeshRef.current;
     if (fishMesh) {
-      const dummy = new THREE.Object3D();
       for (let i = 0; i < FISH_COUNT; i++) {
         const phaseOffset = (i / FISH_COUNT) * Math.PI * 2;
         const speed = 0.6 + i * 0.12;
@@ -240,7 +241,6 @@ export default function CoralReef() {
     // Anemone sway via CPU
     const aneMesh = anenomeMeshRef.current;
     if (aneMesh) {
-      const dummy = new THREE.Object3D();
       for (let i = 0; i < ANEMONE_COUNT; i++) {
         const angle = (i / ANEMONE_COUNT) * Math.PI * 2;
         const r = 1.5 + (i % 5) * 0.8;
