@@ -32,16 +32,26 @@ A gallery of WebGPU experiments built with Three.js — each demo showcases a di
 ```
 src/
   main.tsx              — React entry point
-  App.tsx               — Gallery grid (homepage)
+  App.tsx               — Hash router (gallery vs viewer)
+  components/
+    Gallery.tsx         — Demo card grid with search + tag filtering
+    FilterBar.tsx       — Search input + 13 tag category pills
+    Viewer.tsx          — WebGPURenderer canvas + orbit controls + overlay
   demos/
     <demo-name>/
       index.tsx         — Demo component (self-contained scene)
-      meta.ts           — Title, description, thumbnail
-  components/
-    Viewer.tsx          — WebGPURenderer canvas + orbit controls
-    FallbackNotice.tsx  — WebGL fallback message
   lib/
+    registry.ts         — Re-exports from manifest-generated registry
+    registry-generated.ts — Auto-generated from manifests/*.manifest.yaml
     webgpu-detect.ts    — Feature detection utility
+  pipeline/             — Scene YAML rendering pipeline
+    spec/               — Zod schema, parser, manifest schema
+    generators/         — CSG, SDF, parametric, codegen
+    materials/          — 14 PBR presets, resolver
+    renderer/           — SceneFromYaml, ObjectRenderer
+
+manifests/              — 146 manifest.yaml files (source of truth for registry)
+scripts/                — Build, quality audit, thumbnail capture, verification
 ```
 
 **Routing**: Hash-based — `/` for gallery, `/viewer#demo-name` for individual demos.
@@ -50,20 +60,19 @@ src/
 
 **State**: React 19 + @react-three/fiber for scene graph. No global state library needed — each demo is self-contained.
 
-## What's Built vs Planned
+## What's Built
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Vite + React scaffold | Built | Replaced default with gallery/viewer |
-| Three.js + R3F + WebGPU | Built | WebGPURenderer via async gl prop |
+| Vite + React scaffold | Built | Gallery + Viewer SPA |
+| Three.js + R3F + WebGPU | Built | WebGPURenderer via async gl prop, WebGL fallback |
 | CI/CD (Cloudflare Pages) | Built | Auto-deploys on push to main |
-| CI checks (build + lint) | Built | GitHub Actions workflow |
-| Demo viewer | Built | Full-screen canvas, orbit controls, overlay, hash routing |
-| Demo gallery | Built | Responsive grid with accent-colored cards |
-| WebGPU detection/fallback | Built | Auto-detects, falls back to WebGL with notice |
-| Demo templates (5) | Built | TSL torus, particles, terrain, crystals, aurora |
-| Batch generation workflow | Planned | Choo Choo Ralph spec |
-| Extractable scene spec | Built | Engine-agnostic YAML spec at `docs/specs/scene-pipeline-spec-v1.md` |
+| 146 demos (12 batches) | Built | TSL, compute, scene, emergent, data-viz, audio, physics, procedural, retro, organic, math, game-ready |
+| Gallery search + filtering | Built | Text search + 13 tag category pills |
+| Scene pipeline spec v1.0 | Built | Engine-agnostic YAML format, 4 generator tiers, 14 material presets |
+| Unified manifest system | Built | manifest.yaml per demo, build-time registry generation |
+| Quality audit pipeline | Built | Static analysis, Playwright verification, performance checks |
+| Thumbnail system | Built | 57 real captures + 89 gradient placeholders |
 
 > For detailed feature requirements, see `docs/prd/prd.md`.
 
