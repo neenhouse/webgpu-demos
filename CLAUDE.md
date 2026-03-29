@@ -13,7 +13,7 @@ Batch experiments showcasing Three.js WebGPURenderer — procedural scenes, comp
 ## Commands
 
 - `pnpm dev` — Start dev server
-- `pnpm build` — Production build
+- `pnpm build` — Production build (stricter than `tsc --noEmit` — unused vars are errors. Always verify with `pnpm build` before pushing)
 - `pnpm preview` — Preview production build
 - `pnpm test` — Run test suite (367 tests via Vitest)
 
@@ -79,6 +79,28 @@ After implementing a feature:
 - Update the spec status (APPROVED -> IMPLEMENTED)
 
 Archived plans from earlier phases live in `docs/archive/` for reference.
+
+## Quality Assurance
+
+- `node scripts/quality-audit.mjs` — Static analysis of all demos against playbook rules (line count, broken patterns, emissive limits, perf anti-patterns)
+- `node scripts/verify-all-demos.mjs` — Playwright-based load verification of all 146 demos (requires `pnpm build && pnpm preview`)
+- `node scripts/build-registry.mjs` — Regenerate registry from manifests (auto-runs on build via Vite plugin)
+
+## Creating New Demos
+
+1. Create `manifests/<slug>.manifest.yaml` (renderer type, meta, tags)
+2. Create `src/demos/<slug>/index.tsx` (the component)
+3. Run `node scripts/build-registry.mjs` (or just `pnpm build` — Vite plugin auto-runs it)
+4. Run `node scripts/quality-audit.mjs` to verify quality bar
+
+## Batch Demo Generation
+
+Dispatch one sonnet subagent per batch of 10 demos. Provide: learnings.md, batch-playbook.md, registry format, broken pattern list. Subagent creates all 10, registers, typechecks, tests, commits. See `docs/ralph-specs/batch-playbook.md` for quality rules.
+
+## Known Limitations
+
+- Playwright headless cannot render WebGPU or WebGL canvases (no GPU). Use `pnpm preview` (port 4173) not `pnpm dev` for Playwright scripts.
+- Vite dev server crashes under rapid Playwright tab switching. Always use production preview for automated scripts.
 
 ## Key File Locations
 
