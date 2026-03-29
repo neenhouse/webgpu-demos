@@ -40,7 +40,11 @@ export default function Gallery() {
     <div className="gallery">
       <header className="gallery-header">
         <h1>WebGPU Demos</h1>
-        <p>Experiments with Three.js WebGPURenderer</p>
+        <p>
+          {demos.length} experiments with Three.js WebGPURenderer
+          <span className="gallery-header-dot"> &middot; </span>
+          Compute shaders, TSL materials, procedural worlds
+        </p>
       </header>
 
       <FilterBar
