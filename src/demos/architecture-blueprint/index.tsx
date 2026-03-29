@@ -114,8 +114,8 @@ function makeServiceHaloMaterial(hexColor: number) {
   mat.blending = THREE.AdditiveBlending;
   mat.color = new THREE.Color(hexColor);
   mat.emissive = new THREE.Color(hexColor);
-  mat.emissiveIntensity = 1.5;
-  mat.opacity = 0.2;
+  mat.emissiveIntensity = 1.2;
+  mat.opacity = 0.15;
   mat.roughness = 0.0;
   mat.metalness = 0.0;
   return mat;
@@ -165,19 +165,19 @@ function makeBlueprintGridMaterial() {
 function ServiceShape({ type }: { type: Service['type'] }) {
   switch (type) {
     case 'frontend':
-      return <boxGeometry args={[3, 0.3, 2]} />;
+      return <boxGeometry args={[1.6, 0.4, 1.0]} />;
     case 'backend':
-      return <boxGeometry args={[1.5, 1, 1.5]} />;
+      return <boxGeometry args={[0.9, 0.7, 0.9]} />;
     case 'database':
-      return <cylinderGeometry args={[0.8, 0.8, 1, 16]} />;
+      return <cylinderGeometry args={[0.5, 0.5, 0.7, 16]} />;
     case 'cache':
-      return <octahedronGeometry args={[0.7]} />;
+      return <octahedronGeometry args={[0.45]} />;
     case 'cdn':
-      return <cylinderGeometry args={[1, 1, 0.2, 16]} />;
+      return <cylinderGeometry args={[0.6, 0.6, 0.15, 16]} />;
     case 'queue':
-      return <torusGeometry args={[0.5, 0.2, 8, 24]} />;
+      return <torusGeometry args={[0.35, 0.14, 8, 24]} />;
     case 'external':
-      return <icosahedronGeometry args={[0.7]} />;
+      return <icosahedronGeometry args={[0.5]} />;
   }
 }
 
@@ -260,32 +260,46 @@ function ServiceNode({
         <ServiceShape type={service.type} />
       </mesh>
 
+      {/* Platform base */}
+      <mesh position={[0, -0.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.7, 24]} />
+        <meshStandardNodeMaterial
+          transparent
+          opacity={isDimmed ? 0.05 : 0.15}
+          color={new THREE.Color(service.hex).multiplyScalar(0.3)}
+          emissive={new THREE.Color(service.hex)}
+          emissiveIntensity={isDimmed ? 0.05 : 0.3}
+        />
+      </mesh>
+
       {/* Halo shell */}
       {!isDimmed && (
-        <mesh material={haloMat} scale={[1.4, 1.4, 1.4]}>
+        <mesh material={haloMat} scale={[1.25, 1.25, 1.25]}>
           <ServiceShape type={service.type} />
         </mesh>
       )}
 
-      {/* Service label — fixed position, no distanceFactor for alignment */}
-      <Html position={[0, 1.2, 0]} center>
+      {/* Service label */}
+      <Html position={[0, 0.9, 0]} center>
         <div
           style={{
             color: 'white',
             fontSize: '11px',
-            background: 'rgba(0,0,0,0.8)',
-            padding: '3px 8px',
-            borderRadius: '3px',
+            background: isDimmed ? 'rgba(0,0,0,0.4)' : 'rgba(5,10,25,0.9)',
+            padding: '4px 10px',
+            borderRadius: '4px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
-            borderLeft: `2px solid ${typeColor}`,
+            borderLeft: `3px solid ${typeColor}`,
             fontWeight: isSelected ? 'bold' : 'normal',
-            opacity: isDimmed ? 0.3 : 1,
+            opacity: isDimmed ? 0.25 : 1,
             transform: 'translateY(-100%)',
+            boxShadow: isSelected ? `0 0 12px ${typeColor}40` : 'none',
+            transition: 'opacity 0.3s, box-shadow 0.3s',
           }}
         >
-          <div style={{ fontSize: '10px', fontWeight: 'bold' }}>{service.label}</div>
-          <div style={{ fontSize: '8px', opacity: 0.6 }}>{service.tech}</div>
+          <div style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.3px' }}>{service.label}</div>
+          <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '1px' }}>{service.tech}</div>
         </div>
       </Html>
 
@@ -320,17 +334,38 @@ function ConnectionPipe({
 
   const up = new THREE.Vector3(0, 1, 0);
   const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
-  const radius = isHighlighted ? 0.06 : 0.04;
+  const radius = isHighlighted ? 0.07 : 0.035;
 
   const pipeMat = useMemo(
     () => makeConnectionMaterial(flow.hex, isHighlighted),
     [flow.hex, isHighlighted],
   );
 
+  // Glow pipe (larger, more transparent) when highlighted
+  const glowMat = useMemo(() => {
+    if (!isHighlighted) return null;
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+    mat.color = new THREE.Color(flow.hex);
+    mat.emissive = new THREE.Color(flow.hex);
+    mat.emissiveIntensity = 1.5;
+    mat.opacity = 0.15;
+    return mat;
+  }, [flow.hex, isHighlighted]);
+
   return (
-    <mesh position={mid} quaternion={quat} material={pipeMat}>
-      <cylinderGeometry args={[radius, radius, length, 6]} />
-    </mesh>
+    <group>
+      <mesh position={mid} quaternion={quat} material={pipeMat}>
+        <cylinderGeometry args={[radius, radius, length, 6]} />
+      </mesh>
+      {isHighlighted && glowMat && (
+        <mesh position={mid} quaternion={quat} material={glowMat}>
+          <cylinderGeometry args={[radius * 3, radius * 3, length, 8]} />
+        </mesh>
+      )}
+    </group>
   );
 }
 
@@ -408,7 +443,7 @@ function FlowParticles({
       const { from, to, flow } = flowData[fi];
       const isHighlighted = active !== null &&
         (flow.from === active || flow.to === active);
-      const scale = isHighlighted ? 0.06 : 0.04;
+      const scale = isHighlighted ? 0.08 : 0.05;
 
       for (let pi = 0; pi < PARTICLES_PER_FLOW; pi++) {
         const idx = fi * PARTICLES_PER_FLOW + pi;
@@ -446,18 +481,21 @@ function DetailPanel({
   connectedFlows: DataFlow[];
 }) {
   return (
-    <Html position={[service.position[0], service.position[1] + 2.2, service.position[2]]} center>
+    <Html position={[service.position[0], service.position[1] + 1.8, service.position[2]]} center>
       <div
         style={{
           color: 'white',
           fontSize: '11px',
-          background: 'rgba(10, 15, 30, 0.95)',
-          padding: '10px 14px',
-          borderRadius: '6px',
+          background: 'rgba(5, 10, 25, 0.95)',
+          padding: '12px 16px',
+          borderRadius: '8px',
           pointerEvents: 'none',
-          border: `1px solid ${service.color}`,
-          minWidth: '160px',
-          maxWidth: '220px',
+          border: `1px solid ${service.color}55`,
+          borderLeft: `3px solid ${service.color}`,
+          minWidth: '170px',
+          maxWidth: '230px',
+          boxShadow: `0 4px 24px rgba(0,0,0,0.5), 0 0 20px ${service.color}15`,
+          backdropFilter: 'blur(8px)',
         }}
       >
         <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '4px', color: service.color }}>
@@ -488,10 +526,50 @@ function DetailPanel({
 function BlueprintGridFloor() {
   const gridMat = useMemo(() => makeBlueprintGridMaterial(), []);
 
+  // Grid line material
+  const lineMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.opacity = 0.12;
+    mat.color = new THREE.Color(0x4488cc);
+    return mat;
+  }, []);
+
+  const majorLineMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.opacity = 0.25;
+    mat.color = new THREE.Color(0x4488cc);
+    return mat;
+  }, []);
+
+  // Generate grid lines
+  const gridLines = useMemo(() => {
+    const lines: { pos: [number, number, number]; rot: [number, number, number]; size: [number, number]; isMajor: boolean }[] = [];
+    const span = 20;
+    const step = 1;
+
+    for (let i = -span; i <= span; i += step) {
+      const isMajor = i % 5 === 0;
+      // Horizontal lines (along X)
+      lines.push({ pos: [0, -2.49, i], rot: [0, 0, 0], size: [span * 2, isMajor ? 0.03 : 0.015], isMajor });
+      // Vertical lines (along Z)
+      lines.push({ pos: [i, -2.49, 0], rot: [0, Math.PI / 2, 0], size: [span * 2, isMajor ? 0.03 : 0.015], isMajor });
+    }
+    return lines;
+  }, []);
+
   return (
-    <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
-      <planeGeometry args={[40, 40]} />
-    </mesh>
+    <>
+      <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
+        <planeGeometry args={[40, 40]} />
+      </mesh>
+      {gridLines.map((line, i) => (
+        <mesh key={i} position={line.pos} rotation={[-Math.PI / 2, line.rot[1], 0]} material={line.isMajor ? majorLineMat : lineMat}>
+          <planeGeometry args={line.size} />
+        </mesh>
+      ))}
+    </>
   );
 }
 
@@ -499,8 +577,12 @@ function BlueprintGridFloor() {
 
 // ── Trace Request Ball ──
 
+const TRAIL_COUNT = 8;
+
 function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; traceProgress: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const trailRef = useRef<THREE.InstancedMesh>(null);
+  const historyRef = useRef<THREE.Vector3[]>([]);
 
   const mat = useMemo(() => {
     const m = new THREE.MeshStandardNodeMaterial();
@@ -526,6 +608,16 @@ function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; tra
     return m;
   }, []);
 
+  const trailMat = useMemo(() => {
+    const m = new THREE.MeshBasicNodeMaterial();
+    m.transparent = true;
+    m.depthWrite = false;
+    m.blending = THREE.AdditiveBlending;
+    m.color = new THREE.Color(0xffcc44);
+    m.opacity = 0.5;
+    return m;
+  }, []);
+
   if (traceStep >= TRACE_PATH.length - 1) return null;
 
   const fromId = TRACE_PATH[traceStep];
@@ -536,16 +628,49 @@ function TraceRequestBall({ traceStep, traceProgress }: { traceStep: number; tra
   const y = fromS.position[1] + (toS.position[1] - fromS.position[1]) * traceProgress;
   const z = fromS.position[2] + (toS.position[2] - fromS.position[2]) * traceProgress;
 
+  // Update trail history
+  const pos = new THREE.Vector3(x, y, z);
+  if (historyRef.current.length === 0 || historyRef.current[historyRef.current.length - 1].distanceTo(pos) > 0.15) {
+    historyRef.current.push(pos.clone());
+    if (historyRef.current.length > TRAIL_COUNT) historyRef.current.shift();
+  }
+
+  // Update trail instances
+  const trail = trailRef.current;
+  if (trail) {
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < TRAIL_COUNT; i++) {
+      if (i < historyRef.current.length) {
+        const hp = historyRef.current[i];
+        const age = 1 - i / historyRef.current.length;
+        dummy.position.copy(hp);
+        dummy.scale.setScalar(0.08 * age);
+        dummy.updateMatrix();
+        trail.setMatrixAt(i, dummy.matrix);
+      } else {
+        dummy.scale.setScalar(0);
+        dummy.updateMatrix();
+        trail.setMatrixAt(i, dummy.matrix);
+      }
+    }
+    trail.instanceMatrix.needsUpdate = true;
+  }
+
   return (
-    <group position={[x, y, z]}>
-      <mesh ref={meshRef} material={mat}>
-        <sphereGeometry args={[0.15, 12, 8]} />
-      </mesh>
-      <mesh material={haloMat} scale={[2.5, 2.5, 2.5]}>
-        <sphereGeometry args={[0.15, 8, 6]} />
-      </mesh>
-      <pointLight color="#ffee44" intensity={3} distance={4} />
-    </group>
+    <>
+      <group position={[x, y, z]}>
+        <mesh ref={meshRef} material={mat}>
+          <sphereGeometry args={[0.15, 12, 8]} />
+        </mesh>
+        <mesh material={haloMat} scale={[2.5, 2.5, 2.5]}>
+          <sphereGeometry args={[0.15, 8, 6]} />
+        </mesh>
+        <pointLight color="#ffee44" intensity={4} distance={5} />
+      </group>
+      <instancedMesh ref={trailRef} args={[undefined, undefined, TRAIL_COUNT]} material={trailMat}>
+        <sphereGeometry args={[1, 6, 6]} />
+      </instancedMesh>
+    </>
   );
 }
 
@@ -558,19 +683,99 @@ function TierLabels() {
     { label: 'SERVICES', y: 1 },
     { label: 'DATA', y: -1 },
   ];
+
+  // Separator lines between tiers
+  const separatorY = [4, 2, 0]; // between client-edge, edge-services, services-data
+
+  const sepMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.opacity = 0.08;
+    mat.color = new THREE.Color(0x4488cc);
+    return mat;
+  }, []);
+
   return (
     <>
       {tiers.map((t) => (
         <Html key={t.label} position={[-7.5, t.y, 0]} center>
           <div style={{
-            color: 'rgba(100,140,200,0.4)', fontSize: '9px', fontWeight: 'bold',
-            letterSpacing: '2px', whiteSpace: 'nowrap', pointerEvents: 'none',
+            color: 'rgba(100,160,220,0.5)', fontSize: '10px', fontWeight: 'bold',
+            letterSpacing: '3px', whiteSpace: 'nowrap', pointerEvents: 'none',
+            textShadow: '0 0 8px rgba(68,136,204,0.3)',
           }}>
             {t.label}
           </div>
         </Html>
       ))}
+      {separatorY.map((y) => (
+        <mesh key={y} position={[1, y, 0]} rotation={[0, 0, 0]}>
+          <planeGeometry args={[18, 0.01]} />
+          <primitive object={sepMat} attach="material" />
+        </mesh>
+      ))}
     </>
+  );
+}
+
+// ── Background Stars ──
+
+function BackgroundStars() {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const COUNT = 150;
+
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.transparent = true;
+    mat.depthWrite = false;
+    mat.color = new THREE.Color(0x6688cc);
+    mat.opacity = 0.6;
+    return mat;
+  }, []);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const dummy = new THREE.Object3D();
+    for (let i = 0; i < COUNT; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const elev = (Math.random() - 0.3) * Math.PI * 0.5;
+      const r = 25 + Math.random() * 10;
+      dummy.position.set(
+        Math.cos(angle) * Math.cos(elev) * r,
+        Math.sin(elev) * r + 5,
+        Math.sin(angle) * Math.cos(elev) * r
+      );
+      dummy.scale.setScalar(0.02 + Math.random() * 0.04);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
+
+  useFrame((state) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const t = state.clock.elapsedTime;
+    const dummy = new THREE.Object3D();
+    const mat = new THREE.Matrix4();
+    for (let i = 0; i < COUNT; i++) {
+      mesh.getMatrixAt(i, mat);
+      dummy.position.setFromMatrixPosition(mat);
+      // Subtle twinkle
+      const twinkle = 0.5 + Math.sin(t * 1.5 + i * 7.3) * 0.5;
+      const baseScale = 0.02 + (i % 10) * 0.004;
+      dummy.scale.setScalar(baseScale * (0.5 + twinkle * 0.5));
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} material={starMat}>
+      <sphereGeometry args={[1, 4, 4]} />
+    </instancedMesh>
   );
 }
 
@@ -583,20 +788,20 @@ export default function ArchitectureBlueprint() {
   const [traceStep, setTraceStep] = useState(0);
   const [traceProgress, setTraceProgress] = useState(0);
   const timeRef = useRef(0);
-  const targetPos = useRef(new THREE.Vector3(1, 2, 14));
-  const targetLookAt = useRef(new THREE.Vector3(1, 2, 0));
+  const targetPos = useRef(new THREE.Vector3(1, 3.5, 20));
+  const targetLookAt = useRef(new THREE.Vector3(1, 1.5, 0));
   const { camera } = useThree();
 
   const handleSelect = useCallback(
     (id: string) => {
       if (selectedService === id) {
         setSelectedService(null);
-        targetPos.current.set(1, 2, 14);
-        targetLookAt.current.set(1, 2, 0);
+        targetPos.current.set(1, 2.5, 16);
+        targetLookAt.current.set(1, 1.5, 0);
       } else {
         setSelectedService(id);
         const s = serviceMap.get(id)!;
-        targetPos.current.set(s.position[0] + 1.5, s.position[1] + 2, s.position[2] + 6);
+        targetPos.current.set(s.position[0] + 1.5, s.position[1] + 2.5, s.position[2] + 9);
         targetLookAt.current.set(s.position[0], s.position[1], s.position[2]);
       }
     },
@@ -605,8 +810,8 @@ export default function ArchitectureBlueprint() {
 
   const handleEmptyClick = useCallback(() => {
     setSelectedService(null);
-    targetPos.current.set(1, 2, 14);
-    targetLookAt.current.set(1, 2, 0);
+    targetPos.current.set(1, 2.5, 16);
+    targetLookAt.current.set(1, 1.5, 0);
   }, []);
 
   const handleTraceRequest = useCallback(() => {
@@ -614,8 +819,8 @@ export default function ArchitectureBlueprint() {
     setTraceStep(0);
     setTraceProgress(0);
     setSelectedService(null);
-    targetPos.current.set(1, 2, 14);
-    targetLookAt.current.set(1, 2, 0);
+    targetPos.current.set(1, 2.5, 16);
+    targetLookAt.current.set(1, 1.5, 0);
   }, []);
 
   const connectedFlows = useMemo(() => {
@@ -698,14 +903,20 @@ export default function ArchitectureBlueprint() {
   return (
     <>
       {/* Blue-tinted ambient for holographic atmosphere */}
-      <ambientLight intensity={0.15} color={0x334466} />
-      <directionalLight position={[5, 10, 5]} intensity={0.4} color={0x6688cc} />
+      <ambientLight intensity={0.12} color={0x334466} />
+      <directionalLight position={[5, 12, 8]} intensity={0.5} color={0x6688cc} />
       <directionalLight position={[-5, 5, -5]} intensity={0.15} color={0x4466aa} />
+      {/* Subtle colored fill lights for depth */}
+      <pointLight position={[-6, 6, 4]} intensity={1.5} color={0x2244aa} distance={20} />
+      <pointLight position={[8, 0, 4]} intensity={1.0} color={0x224488} distance={18} />
 
       {/* Background atmosphere */}
       <mesh material={bgMat}>
         <sphereGeometry args={[35, 16, 16]} />
       </mesh>
+
+      {/* Background stars */}
+      <BackgroundStars />
 
       {/* Click background to deselect */}
       <mesh position={[0, 2, -5]} material={bgClickMat} onClick={handleEmptyClick}>
@@ -765,16 +976,18 @@ export default function ArchitectureBlueprint() {
       <Html fullscreen>
         <div style={{
           position: 'absolute', top: '16px', left: '16px',
-          color: 'rgba(255,255,255,0.7)', fontSize: '11px',
-          background: 'rgba(0,0,0,0.5)', padding: '10px 14px',
-          borderRadius: '6px', lineHeight: '1.6',
-          maxWidth: '190px', pointerEvents: 'none',
+          color: 'rgba(255,255,255,0.75)', fontSize: '11px',
+          background: 'rgba(5,10,25,0.75)', padding: '12px 16px',
+          borderRadius: '8px', lineHeight: '1.7',
+          maxWidth: '200px', pointerEvents: 'none',
+          border: '1px solid rgba(68,136,204,0.15)',
+          backdropFilter: 'blur(4px)',
         }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#88bbff', fontSize: '12px' }}>System Architecture</div>
-          <div>Click a service to inspect</div>
-          <div>Hover to see connections</div>
-          <div style={{ marginTop: '4px', fontSize: '10px', opacity: 0.6 }}>
-            Use the service list to navigate
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '13px', letterSpacing: '0.5px' }}>System Architecture</div>
+          <div style={{ opacity: 0.8 }}>Click a service to inspect</div>
+          <div style={{ opacity: 0.8 }}>Hover to see connections</div>
+          <div style={{ marginTop: '6px', fontSize: '10px', opacity: 0.5, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '6px' }}>
+            Use sidebar to navigate
           </div>
         </div>
       </Html>
