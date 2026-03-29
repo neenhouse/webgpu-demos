@@ -21,17 +21,24 @@ Batch experiments showcasing Three.js WebGPURenderer — procedural scenes, comp
 
 Three.js now ships a WebGPURenderer that enables compute shaders, GPU-driven particles, TSL (Three Shading Language), and next-gen rendering features. This project creates a gallery of experiments — each one a standalone demo showcasing a different WebGPU capability.
 
-Uses Choo Choo Ralph loops to generate demos in batches, each exploring:
+Uses Choo Choo Ralph loops to generate demos in batches across 12 themes:
 - Compute shader particle systems
 - GPU-driven geometry
 - TSL custom materials
 - Post-processing with compute
 - Procedural terrain and environments
+- Audio-reactive music visualizations
+- Physics playgrounds (cloth, fluid, collision)
+- Procedural worlds (terrain, cities, caves)
+- Retro aesthetics (CRT, VHS, synthwave)
+- Organic nature (growth, weather, ecosystems)
+- Abstract math art (fractals, topology, attractors)
+- Game-ready techniques (shadows, SSAO, PBR, culling)
 
 ## Demo Types
 
-### Effect Demos (55)
-Self-contained scenes at `/viewer#demo-name` showcasing individual WebGPU capabilities (TSL materials, compute shaders, SDF, emergent simulations). Each is a single `index.tsx` in `src/demos/<name>/`.
+### Effect Demos (125)
+Self-contained scenes at `/viewer#demo-name` showcasing individual WebGPU capabilities (TSL materials, compute shaders, SDF, emergent simulations, audio-reactive, physics, procedural worlds, retro aesthetics, organic nature, abstract math, game-ready techniques). Each is a single `index.tsx` in `src/demos/<name>/`.
 
 ### Scene Demos (11)
 Rendered from YAML scene files via the model pipeline at `/viewer#demo-name`. Each is a thin wrapper calling `<SceneFromYaml scenePath="/scenes/<name>.scene.yaml" />`. Scene YAML files live in `public/scenes/`.

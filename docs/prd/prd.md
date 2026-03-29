@@ -8,7 +8,7 @@ last_updated: 2026-03-28
 
 ## Executive Summary
 
-A gallery of 76 WebGPU experiments built with Three.js WebGPURenderer. Each demo is a self-contained scene showcasing WebGPU capabilities — compute shaders, TSL materials, GPU particles, procedural worlds, emergent simulations, and interactive data visualizations. Five batch generation cycles complete, plus a scene pipeline for YAML-driven demos. CI deploys to Cloudflare Pages.
+A gallery of 146 WebGPU experiments built with Three.js WebGPURenderer. Each demo is a self-contained scene showcasing WebGPU capabilities — compute shaders, TSL materials, GPU particles, procedural worlds, emergent simulations, interactive data visualizations, audio-reactive music, physics playgrounds, retro aesthetics, organic nature, abstract math art, and game-ready rendering techniques. Twelve batch generation cycles complete, plus a scene pipeline for YAML-driven demos. CI deploys to Cloudflare Pages.
 
 ## Feature Inventory
 
@@ -17,14 +17,21 @@ A gallery of 76 WebGPU experiments built with Three.js WebGPURenderer. Each demo
 | 1 | Demo viewer | COMPLETE | PROVEN | WebGPURenderer + R3F Canvas, orbit controls, hash routing, overlay |
 | 2 | Demo gallery | COMPLETE | | Responsive grid with accent-colored cards, scrollable |
 | 3 | WebGPU detection | COMPLETE | | Auto-fallback to WebGL with notice banner |
-| 4 | Demo templates | COMPLETE | | 76 demos across 5 batches + scene pipeline demos |
-| 5 | Batch generation | COMPLETE | | 5 batches run, Ralph spec + learnings file mature |
+| 4 | Demo templates | COMPLETE | | 146 demos across 12 batches + scene pipeline demos |
+| 5 | Batch generation | COMPLETE | | 12 batches run, Ralph spec + learnings file mature |
 | 6 | Extractable scene spec | COMPLETE | | Engine-agnostic YAML scene pipeline spec v1.0 |
 | 7 | Model pipeline | COMPLETE | | Scene spec, 5 generator tiers, 14 material presets, prefabs, LOD, optimizer, editor |
 | 8 | Scene demos | COMPLETE | | 11 scene-based demos rendered from YAML via SceneFromYaml pipeline |
 | 9 | Emergent systems (Batch 4) | COMPLETE | | 10 demos: boids, reaction-diffusion, cellular automata, terrain erosion, gravitational orbits, etc. |
 | 10 | Interactive data viz (Batch 5) | COMPLETE | | 10 demos: forge-lifecycle, architecture-blueprint, decision-forest, neural-pipeline, state-machine, etc. |
 | 11 | Interactive UI overlays | COMPLETE | | Instructions panel + clickable sidebar on all data viz demos |
+| 12 | Audio-reactive demos (Batch 6) | COMPLETE | | 10 demos: beat-pulse-grid, frequency-mountains, waveform-tunnel, synth-aurora, drum-machine-cubes, bass-nebula, vinyl-grooves, equalizer-city, piano-waterfall, sonic-bloom |
+| 13 | Physics playground demos (Batch 7) | COMPLETE | | 10 demos: cloth-wind, soft-body-bounce, rope-bridge, fluid-pressure, ragdoll-fall, spring-mesh, magnetic-fields, collision-cascade, elastic-waves, pendulum-chaos |
+| 14 | Procedural worlds demos (Batch 8) | COMPLETE | | 10 demos: infinite-terrain, city-generator, cave-system, floating-islands, ocean-world, desert-dunes, ice-fortress, mushroom-forest, volcanic-rift, alien-megastructure |
+| 15 | Retro/aesthetic demos (Batch 9) | COMPLETE | | 10 demos: crt-monitor, vhs-glitch, synthwave-grid, pixel-dissolve, demoscene-plasma, ascii-render, neon-noir, gameboy-shader, vector-arcade, glitch-portrait |
+| 16 | Organic/nature demos (Batch 10) | COMPLETE | | 10 demos: tree-growth, coral-reef, weather-system, crystal-formation, mycelium-network, butterfly-swarm, flower-bloom, erosion-canyon, frost-patterns, kelp-forest |
+| 17 | Abstract math art demos (Batch 11) | COMPLETE | | 10 demos: strange-attractor, hyperbolic-plane, lissajous-web, klein-bottle, mandelbulb-3d, fibonacci-spiral, moebius-flow, penrose-tiles, hopf-fibration, julia-morph |
+| 18 | Game-ready technique demos (Batch 12) | COMPLETE | | 10 demos: shadow-cascade, ssao-showcase, pbr-material-lab, gpu-culling, lod-transition, deferred-lights, volumetric-fog-rays, screen-reflections, motion-blur-demo, toon-outline |
 
 ## Active Requirements
 
@@ -99,6 +106,80 @@ Detect WebGPU support and gracefully fall back to WebGL.
 - [x] **REQ-22**: Simple property-based materials for data viz demos (no TSL Fn() overhead) `COMPLETE`
   - AC: Data viz demos use .color/.emissive/.emissiveIntensity — zero shader compilation
   - Learning: TSL complexity is for shader art demos, not data viz. Halos on every node kill performance.
+
+### 12. Audio-Reactive / Music — Batch 6 (2026-03-28)
+
+10 demos with CPU-simulated audio driving visuals — no Web Audio API dependency:
+
+- [x] **REQ-23**: Beat-driven instanced mesh animation (beat-pulse-grid, drum-machine-cubes) `COMPLETE`
+- [x] **REQ-24**: Frequency spectrum vertex displacement (frequency-mountains, waveform-tunnel) `COMPLETE`
+- [x] **REQ-25**: Audio-reactive volumetric/ribbon effects (bass-nebula, synth-aurora) `COMPLETE`
+- [x] **REQ-26**: Music visualization patterns (equalizer-city, piano-waterfall, vinyl-grooves, sonic-bloom) `COMPLETE`
+
+**Demos**: beat-pulse-grid, frequency-mountains, waveform-tunnel, synth-aurora, drum-machine-cubes, bass-nebula, vinyl-grooves, equalizer-city, piano-waterfall, sonic-bloom
+
+### 13. Physics Playgrounds — Batch 7 (2026-03-28)
+
+10 demos exploring GPU compute and CPU physics simulations:
+
+- [x] **REQ-27**: GPU compute cloth/spring/wave simulations (cloth-wind, spring-mesh, elastic-waves) `COMPLETE`
+- [x] **REQ-28**: Particle-based fluid and collision (fluid-pressure, collision-cascade, magnetic-fields) `COMPLETE`
+- [x] **REQ-29**: CPU Verlet integration demos (rope-bridge, ragdoll-fall, soft-body-bounce) `COMPLETE`
+- [x] **REQ-30**: Chaotic dynamics visualization (pendulum-chaos) `COMPLETE`
+
+**Demos**: cloth-wind, soft-body-bounce, rope-bridge, fluid-pressure, ragdoll-fall, spring-mesh, magnetic-fields, collision-cascade, elastic-waves, pendulum-chaos
+
+### 14. Procedural Worlds — Batch 8 (2026-03-28)
+
+10 demos generating entire environments procedurally:
+
+- [x] **REQ-31**: Terrain/landscape generation (infinite-terrain, desert-dunes, ocean-world) `COMPLETE`
+- [x] **REQ-32**: Architectural generation (city-generator, ice-fortress, alien-megastructure) `COMPLETE`
+- [x] **REQ-33**: Natural environments (cave-system, floating-islands, mushroom-forest, volcanic-rift) `COMPLETE`
+
+**Demos**: infinite-terrain, city-generator, cave-system, floating-islands, ocean-world, desert-dunes, ice-fortress, mushroom-forest, volcanic-rift, alien-megastructure
+
+### 15. Retro / Aesthetic — Batch 9 (2026-03-28)
+
+10 demos recreating classic visual styles via screen-space shaders:
+
+- [x] **REQ-34**: Display technology simulation (crt-monitor, vhs-glitch, gameboy-shader) `COMPLETE`
+- [x] **REQ-35**: Retro aesthetic scenes (synthwave-grid, vector-arcade, neon-noir) `COMPLETE`
+- [x] **REQ-36**: Shader art effects (pixel-dissolve, demoscene-plasma, ascii-render, glitch-portrait) `COMPLETE`
+
+**Demos**: crt-monitor, vhs-glitch, synthwave-grid, pixel-dissolve, demoscene-plasma, ascii-render, neon-noir, gameboy-shader, vector-arcade, glitch-portrait
+
+### 16. Organic / Nature — Batch 10 (2026-03-28)
+
+10 demos simulating natural growth, ecosystems, and weather:
+
+- [x] **REQ-37**: Growth algorithms (tree-growth, crystal-formation, mycelium-network, frost-patterns) `COMPLETE`
+- [x] **REQ-38**: Ecosystem scenes (coral-reef, kelp-forest, butterfly-swarm, flower-bloom) `COMPLETE`
+- [x] **REQ-39**: Environmental simulation (weather-system, erosion-canyon) `COMPLETE`
+
+**Demos**: tree-growth, coral-reef, weather-system, crystal-formation, mycelium-network, butterfly-swarm, flower-bloom, erosion-canyon, frost-patterns, kelp-forest
+
+### 17. Abstract Math Art — Batch 11 (2026-03-28)
+
+10 demos visualizing mathematical concepts and structures:
+
+- [x] **REQ-40**: Strange attractors and chaos (strange-attractor, pendulum-chaos via batch 7) `COMPLETE`
+- [x] **REQ-41**: Parametric surfaces and topology (klein-bottle, moebius-flow, hopf-fibration) `COMPLETE`
+- [x] **REQ-42**: Fractal rendering (mandelbulb-3d, julia-morph) `COMPLETE`
+- [x] **REQ-43**: Tiling and patterns (penrose-tiles, fibonacci-spiral, hyperbolic-plane, lissajous-web) `COMPLETE`
+
+**Demos**: strange-attractor, hyperbolic-plane, lissajous-web, klein-bottle, mandelbulb-3d, fibonacci-spiral, moebius-flow, penrose-tiles, hopf-fibration, julia-morph
+
+### 18. Game-Ready Techniques — Batch 12 (2026-03-28)
+
+10 demos showcasing production rendering techniques:
+
+- [x] **REQ-44**: Lighting techniques (shadow-cascade, deferred-lights, volumetric-fog-rays) `COMPLETE`
+- [x] **REQ-45**: Screen-space effects (ssao-showcase, screen-reflections, motion-blur-demo) `COMPLETE`
+- [x] **REQ-46**: Rendering optimization (gpu-culling, lod-transition) `COMPLETE`
+- [x] **REQ-47**: Material and style (pbr-material-lab, toon-outline) `COMPLETE`
+
+**Demos**: shadow-cascade, ssao-showcase, pbr-material-lab, gpu-culling, lod-transition, deferred-lights, volumetric-fog-rays, screen-reflections, motion-blur-demo, toon-outline
 
 ## Intent Backlog
 

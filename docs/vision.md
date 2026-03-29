@@ -8,9 +8,9 @@ A gallery of WebGPU experiments built with Three.js — each demo showcases a di
 
 **Stage**: Active
 
-76 demos across 5 categories: TSL shader art, compute simulations, scene pipeline, emergent systems, and interactive data visualizations. Gallery with WebGPU/WebGL auto-detection, scrollable grid, hash routing. Five batch generation cycles complete via Choo Choo Ralph. Scene pipeline renders YAML-driven demos. Batch 5 introduced first interactive demos with click handling, camera transitions, Html overlays, and structured data → 3D rendering. CI deploys to Cloudflare Pages.
+146 demos across 12 categories: TSL shader art, compute simulations, scene pipeline, emergent systems, interactive data visualizations, audio-reactive music, physics playgrounds, procedural worlds, retro aesthetics, organic nature, abstract math art, and game-ready techniques. Gallery with WebGPU/WebGL auto-detection, scrollable grid, hash routing. Twelve batch generation cycles complete via Choo Choo Ralph. Scene pipeline renders YAML-driven demos. Batches 6-12 expanded into 7 new themed categories with 70 additional demos. CI deploys to Cloudflare Pages.
 
-> **Last updated**: 2026-03-28 — See `docs/prd/` for detailed feature status.
+> **Last updated**: 2026-03-28 (Batches 6-12) — See `docs/prd/` for detailed feature status.
 
 ## Audience
 - Three.js developers curious about WebGPU migration
