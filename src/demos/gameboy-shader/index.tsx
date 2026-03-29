@@ -10,14 +10,13 @@ import {
   uniform,
   screenUV,
   screenSize,
-  time,
   sin,
-  cos,
   fract,
   floor,
   mix,
   smoothstep,
   clamp,
+  abs,
 } from 'three/tsl';
 
 /**
@@ -35,7 +34,6 @@ function GameboyPlane() {
   const { viewport } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
   const terrainRef = useRef<THREE.Mesh>(null);
-  const treeRef = useRef<THREE.Group>(null);
   const timeUniform = useMemo(() => uniform(0.0), []);
 
   const material = useMemo(() => {
@@ -53,12 +51,6 @@ function GameboyPlane() {
         .mul(smoothstep(float(1.0), float(1.0).sub(bezelX), uv.x))
         .mul(smoothstep(float(0.0), bezelY, uv.y))
         .mul(smoothstep(float(1.0), float(1.0).sub(bezelY), uv.y));
-
-      // ── Rounded corners for frame ──
-      const corner1 = smoothstep(float(0.0), float(0.01), uv.x.sub(float(0.06)).pow(float(2.0)).add(uv.y.sub(float(0.08)).pow(float(2.0))).sub(float(0.003)));
-      const corner2 = smoothstep(float(0.0), float(0.01), float(0.94).sub(uv.x).pow(float(2.0)).add(uv.y.sub(float(0.08)).pow(float(2.0))).sub(float(0.003)));
-      const corner3 = smoothstep(float(0.0), float(0.01), uv.x.sub(float(0.06)).pow(float(2.0)).add(float(0.92).sub(uv.y).pow(float(2.0))).sub(float(0.003)));
-      const corner4 = smoothstep(float(0.0), float(0.01), float(0.94).sub(uv.x).pow(float(2.0)).add(float(0.92).sub(uv.y).pow(float(2.0))).sub(float(0.003)));
 
       // ── Sample the scene at this pixel ──
       // Normalize UV within the screen area

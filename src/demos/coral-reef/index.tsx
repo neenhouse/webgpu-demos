@@ -12,6 +12,7 @@ import {
   positionWorld,
   smoothstep,
   time,
+  vec3,
 } from 'three/tsl';
 
 /**
@@ -135,7 +136,7 @@ export default function CoralReef() {
   // Anemone material: animated sway
   const anenomeMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    const sway = oscSine(time.mul(1.5).add(instanceIndex.toFloat().mul(0.8))).mul(0.15);
+    oscSine(time.mul(1.5).add(instanceIndex.toFloat().mul(0.8))).mul(0.15);
     mat.colorNode = mix(color(0xff9966), color(0xffcc44), smoothstep(-1.0, 2.0, positionWorld.y));
     mat.emissiveNode = color(0xff5522).mul(float(0.25));
     mat.roughness = 0.6;
@@ -146,7 +147,7 @@ export default function CoralReef() {
   // Fish material: iridescent blue-green
   const fishMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    const fresnel = float(1.0).sub(normalWorld.dot(new THREE.Vector3(0, 0, 1).normalize()).abs());
+    const fresnel = float(1.0).sub(normalWorld.dot(vec3(0, 0, 1)).abs());
     mat.colorNode = mix(color(0x0088ff), color(0xffcc00), fresnel.pow(float(2.0)));
     mat.emissiveNode = color(0x0044aa).mul(float(0.3));
     mat.roughness = 0.2;

@@ -4,12 +4,10 @@ import * as THREE from 'three/webgpu';
 import {
   color,
   float,
-  hash,
   instanceIndex,
   mix,
   positionWorld,
   smoothstep,
-  time,
 } from 'three/tsl';
 
 /**
@@ -79,7 +77,6 @@ function buildNetwork(roots: THREE.Vector3[], maxDepth: number): NetworkSegment[
 
 const MAX_SEGMENTS = 180;
 const PULSE_COUNT = 50;
-const MUSHROOM_COUNT = 4;
 
 export default function MyceliumNetwork() {
   const networkRef = useRef<THREE.InstancedMesh>(null);

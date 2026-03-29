@@ -3,7 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   Fn,
-  If,
   instancedArray,
   instanceIndex,
   uniform,
@@ -17,6 +16,8 @@ import {
   floor,
   fract,
   hash,
+  max,
+  min,
 } from 'three/tsl';
 
 /**
@@ -37,7 +38,7 @@ const TOTAL = WIDTH * WIDTH;
 const VEG_COUNT = 80;
 
 export default function ErosionCanyon() {
-  const { viewport, gl } = useThree();
+  const { gl } = useThree();
   const [initialized, setInitialized] = useState(false);
   const waterRef = useRef<THREE.Mesh>(null);
   const vegRef = useRef<THREE.InstancedMesh>(null);
@@ -52,9 +53,7 @@ export default function ErosionCanyon() {
     const sedimentB = instancedArray(TOTAL, 'float');
 
     const tUniform = uniform(0.0);
-    const frameUniform = uniform(0.0);
     const w = float(WIDTH);
-    const maxIdx = float(TOTAL - 1);
 
     // Init: canyon terrain with river bed
     const computeInit = Fn(() => {
@@ -101,7 +100,6 @@ export default function ErosionCanyon() {
     const computeErosion = Fn(() => {
       const idx = float(instanceIndex);
       const gx = floor(idx.mod(w));
-      const gy = floor(idx.div(w));
 
       const h = heightA.element(instanceIndex);
       const water = waterA.element(instanceIndex);
@@ -116,10 +114,10 @@ export default function ErosionCanyon() {
       // Flow outward: check neighbors
       const outflow = float(0.0).toVar();
 
-      const leftIdx = int(instanceIndex).sub(1).max(0);
-      const rightIdx = int(instanceIndex).add(1).min(TOTAL - 1);
-      const upIdx = int(instanceIndex).sub(WIDTH).max(0);
-      const downIdx = int(instanceIndex).add(WIDTH).min(TOTAL - 1);
+      const leftIdx = max(int(instanceIndex).sub(1).toFloat(), 0).toInt();
+      const rightIdx = min(int(instanceIndex).add(1).toFloat(), float(TOTAL - 1)).toInt();
+      const upIdx = max(int(instanceIndex).sub(WIDTH).toFloat(), 0).toInt();
+      const downIdx = min(int(instanceIndex).add(WIDTH).toFloat(), float(TOTAL - 1)).toInt();
 
       const hL = heightA.element(leftIdx);
       const hR = heightA.element(rightIdx);

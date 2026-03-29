@@ -109,6 +109,8 @@ function makeTerrainMaterial() {
   return mat;
 }
 
+const terrainSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x88bbdd) });
+
 export default function InfiniteTerrain() {
   const terrainRef = useRef<THREE.Mesh>(null);
   const material = useMemo(() => makeTerrainMaterial(), []);
@@ -131,9 +133,8 @@ export default function InfiniteTerrain() {
       <pointLight position={[0, -2, 0]} intensity={1.0} color="#2266aa" distance={30} />
 
       {/* Sky dome — large BackSide sphere */}
-      <mesh>
+      <mesh material={terrainSkyMat}>
         <sphereGeometry args={[80, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x88bbdd)} />
       </mesh>
 
       {/* Main terrain — 128x128 subdivisions for smooth height variation */}

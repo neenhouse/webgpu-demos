@@ -14,8 +14,6 @@ import * as THREE from 'three/webgpu';
  * - Shadow bias tuning to reduce acne artifacts
  */
 
-const OBJECT_COUNT = 8;
-
 interface SceneObject {
   position: [number, number, number];
   rotation: [number, number, number];

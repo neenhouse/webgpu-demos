@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/purity */
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
@@ -139,7 +139,7 @@ function SandParticles() {
   const sandMat = useMemo(() => makeSandParticleMaterial(), []);
 
   const particleData = useMemo(() =>
-    Array.from({ length: SAND_PARTICLE_COUNT }, (_, i) => ({
+    Array.from({ length: SAND_PARTICLE_COUNT }, (_) => ({
       x: (Math.random() - 0.5) * 50,
       y: Math.random() * 3.0,
       z: (Math.random() - 0.5) * 50,
@@ -176,12 +176,14 @@ function SandParticles() {
   );
 }
 
+const desertSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0xe8c060) });
+
 export default function DesertDunes() {
   const duneRef = useRef<THREE.Mesh>(null);
   const duneMat = useMemo(() => makeDuneMaterial(), []);
   const hazeMat = useMemo(() => makeHeatHazeMaterial(), []);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     // Slight tilt for dramatic sun angle
     if (duneRef.current) {
       duneRef.current.rotation.x = -Math.PI / 2;
@@ -198,9 +200,8 @@ export default function DesertDunes() {
       <pointLight position={[0, -1, 20]} intensity={3.0} color="#ff6622" distance={50} />
 
       {/* Sky — warm desert sky */}
-      <mesh>
+      <mesh material={desertSkyMat}>
         <sphereGeometry args={[90, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0xe8c060)} />
       </mesh>
 
       {/* Dune terrain */}

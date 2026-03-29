@@ -15,8 +15,6 @@ import {
   color,
   mix,
   smoothstep,
-  length,
-  normalize,
 } from 'three/tsl';
 
 /**

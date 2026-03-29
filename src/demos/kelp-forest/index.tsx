@@ -4,13 +4,10 @@ import * as THREE from 'three/webgpu';
 import {
   color,
   float,
-  hash,
   instanceIndex,
   mix,
-  normalWorld,
   positionWorld,
   smoothstep,
-  time,
 } from 'three/tsl';
 
 /**

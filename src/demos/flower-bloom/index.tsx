@@ -1,16 +1,11 @@
-import { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
   float,
-  hash,
   instanceIndex,
   mix,
-  normalWorld,
-  positionWorld,
-  smoothstep,
-  time,
 } from 'three/tsl';
 
 /**
@@ -46,39 +41,11 @@ const CYCLE_DURATION = 14.0;
 const POLLEN_COUNT = 60;
 
 // Petal geometry: elongated plane with rounded tip feel
-const PETAL_SEGMENTS_PER_FLOWER = 12;
-const MAX_PETALS = 36; // 12 per flower max * 3 flowers
 
 export default function FlowerBloom() {
   const petalRefs = useRef<(THREE.Mesh | null)[]>([]);
   const pollenRef = useRef<THREE.InstancedMesh>(null);
   const totalTimeRef = useRef(0);
-  const groupRef = useRef<THREE.Group>(null);
-
-  // Flower petal state arrays
-  const petalData = useMemo(() => {
-    const data: Array<{
-      flower: number;
-      petalIndex: number;
-      baseAngle: number;
-      openAngle: number;
-      closedTilt: number;
-    }> = [];
-
-    for (let f = 0; f < FLOWERS.length; f++) {
-      const flower = FLOWERS[f];
-      for (let p = 0; p < flower.petalCount; p++) {
-        data.push({
-          flower: f,
-          petalIndex: p,
-          baseAngle: (p / flower.petalCount) * Math.PI * 2,
-          openAngle: -(Math.PI * 0.35 + Math.random() * 0.2),
-          closedTilt: Math.PI * 0.5 - 0.1,
-        });
-      }
-    }
-    return data;
-  }, []);
 
   // Pollen material
   const pollenMaterial = useMemo(() => {
@@ -122,16 +89,12 @@ export default function FlowerBloom() {
     for (let f = 0; f < FLOWERS.length; f++) {
       const flower = FLOWERS[f];
       const elapsed = Math.max(0, t - flower.delay);
-      const progress = Math.min(1.0, elapsed / BLOOM_DURATION);
-      const eased = progress * progress * (3 - 2 * progress);
-
       for (let p = 0; p < flower.petalCount; p++) {
         const ref = petalRefs.current[petalIdx];
         if (ref) {
           // Petal opens from vertical to horizontal (rotates back)
           const closedAngle = Math.PI * 0.45;
           const openAngle = -Math.PI * 0.1;
-          const currentAngle = closedAngle + (openAngle - closedAngle) * eased;
           // Stagger each petal slightly
           const staggerProgress = Math.min(1.0, Math.max(0, (elapsed - p * 0.05) / BLOOM_DURATION));
           const staggerEased = staggerProgress * staggerProgress * (3 - 2 * staggerProgress);
@@ -174,7 +137,7 @@ export default function FlowerBloom() {
 
   // Build petal JSX
   const petalElements = useMemo(() => {
-    const elements: JSX.Element[] = [];
+    const elements: React.JSX.Element[] = [];
     let idx = 0;
     for (let f = 0; f < FLOWERS.length; f++) {
       const flower = FLOWERS[f];

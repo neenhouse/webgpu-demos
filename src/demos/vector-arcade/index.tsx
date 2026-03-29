@@ -6,16 +6,10 @@ import {
   float,
   vec3,
   vec4,
-  positionLocal,
   positionWorld,
-  normalWorld,
-  cameraPosition,
   time,
   sin,
-  cos,
-  hash,
   mix,
-  smoothstep,
 } from 'three/tsl';
 
 /**
@@ -118,7 +112,6 @@ export default function VectorArcade() {
       const idx = positionWorld.x.add(positionWorld.y).add(positionWorld.z);
       const twinkle = sin(time.mul(float(3.0)).add(idx.mul(float(7.3)))).mul(float(0.3)).add(float(0.7));
       // Alternate between green and cyan stars
-      const isGreen = hash(idx).greaterThan(float(0.5));
       const greenStar = vec3(float(0.0), float(1.0).mul(twinkle), float(0.3));
       const cyanStar = vec3(float(0.0), float(0.8).mul(twinkle), float(1.0).mul(twinkle));
       return mix(cyanStar, greenStar, float(0.5));

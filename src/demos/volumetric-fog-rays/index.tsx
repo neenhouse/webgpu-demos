@@ -2,19 +2,14 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  Fn,
   float,
   color,
   mix,
-  smoothstep,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
   hash,
   instanceIndex,
   uniform,
   oscSine,
-  time,
+  smoothstep,
   uv,
   vec2,
 } from 'three/tsl';
@@ -60,7 +55,7 @@ export default function VolumetricFogRays() {
     const idx = float(instanceIndex);
     const h = hash(idx);
     const phase = hash(idx.add(100));
-    const shimmer = oscSine(timeUniform.mul(0.8 + h.mul(1.5).toFloat()).add(phase.mul(Math.PI * 2)));
+    const shimmer = oscSine(timeUniform.mul(float(0.8).add(h.mul(1.5))).add(phase.mul(Math.PI * 2)));
     const warmDust = color(0xffeecc);
     const brightDust = color(0xffffff);
     mat.colorNode = mix(warmDust, brightDust, shimmer.mul(0.5).add(0.5));

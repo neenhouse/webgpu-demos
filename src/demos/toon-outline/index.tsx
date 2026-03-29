@@ -12,12 +12,7 @@ import {
   normalWorld,
   normalLocal,
   cameraPosition,
-  hash,
   uniform,
-  oscSine,
-  time,
-  dot,
-  max,
   floor,
 } from 'three/tsl';
 

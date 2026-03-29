@@ -4,16 +4,7 @@ import * as THREE from 'three/webgpu';
 import {
   Fn,
   float,
-  vec3,
-  vec4,
   positionLocal,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  time,
-  sin,
-  hash,
-  mix,
   smoothstep,
 } from 'three/tsl';
 

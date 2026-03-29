@@ -7,19 +7,16 @@ import {
   vec2,
   vec3,
   vec4,
-  int,
   uniform,
   screenUV,
   screenSize,
-  time,
   sin,
   cos,
-  fract,
   floor,
+  fract,
   mix,
   smoothstep,
   clamp,
-  mod,
   abs,
 } from 'three/tsl';
 
@@ -63,13 +60,10 @@ function ASCIIPlane() {
       // ── Sample scene luminance at cell center ──
       // Rotating box arrangement via UV pattern
       const sceneUV = cellCenterUV.sub(0.5);
-      const angle = sceneUV.y.atan2(sceneUV.x).add(timeUniform.mul(0.4));
       const dist = sceneUV.length();
 
       // Multiple box silhouettes
       const boxUV = sceneUV.mul(float(2.0));
-      const absX = abs(boxUV.x);
-      const absY = abs(boxUV.y);
 
       // Rotating box 1
       const rot1 = timeUniform.mul(0.5);

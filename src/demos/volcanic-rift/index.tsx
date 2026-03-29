@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/purity */
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
@@ -8,8 +8,6 @@ import {
   positionWorld,
   positionLocal,
   normalLocal,
-  normalWorld,
-  cameraPosition,
   Fn,
   float,
   mix,
@@ -274,6 +272,8 @@ function EmberParticles() {
   );
 }
 
+const volcanicSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x110502) });
+
 export default function VolcanicRift() {
   const terrainMat = useMemo(() => makeTerrainMaterial(), []);
   const crackMat = useMemo(() => makeCrackOverlayMaterial(), []);
@@ -290,9 +290,8 @@ export default function VolcanicRift() {
       <pointLight position={[0, 0.5, -5]} intensity={5.0} color="#ff3300" distance={15} />
 
       {/* Volcanic sky */}
-      <mesh>
+      <mesh material={volcanicSkyMat}>
         <sphereGeometry args={[80, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x110502)} />
       </mesh>
 
       {/* Terrain */}

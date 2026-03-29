@@ -1,7 +1,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
-import { color, float, mix, normalWorld, positionWorld, smoothstep, time, uniform } from 'three/tsl';
+import { color, float, mix, positionWorld, smoothstep, time, uniform } from 'three/tsl';
 
 /**
  * Tree Growth — L-system tree growing in real time
@@ -127,9 +127,6 @@ export default function TreeGrowth() {
     mat.emissiveNode = mat.colorNode.mul(float(0.15));
     mat.roughness = 0.7;
     mat.metalness = 0.0;
-    mat.positionNode = mat.positionNode !== null
-      ? mat.positionNode
-      : undefined;
     return mat;
   }, []);
 

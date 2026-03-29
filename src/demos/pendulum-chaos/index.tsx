@@ -1,7 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
-import { color, mix, smoothstep, float } from 'three/tsl';
 
 /**
  * Pendulum Chaos — Triple pendulum with chaotic trajectories
@@ -50,8 +49,6 @@ function tripleDerivatives(s: PendulumState): number[] {
   // Simplified Lagrangian equations for triple pendulum
   // (Using approximated equations for visual fidelity)
   const cos12 = Math.cos(d1);
-  const cos23 = Math.cos(d2);
-  const cos13 = Math.cos(d3);
   const sin12 = Math.sin(d1);
   const sin23 = Math.sin(d2);
   const sin13 = Math.sin(d3);
@@ -119,7 +116,6 @@ function pendulumPositions(s: PendulumState, origin: THREE.Vector3): THREE.Vecto
 }
 
 const PENDULUM_COLORS = ['#ff2244', '#00eeff', '#ffcc00'];
-const PENDULUM_COLORS_DARK = ['#880011', '#005566', '#886600'];
 
 export default function PendulumChaos() {
   const trailMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -210,7 +206,6 @@ export default function PendulumChaos() {
       for (let p = 0; p < PENDULUM_COUNT; p++) {
         for (let i = 0; i < TRAIL_LENGTH; i++) {
           const age = ((trailHeads[p] - i - 1 + TRAIL_LENGTH) % TRAIL_LENGTH) / TRAIL_LENGTH;
-          const opacity = Math.max(0, 1 - age * 1.5);
           const scale = 0.025 * (1 - age * 0.8);
 
           dummy.position.copy(trails[p][(trailHeads[p] - i - 1 + TRAIL_LENGTH) % TRAIL_LENGTH]);

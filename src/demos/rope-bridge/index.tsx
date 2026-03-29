@@ -74,7 +74,6 @@ export default function RopeBridge() {
   // Sphere and cylinder meshes counts
   const SEGMENT_COUNT = ROPE_PARTICLES - 1;
   const LINK_COUNT = ROPE_COUNT * SEGMENT_COUNT;
-  const CROSS_COUNT = ROPE_PARTICLES;
   const PLANK_COUNT = Math.floor(ROPE_PARTICLES / 3);
 
   const sphereMat = useMemo(() => new THREE.MeshStandardMaterial({

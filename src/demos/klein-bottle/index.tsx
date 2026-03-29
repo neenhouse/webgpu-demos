@@ -6,14 +6,12 @@ import {
   float,
   vec3,
   vec4,
-  attribute,
+  uv,
   cameraPosition,
   positionWorld,
   normalWorld,
   mix,
   smoothstep,
-  sin,
-  cos,
 } from 'three/tsl';
 
 const U_SEGS = 80;
@@ -27,9 +25,6 @@ function kleinPoint(u: number, v: number): THREE.Vector3 {
   const sinu = Math.sin(u);
   const cosv = Math.cos(v);
   const sinv = Math.sin(v);
-  const cos2u = Math.cos(u / 2);
-  const sin2u = Math.sin(u / 2);
-
   let x: number, y: number, z: number;
 
   if (u < Math.PI) {
@@ -108,8 +103,7 @@ export default function KleinBottle() {
 
     // Color by UV coordinates: u=orange (outside), v-flipped=blue (inside)
     const surfaceColor = Fn(() => {
-      const uCoord = attribute('uv').x; // 0..1 along the seam direction
-      const vCoord = attribute('uv').y;
+      const vCoord = uv().y;
 
       // Outside = warm orange-gold; inside = cool blue
       const outsideColor = vec3(1.0, 0.45, 0.08);
@@ -136,7 +130,7 @@ export default function KleinBottle() {
       const nDotV = normalWorld.dot(viewDir).abs().saturate();
       const f = float(1.0).sub(nDotV).pow(float(3.5));
       // Glow shifts from orange to blue based on position
-      const uCoord = attribute('uv').x;
+      const uCoord = uv().x;
       const glowColor = mix(
         vec3(1.0, 0.5, 0.0),
         vec3(0.2, 0.6, 1.0),

@@ -6,7 +6,7 @@ import {
   float,
   vec3,
   vec4,
-  attribute,
+  uv,
   cameraPosition,
   positionWorld,
   normalWorld,
@@ -100,7 +100,7 @@ export default function MoebiusFlow() {
 
     // Color by u-parameter to show topology
     const stripColor = Fn(() => {
-      const u = attribute('uv').x; // normalized u [0,1]
+      const u = uv().x; // normalized u [0,1]
       // Color cycles: blue -> teal -> green -> orange -> red -> blue
       const t1 = smoothstep(float(0.0), float(0.2), u);
       const t2 = smoothstep(float(0.2), float(0.4), u);
@@ -127,7 +127,7 @@ export default function MoebiusFlow() {
       const viewDir = cameraPosition.sub(positionWorld).normalize();
       const nDotV = normalWorld.dot(viewDir).abs().saturate();
       const f = float(1.0).sub(nDotV).pow(float(2.5));
-      const u = attribute('uv').x;
+      const u = uv().x;
       const glowColor = mix(vec3(0.1, 0.5, 1.0), vec3(1.0, 0.4, 0.1), u);
       return glowColor.mul(f).mul(float(2.0));
     });

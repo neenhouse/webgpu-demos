@@ -6,8 +6,6 @@ import {
   color,
   time,
   positionWorld,
-  positionLocal,
-  normalLocal,
   Fn,
   float,
   mix,
@@ -282,6 +280,8 @@ function SporeParticles() {
   );
 }
 
+const mushroomSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x040a04) });
+
 export default function MushroomForest() {
   const configs = useMemo(() => mushroomConfigs(), []);
   const groundMat = useMemo(() => makeGroundMaterial(), []);
@@ -299,9 +299,8 @@ export default function MushroomForest() {
       <pointLight position={[0, 0.5, 0]} intensity={1.5} color="#224422" distance={6} />
 
       {/* Dark sky for nighttime forest */}
-      <mesh>
+      <mesh material={mushroomSkyMat}>
         <sphereGeometry args={[80, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x040a04)} />
       </mesh>
 
       {/* Mossy ground */}

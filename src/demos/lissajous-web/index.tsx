@@ -1,21 +1,16 @@
-import { useRef, useMemo, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   Fn,
   float,
   vec3,
-  uniform,
   positionWorld,
   cameraPosition,
   normalWorld,
-  mix,
-  sin,
 } from 'three/tsl';
 
-const CURVES = 6;
 const POINTS_PER_CURVE = 200;
-const TOTAL_SPHERES = CURVES * POINTS_PER_CURVE;
 
 // 6-curve Lissajous parameters: [a, b, c, delta, gamma]
 const CURVE_PARAMS = [
@@ -51,7 +46,6 @@ function computeLissajousPoints(a: number, b: number, c: number, delta: number, 
 
 export default function LissajousWeb() {
   const groupRef = useRef<THREE.Group>(null);
-  const sphereMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const phaseRef = useRef(0);
 
@@ -105,6 +99,10 @@ export default function LissajousWeb() {
       });
     });
   }, []);
+
+  const lineObjects = useMemo(() => {
+    return CURVE_PARAMS.map((_, i) => new THREE.Line(lineGeometries[i], lineMaterials[i]));
+  }, [lineGeometries, lineMaterials]);
 
   useFrame((state) => {
     const phase = state.clock.elapsedTime * 0.25;
@@ -168,8 +166,8 @@ export default function LissajousWeb() {
         ))}
 
         {/* Connecting lines */}
-        {CURVE_PARAMS.map((_, curveIdx) => (
-          <line key={`line-${curveIdx}`} geometry={lineGeometries[curveIdx]} material={lineMaterials[curveIdx]} />
+        {lineObjects.map((lineObj, curveIdx) => (
+          <primitive key={`line-${curveIdx}`} object={lineObj} />
         ))}
       </group>
     </>

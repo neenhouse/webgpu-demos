@@ -1,20 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
-import {
-  Fn,
-  float,
-  color,
-  mix,
-  smoothstep,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  uniform,
-  oscSine,
-  time,
-} from 'three/tsl';
 
 /**
  * Motion Blur Demo — per-object ghost trails showing speed/direction

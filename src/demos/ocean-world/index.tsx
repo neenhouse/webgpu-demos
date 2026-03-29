@@ -144,24 +144,7 @@ function makeCausticMaterial() {
   return mat;
 }
 
-function makeFogPlane() {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-
-  const fogFn = Fn(() => {
-    const px = positionWorld.x;
-    const pz = positionWorld.z;
-    const dist = px.mul(px).add(pz.mul(pz)).sqrt().div(float(50.0)).saturate();
-    return smoothstep(float(0.5), float(1.0), dist);
-  });
-
-  mat.colorNode = color(0x7aadcc);
-  mat.opacityNode = fogFn().mul(float(0.6));
-  mat.roughness = 1.0;
-  mat.metalness = 0.0;
-
-  return mat;
-}
+const oceanSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x5b9dd1) });
 
 export default function OceanWorld() {
   const oceanRef = useRef<THREE.Mesh>(null);
@@ -185,9 +168,8 @@ export default function OceanWorld() {
       <pointLight position={[0, -4, 0]} intensity={3.0} color="#0a4a8a" distance={40} />
 
       {/* Sky dome */}
-      <mesh>
+      <mesh material={oceanSkyMat}>
         <sphereGeometry args={[90, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x5b9dd1)} />
       </mesh>
 
       {/* Ocean surface — 128x128 subdivisions */}

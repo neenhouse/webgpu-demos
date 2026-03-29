@@ -12,12 +12,10 @@ import {
   screenSize,
   sin,
   cos,
-  fract,
-  floor,
   mix,
   smoothstep,
-  clamp,
   step,
+  atan,
 } from 'three/tsl';
 
 /**
@@ -62,7 +60,7 @@ function CRTPlane() {
 
       // ── Base scene: procedural torus knot-like swirl ──
       const sceneUV = distortedUV.sub(0.5);
-      const angle = sceneUV.y.atan2(sceneUV.x).add(timeUniform.mul(0.3));
+      const angle = atan(sceneUV.y, sceneUV.x).add(timeUniform.mul(0.3));
       const dist = sceneUV.length();
       const torusPattern = sin(dist.mul(12.0).sub(timeUniform.mul(2.0))).mul(0.5).add(0.5);
       const spiral = sin(angle.mul(6.0).add(dist.mul(8.0)).sub(timeUniform.mul(1.5))).mul(0.5).add(0.5);

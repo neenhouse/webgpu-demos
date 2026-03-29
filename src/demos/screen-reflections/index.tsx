@@ -1,20 +1,13 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  Fn,
   float,
   color,
   mix,
   smoothstep,
   positionWorld,
-  normalWorld,
-  cameraPosition,
-  hash,
-  instanceIndex,
   uniform,
-  oscSine,
-  time,
 } from 'three/tsl';
 
 /**
@@ -29,7 +22,6 @@ import {
  * - Animated objects to show live reflection updating
  */
 
-const OBJECT_COUNT = 6;
 
 interface SceneObject {
   position: [number, number, number];

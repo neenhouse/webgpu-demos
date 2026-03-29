@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
@@ -17,8 +17,6 @@ import {
   Loop,
   Break,
   If,
-  sin,
-  cos,
 } from 'three/tsl';
 
 const MAX_ITER = 80;

@@ -7,15 +7,12 @@ import {
   positionWorld,
   normalWorld,
   cameraPosition,
-  uv,
   Fn,
   float,
   vec3,
   mix,
   smoothstep,
   sin,
-  cos,
-  fract,
 } from 'three/tsl';
 
 /**
@@ -34,6 +31,11 @@ import {
 const RPM = 33.3;
 const ROT_PER_SEC = (RPM / 60) * Math.PI * 2;
 
+const vinylPlatterMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x111012); m.roughness = 0.3; m.metalness = 0.5; return m; })();
+const vinylPivotMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x888070); m.roughness = 0.3; m.metalness = 0.9; return m; })();
+const vinylStylusMat = (() => { const m = new THREE.MeshBasicNodeMaterial(); m.color.set(new THREE.Color(0.2, 0.2, 0.2)); return m; })();
+const vinylBaseMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x1a1008); m.roughness = 0.8; m.metalness = 0.1; return m; })();
+
 export default function VinylGrooves() {
   const recordRef = useRef<THREE.Mesh>(null);
   const tonearmRef = useRef<THREE.Group>(null);
@@ -44,7 +46,6 @@ export default function VinylGrooves() {
 
     // UV-based groove displacement
     const grooveFn = Fn(() => {
-      const uvCoord = uv();
       const px = positionLocal.x;
       const pz = positionLocal.z;
 
@@ -138,13 +139,8 @@ export default function VinylGrooves() {
       <pointLight position={[-2, 2, 2]} intensity={2} color="#4488ff" distance={8} />
 
       {/* Record turntable platter */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]} material={vinylPlatterMat}>
         <cylinderGeometry args={[1.1, 1.1, 0.04, 64]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x111012)}
-          roughness={0.3}
-          metalness={0.5}
-        />
       </mesh>
 
       {/* Vinyl record */}
@@ -158,13 +154,8 @@ export default function VinylGrooves() {
       </mesh>
 
       {/* Tonearm pivot base */}
-      <mesh position={[1.15, 0.1, -0.5]}>
+      <mesh position={[1.15, 0.1, -0.5]} material={vinylPivotMat}>
         <cylinderGeometry args={[0.04, 0.06, 0.2, 16]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x888070)}
-          roughness={0.3}
-          metalness={0.9}
-        />
       </mesh>
 
       {/* Tonearm assembly */}
@@ -180,9 +171,8 @@ export default function VinylGrooves() {
           <primitive object={tonearmMat} attach="material" />
         </mesh>
         {/* Stylus tip */}
-        <mesh position={[-1.0, -0.18, 1.08]}>
+        <mesh position={[-1.0, -0.18, 1.08]} material={vinylStylusMat}>
           <sphereGeometry args={[0.015, 8, 8]} />
-          <meshBasicNodeMaterial color={new THREE.Color(0.2, 0.2, 0.2)} />
         </mesh>
         {/* Counterweight */}
         <mesh position={[0.15, 0, -0.15]}>
@@ -192,13 +182,8 @@ export default function VinylGrooves() {
       </group>
 
       {/* Turntable base board */}
-      <mesh position={[0, -0.3, 0]}>
+      <mesh position={[0, -0.3, 0]} material={vinylBaseMat}>
         <boxGeometry args={[2.8, 0.1, 2.8]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x1a1008)}
-          roughness={0.8}
-          metalness={0.1}
-        />
       </mesh>
     </>
   );

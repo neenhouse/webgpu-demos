@@ -2,20 +2,17 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  color,
   time,
   positionLocal,
   positionWorld,
   normalWorld,
   cameraPosition,
-  normalLocal,
   Fn,
   float,
   vec3,
   mix,
   smoothstep,
   sin,
-  cos,
 } from 'three/tsl';
 
 /**

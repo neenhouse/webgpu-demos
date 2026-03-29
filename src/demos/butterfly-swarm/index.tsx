@@ -1,16 +1,14 @@
 import { useRef, useMemo, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
   float,
-  hash,
   instanceIndex,
   mix,
   normalWorld,
-  positionWorld,
   smoothstep,
-  time,
+  vec3,
 } from 'three/tsl';
 
 /**
@@ -34,7 +32,7 @@ interface BoidState {
 }
 
 function createBoids(): BoidState[] {
-  return Array.from({ length: BUTTERFLY_COUNT }, (_, i) => ({
+  return Array.from({ length: BUTTERFLY_COUNT }, (_) => ({
     position: new THREE.Vector3(
       (Math.random() - 0.5) * 8,
       0.5 + Math.random() * 3,
@@ -126,16 +124,14 @@ export default function ButterflySwarm() {
   const rightWingRef = useRef<THREE.InstancedMesh>(null);
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const flowerRef = useRef<THREE.InstancedMesh>(null);
-  const { camera } = useThree();
 
   const boids = useMemo(() => createBoids(), []);
 
   // Wing material: iridescent fresnel
   const wingMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    const camDir = new THREE.Vector3(0, 0, 1);
     const fresnel = float(1.0).sub(
-      normalWorld.dot(camDir).abs().clamp(0.0, 1.0),
+      normalWorld.dot(vec3(0, 0, 1)).abs().clamp(0.0, 1.0),
     );
     const fresnelPow = fresnel.pow(float(1.5));
     const deepBlue = color(0x001aff);
@@ -205,8 +201,6 @@ export default function ButterflySwarm() {
     if (!lWing || !rWing || !body) return;
 
     const dummy = new THREE.Object3D();
-    const lookTarget = new THREE.Vector3();
-    const up = new THREE.Vector3(0, 1, 0);
     const q = new THREE.Quaternion();
 
     for (let i = 0; i < BUTTERFLY_COUNT; i++) {

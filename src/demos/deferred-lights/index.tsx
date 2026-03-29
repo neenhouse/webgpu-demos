@@ -2,19 +2,14 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  Fn,
   float,
   color,
   mix,
   smoothstep,
-  positionWorld,
-  normalWorld,
-  cameraPosition,
   hash,
   instanceIndex,
   uniform,
   oscSine,
-  time,
 } from 'three/tsl';
 
 /**
@@ -49,7 +44,6 @@ export default function DeferredLights() {
   const lightData = useMemo<LightData[]>(() => {
     const lights: LightData[] = [];
     for (let i = 0; i < LIGHT_COUNT; i++) {
-      const t = i / LIGHT_COUNT;
       // Spread lights through room volume
       const x = (Math.random() - 0.5) * 16;
       const y = 0.5 + Math.random() * 3.0;

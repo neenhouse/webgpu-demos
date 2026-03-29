@@ -42,6 +42,9 @@ interface NoteEvent {
   active: boolean;
 }
 
+const pianoBackingMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x0a0a10); m.roughness = 0.5; m.metalness = 0.5; return m; })();
+const pianoLineMat = (() => { const m = new THREE.MeshBasicNodeMaterial(); m.color.set(new THREE.Color(0.5, 0.5, 1.0)); return m; })();
+
 export default function PianoWaterfall() {
   const noteMeshRef = useRef<THREE.InstancedMesh>(null);
   const keyMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -224,19 +227,13 @@ export default function PianoWaterfall() {
       </instancedMesh>
 
       {/* Keyboard backing plate */}
-      <mesh position={[0, -6.5, -0.05]}>
+      <mesh position={[0, -6.5, -0.05]} material={pianoBackingMat}>
         <boxGeometry args={[KEY_COUNT * KEY_SPACING + 0.3, 0.18, 0.5]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x0a0a10)}
-          roughness={0.5}
-          metalness={0.5}
-        />
       </mesh>
 
       {/* Separator line at keyboard */}
-      <mesh position={[0, -6.3, 0.2]}>
+      <mesh position={[0, -6.3, 0.2]} material={pianoLineMat}>
         <boxGeometry args={[KEY_COUNT * KEY_SPACING + 0.3, 0.02, 0.05]} />
-        <meshBasicNodeMaterial color={new THREE.Color(0.5, 0.5, 1.0)} />
       </mesh>
     </>
   );

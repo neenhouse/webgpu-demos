@@ -12,12 +12,11 @@ import {
   vec3,
   vec4,
   mix,
-  smoothstep,
   screenUV,
   floor,
-  fract,
   hash,
-  time,
+  max,
+  min,
 } from 'three/tsl';
 
 /**
@@ -95,10 +94,10 @@ export default function FrostPatterns() {
         const cellIdx = int(iy).mul(WIDTH).add(int(ix));
 
         // Check if any neighbor is frozen
-        const nL = gridA.element(cellIdx.sub(1).max(0));
-        const nR = gridA.element(cellIdx.add(1).min(TOTAL - 1));
-        const nU = gridA.element(cellIdx.sub(WIDTH).max(0));
-        const nD = gridA.element(cellIdx.add(WIDTH).min(TOTAL - 1));
+        const nL = gridA.element(max(cellIdx.sub(1).toFloat(), 0).toInt());
+        const nR = gridA.element(min(cellIdx.add(1).toFloat(), float(TOTAL - 1)).toInt());
+        const nU = gridA.element(max(cellIdx.sub(WIDTH).toFloat(), 0).toInt());
+        const nD = gridA.element(min(cellIdx.add(WIDTH).toFloat(), float(TOTAL - 1)).toInt());
         const hasNeighbor = nL.add(nR).add(nU).add(nD).greaterThan(0.5);
 
         If(hasNeighbor, () => {

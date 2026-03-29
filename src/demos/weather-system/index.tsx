@@ -12,8 +12,6 @@ import {
   time,
   color,
   mix,
-  smoothstep,
-  positionWorld,
 } from 'three/tsl';
 
 /**
@@ -96,18 +94,6 @@ export default function WeatherSystem() {
     mat.metalness = 0.5;
     mat.transparent = true;
     mat.opacity = 0.7;
-    return mat;
-  }, []);
-
-  // Cloud material
-  const cloudMaterial = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.colorNode = color(0xccddee);
-    mat.emissiveNode = color(0x8899aa).mul(float(0.2));
-    mat.roughness = 1.0;
-    mat.side = THREE.BackSide;
-    mat.transparent = true;
-    mat.opacity = 0.06;
     return mat;
   }, []);
 
@@ -202,7 +188,6 @@ export default function WeatherSystem() {
 
     // Ground wetness
     if (groundRef.current) {
-      const mat = groundRef.current.material as THREE.MeshStandardNodeMaterial;
       // @ts-ignore
       const wetUniform = (groundMaterial as unknown as { wetFactor: { value: number } }).wetFactor;
       if (wetUniform) {

@@ -5,14 +5,12 @@ import {
   Fn,
   float,
   color,
-  mix,
   smoothstep,
   normalWorld,
   positionWorld,
   cameraPosition,
   hash,
   uniform,
-  time,
   oscSine,
 } from 'three/tsl';
 

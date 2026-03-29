@@ -9,19 +9,14 @@ import {
   uniform,
   positionLocal,
   positionWorld,
-  normalLocal,
   normalWorld,
   cameraPosition,
   time,
   sin,
-  cos,
-  fract,
   floor,
   mix,
   smoothstep,
   hash,
-  abs,
-  clamp,
 } from 'three/tsl';
 
 /**
@@ -75,12 +70,8 @@ export default function GlitchPortrait() {
 
       // Face angle determines color channel
       const faceAngle = normalWorld.x.mul(float(0.5)).add(float(0.5));
-      const faceAngleY = normalWorld.y.mul(float(0.5)).add(float(0.5));
-
       // RGB split based on viewing angle
       const rChannel = smoothstep(float(0.4), float(0.6), faceAngle);
-      const gChannel = float(1.0).sub(abs(faceAngle.sub(float(0.5))).mul(float(4.0))).saturate();
-      const bChannel = smoothstep(float(0.6), float(0.4), faceAngle);
 
       // Neon pink/cyan base
       const pink = vec3(float(1.0), float(0.1), float(0.7));

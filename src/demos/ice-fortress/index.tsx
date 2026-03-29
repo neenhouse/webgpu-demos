@@ -287,6 +287,8 @@ function FrostParticles() {
   );
 }
 
+const iceSkyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x88c4e8) });
+
 export default function IceFortress() {
   const groundMat = useMemo(() => makeIceGroundMaterial(), []);
   const groupRef = useRef<THREE.Group>(null);
@@ -304,9 +306,8 @@ export default function IceFortress() {
       <pointLight position={[0, -1, 0]} intensity={1.5} color="#aaddff" distance={10} />
 
       {/* Ice sky */}
-      <mesh>
+      <mesh material={iceSkyMat}>
         <sphereGeometry args={[80, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x88c4e8)} />
       </mesh>
 
       <group ref={groupRef}>

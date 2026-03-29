@@ -1,12 +1,10 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   time,
   positionLocal,
   positionWorld,
-  normalWorld,
-  cameraPosition,
   uv,
   Fn,
   float,
@@ -14,7 +12,6 @@ import {
   mix,
   smoothstep,
   sin,
-  cos,
   hash,
 } from 'three/tsl';
 
@@ -31,8 +28,12 @@ import {
  */
 
 const FLOWERS = 5;
-const MAX_PETALS = 12;
 const POLLEN_COUNT = 100;
+
+// Shared materials for flower parts
+const sonicStemMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(new THREE.Color(0.15, 0.5, 0.15)); m.roughness = 0.8; return m; })();
+const sonicCenterMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(new THREE.Color(1.0, 0.85, 0.1)); m.roughness = 0.3; m.metalness = 0.2; m.emissive.set(new THREE.Color(0.8, 0.5, 0.0)); m.emissiveIntensity = 1.0; return m; })();
+const sonicGroundMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(new THREE.Color(0.05, 0.12, 0.04)); m.roughness = 0.9; m.metalness = 0.0; return m; })();
 
 // Flower configurations
 const FLOWER_CONFIGS = [
@@ -271,23 +272,12 @@ export default function SonicBloom() {
       {FLOWER_CONFIGS.map((cfg, fi) => (
         <group key={fi} position={cfg.pos.toArray()}>
           {/* Stem */}
-          <mesh position={[0, -0.6, 0]}>
+          <mesh position={[0, -0.6, 0]} material={sonicStemMat}>
             <cylinderGeometry args={[0.03, 0.04, 1.2, 8]} />
-            <meshStandardNodeMaterial
-              color={new THREE.Color(0.15, 0.5, 0.15)}
-              roughness={0.8}
-            />
           </mesh>
           {/* Center sphere */}
-          <mesh>
+          <mesh material={sonicCenterMat}>
             <sphereGeometry args={[0.12 * cfg.scale, 12, 12]} />
-            <meshStandardNodeMaterial
-              color={new THREE.Color(1.0, 0.85, 0.1)}
-              roughness={0.3}
-              metalness={0.2}
-              emissive={new THREE.Color(0.8, 0.5, 0.0)}
-              emissiveIntensity={1.0}
-            />
           </mesh>
           {/* Bloom halo */}
           <mesh
@@ -301,13 +291,8 @@ export default function SonicBloom() {
       ))}
 
       {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]} material={sonicGroundMat}>
         <planeGeometry args={[20, 20]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0.05, 0.12, 0.04)}
-          roughness={0.9}
-          metalness={0.0}
-        />
       </mesh>
     </>
   );

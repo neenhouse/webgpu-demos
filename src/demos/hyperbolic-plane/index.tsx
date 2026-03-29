@@ -5,16 +5,10 @@ import {
   Fn,
   float,
   vec3,
-  vec2,
   uniform,
-  positionLocal,
   cameraPosition,
   positionWorld,
   normalWorld,
-  mix,
-  smoothstep,
-  length,
-  time,
 } from 'three/tsl';
 
 // ── Möbius transformation: (z - a) / (1 - conj(a)*z) ──
@@ -176,7 +170,6 @@ export default function HyperbolicPlane() {
 
       // Extrude slightly for depth
       const extrude = 0.04 + Math.random() * 0.06;
-      const frontFaces = [pa, pb, pc];
       const backFaces = [
         [pa[0], pa[1], pa[2] - extrude],
         [pb[0], pb[1], pb[2] - extrude],

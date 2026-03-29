@@ -4,7 +4,6 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
-  time,
   normalWorld,
   cameraPosition,
   positionWorld,
@@ -15,7 +14,6 @@ import {
   mix,
   smoothstep,
   hash,
-  oscSine,
   vec3,
 } from 'three/tsl';
 
@@ -31,7 +29,6 @@ import {
  * 6. BackSide sphere sky dome with screenUV-style gradient
  */
 
-const ISLAND_COUNT = 5;
 const TREE_COUNT = 150;
 const WATERFALL_COUNT = 200;
 const CLOUD_SHELL_COUNT = 8;
@@ -107,7 +104,6 @@ function makeWaterfallMaterial() {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.transparent = true;
   const wFn = Fn(() => {
-    const n = hash(positionWorld.mul(float(25.0)));
     const depth = smoothstep(float(0.0), float(0.8), positionWorld.y.abs());
     const whiteWater = vec3(float(0.85), float(0.92), float(1.0));
     const deepBlue = vec3(float(0.2), float(0.5), float(0.9));
@@ -222,7 +218,7 @@ function Waterfall() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const waterfallMat = useMemo(() => makeWaterfallMaterial(), []);
   const waterData = useMemo(() => {
-    return Array.from({ length: WATERFALL_COUNT }, (_, i) => ({
+    return Array.from({ length: WATERFALL_COUNT }, (_) => ({
       xOff: (Math.random() - 0.5) * 0.25,
       zOff: (Math.random() - 0.5) * 0.25,
       speed: 1.5 + Math.random() * 2.0,

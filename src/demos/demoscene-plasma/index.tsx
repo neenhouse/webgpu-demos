@@ -10,15 +10,10 @@ import {
   uniform,
   screenUV,
   screenSize,
-  time,
   sin,
-  cos,
   sqrt,
-  fract,
-  floor,
   mix,
   smoothstep,
-  abs,
 } from 'three/tsl';
 
 /**

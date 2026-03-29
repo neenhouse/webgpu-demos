@@ -1,9 +1,8 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   time,
-  positionLocal,
   uv,
   Fn,
   float,
@@ -34,6 +33,8 @@ const STRIP_SPACING = 0.8; // Z separation
 // Synth tone frequencies per strip (in Hz — simulated)
 const SYNTH_FREQS = [0.3, 0.45, 0.6, 0.8, 1.1, 1.4, 1.7, 2.0];
 const SYNTH_PHASES = [0, 0.7, 1.4, 2.1, 2.8, 3.5, 4.2, 4.9];
+
+const synthGroundMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x010108); m.roughness = 0.05; m.metalness = 0.95; return m; })();
 
 export default function SynthAurora() {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
@@ -175,13 +176,8 @@ export default function SynthAurora() {
       })}
 
       {/* Ground plane */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.6, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.6, 0]} material={synthGroundMat}>
         <planeGeometry args={[60, 60]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x010108)}
-          roughness={0.05}
-          metalness={0.95}
-        />
       </mesh>
     </>
   );

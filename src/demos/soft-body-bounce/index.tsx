@@ -4,6 +4,7 @@ import * as THREE from 'three/webgpu';
 import {
   Fn,
   If,
+  Loop,
   instancedArray,
   instanceIndex,
   uniform,

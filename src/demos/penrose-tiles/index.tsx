@@ -8,8 +8,6 @@ import {
   cameraPosition,
   positionWorld,
   normalWorld,
-  mix,
-  smoothstep,
 } from 'three/tsl';
 
 // Penrose P3 tiling: thick (36°) and thin (72°) rhombi
@@ -44,7 +42,6 @@ function generatePenroseTiles(iterations: number): Rhombus[] {
   for (let i = 0; i < 10; i++) {
     const angle1 = ((2 * i - 1) * 18) * DEG;
     const angle2 = ((2 * i + 1) * 18) * DEG;
-    const sgn = i % 2 === 0 ? 1 : -1;
     triangles.push({
       type: 'A',
       p1: [0, 0],
@@ -122,7 +119,6 @@ function buildRhombusGeometry(type: TileType, scale: number = 0.95): THREE.Buffe
   const indices: number[] = [];
 
   // Front face (z = halfH)
-  const frontOffset = 0;
   for (const [x, y] of verts) {
     positions.push(x, y, halfH);
     normals.push(0, 0, 1);
@@ -165,7 +161,6 @@ function buildRhombusGeometry(type: TileType, scale: number = 0.95): THREE.Buffe
 
 export default function PenroseTiles() {
   const groupRef = useRef<THREE.Group>(null);
-  const zoomRef = useRef(1.0);
 
   const tiles = useMemo(() => generatePenroseTiles(4), []);
 

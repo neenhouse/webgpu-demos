@@ -48,7 +48,6 @@ export default function CollisionCascade() {
     const dtUniform = uniform(0.016);
     const gravity = uniform(-8.0);
     const restitution = uniform(0.85);
-    const triggerDrop = uniform(0); // 0=arranged, 1=dropped
 
     const computeInit = Fn(() => {
       const idx = instanceIndex;

@@ -9,16 +9,14 @@ import {
   vec4,
   uniform,
   screenUV,
-  screenSize,
   sin,
   cos,
   abs,
-  fract,
   floor,
   mix,
   smoothstep,
-  clamp,
   hash,
+  atan,
 } from 'three/tsl';
 
 /**
@@ -70,7 +68,7 @@ function VHSPlane() {
       // ── Base scene content: procedural spinning icosahedron ──
       const sceneCenter = trackedUV.sub(0.5);
       const sceneDist = sceneCenter.length();
-      const sceneAngle = sceneCenter.y.atan2(sceneCenter.x);
+      const sceneAngle = atan(sceneCenter.y, sceneCenter.x);
 
       // Icosahedron-like faceted pattern
       const facets = floor(sceneAngle.mul(6.0).div(Math.PI * 2.0).add(float(6.0))).mod(float(6.0));
@@ -109,7 +107,7 @@ function VHSPlane() {
       // Sample offset R channel
       const distR = uvR.sub(0.5).length();
       const shapeR = smoothstep(float(0.38), float(0.35), distR).mul(smoothstep(float(0.06), float(0.09), distR));
-      const angleR = uvR.sub(0.5).y.atan2(uvR.sub(0.5).x);
+      const angleR = atan(uvR.sub(0.5).y, uvR.sub(0.5).x);
       const facetsR = floor(angleR.mul(6.0).div(Math.PI * 2.0).add(float(6.0))).mod(float(6.0));
       const facetPR = cos(angleR.sub(facetsR.mul(Math.PI * 2.0).div(float(6.0))).sub(rotTime)).mul(0.5).add(0.5);
       const hueR = facetPR.mul(0.7).add(timeUniform.mul(0.05)).fract();
@@ -118,7 +116,7 @@ function VHSPlane() {
       // Sample offset B channel
       const distB = uvB.sub(0.5).length();
       const shapeB = smoothstep(float(0.38), float(0.35), distB).mul(smoothstep(float(0.06), float(0.09), distB));
-      const angleB = uvB.sub(0.5).y.atan2(uvB.sub(0.5).x);
+      const angleB = atan(uvB.sub(0.5).y, uvB.sub(0.5).x);
       const facetsB = floor(angleB.mul(6.0).div(Math.PI * 2.0).add(float(6.0))).mod(float(6.0));
       const facetPB = cos(angleB.sub(facetsB.mul(Math.PI * 2.0).div(float(6.0))).sub(rotTime)).mul(0.5).add(0.5);
       const hueB = facetPB.mul(0.7).add(timeUniform.mul(0.05)).fract();

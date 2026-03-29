@@ -8,26 +8,14 @@ import {
   cameraPosition,
   positionWorld,
   normalWorld,
-  mix,
-  smoothstep,
 } from 'three/tsl';
 
 const NUM_FIBERS = 30;
 const POINTS_PER_FIBER = 100;
-const TOTAL_POINTS = NUM_FIBERS * POINTS_PER_FIBER;
 
 // Hopf fibration:
 // For each point on S2 (base space), there's a great circle on S3 (Hopf fiber).
 // We project S3 -> R3 via stereographic projection.
-
-// Point on S2 parameterized by (theta, phi) [spherical angles]
-function s2Point(theta: number, phi: number): [number, number, number] {
-  return [
-    Math.sin(theta) * Math.cos(phi),
-    Math.sin(theta) * Math.sin(phi),
-    Math.cos(theta),
-  ];
-}
 
 // Hopf fiber: for base point (x,y,z) on S2, the fiber is a great circle on S3
 // parameterized by t in [0, 2π], then stereographically projected to R3.

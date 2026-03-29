@@ -5,7 +5,6 @@ import {
   uniform,
   time,
   positionWorld,
-  normalLocal,
   Fn,
   float,
   vec3,
@@ -25,8 +24,6 @@ import {
  * white at peaks).
  */
 
-const SHELL_COUNT = 8;
-
 // Shell configuration: radius, base opacity, color weight
 const SHELLS = [
   { radius: 0.7, opacity: 0.04, colorT: 0.0 },
@@ -42,6 +39,11 @@ const SHELLS = [
 export default function BassNebula() {
   const bassUniform = useMemo(() => uniform(0.0), []);
   const groupRef = useRef<THREE.Group>(null);
+  const starMat = useMemo(() => {
+    const mat = new THREE.MeshBasicNodeMaterial();
+    mat.color.set(0.9, 0.9, 1.0);
+    return mat;
+  }, []);
 
   // Create one material per shell with unique opacity and color position
   const shellMaterials = useMemo(() => {
@@ -162,9 +164,9 @@ export default function BassNebula() {
               r * Math.sin(phi) * Math.sin(theta),
               r * Math.cos(phi),
             ]}
+            material={starMat}
           >
             <sphereGeometry args={[0.025, 4, 4]} />
-            <meshBasicNodeMaterial color={new THREE.Color(0.9, 0.9, 1.0)} />
           </mesh>
         );
       })}

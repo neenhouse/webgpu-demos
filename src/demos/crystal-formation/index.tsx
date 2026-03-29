@@ -4,14 +4,12 @@ import * as THREE from 'three/webgpu';
 import {
   color,
   float,
-  hash,
   instanceIndex,
   mix,
   normalWorld,
   positionWorld,
   smoothstep,
-  time,
-  uniform,
+  vec3,
 } from 'three/tsl';
 
 /**
@@ -51,7 +49,6 @@ function buildCrystals(): CrystalData[] {
   ];
 
   let idx = 0;
-  const dummy = new THREE.Object3D();
   for (let s = 0; s < seeds.length && idx < CRYSTAL_COUNT; s++) {
     const seed = seeds[s];
     // Primary crystal at seed
@@ -122,7 +119,7 @@ export default function CrystalFormation() {
 
     // Fresnel: brighter on edges
     const fresnel = float(1.0).sub(
-      normalWorld.dot(new THREE.Vector3(0, 0, 1).normalize()).abs().clamp(0.0, 1.0),
+      normalWorld.dot(vec3(0, 0, 1)).abs().clamp(0.0, 1.0),
     );
     const fresnelPow = fresnel.pow(float(2.0));
 

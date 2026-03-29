@@ -27,6 +27,8 @@ import {
  * Each row has a slightly different timing offset creating polyrhythm feel.
  */
 
+const drumFloorMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x050510); m.roughness = 0.05; m.metalness = 0.95; return m; })();
+
 const GRID_W = 4;
 const GRID_H = 4;
 const INSTRUMENTS = GRID_W * GRID_H; // 16
@@ -146,7 +148,7 @@ export default function DrumMachineCubes() {
         const triggered = pattern[offsetStep] === 1;
 
         // Check if this step just triggered (only once per step)
-        const stepTime = Math.floor(t / STEP_DURATION) * STEP_DURATION;
+        Math.floor(t / STEP_DURATION) * STEP_DURATION;
         const lastTriggerStep = Math.floor(triggerTimes.current[inst] / STEP_DURATION);
         const currentStepIndex = Math.floor(t / STEP_DURATION);
         if (triggered && lastTriggerStep !== currentStepIndex) {
@@ -224,13 +226,8 @@ export default function DrumMachineCubes() {
       </instancedMesh>
 
       {/* Dark stage floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} material={drumFloorMat}>
         <planeGeometry args={[20, 20]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x050510)}
-          roughness={0.05}
-          metalness={0.95}
-        />
       </mesh>
     </>
   );

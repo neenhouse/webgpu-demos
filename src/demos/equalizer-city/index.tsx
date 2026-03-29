@@ -30,6 +30,9 @@ const SPACING_X = 0.9;
 const SPACING_Z = 1.1;
 const FREQ_BANDS = 20; // number of frequency bands (one per column)
 
+const eqGroundMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x000818); m.roughness = 0.02; m.metalness = 0.98; return m; })();
+const eqSkyMat = (() => { const m = new THREE.MeshBasicNodeMaterial(); m.color.set(0x000518); m.side = THREE.BackSide; return m; })();
+
 export default function EqualizerCity() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const reflMeshRef = useRef<THREE.InstancedMesh>(null);
@@ -207,22 +210,13 @@ export default function EqualizerCity() {
       </instancedMesh>
 
       {/* Ground / water reflection */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} material={eqGroundMat}>
         <planeGeometry args={[40, 30]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x000818)}
-          roughness={0.02}
-          metalness={0.98}
-        />
       </mesh>
 
       {/* Sky dome (BackSide) */}
-      <mesh>
+      <mesh material={eqSkyMat}>
         <sphereGeometry args={[40, 32, 16]} />
-        <meshBasicNodeMaterial
-          color={new THREE.Color(0x000518)}
-          side={THREE.BackSide}
-        />
       </mesh>
     </>
   );

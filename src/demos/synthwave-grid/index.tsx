@@ -9,16 +9,11 @@ import {
   uniform,
   positionLocal,
   positionWorld,
-  normalWorld,
-  cameraPosition,
   time,
   sin,
-  cos,
-  fract,
   floor,
   mix,
   smoothstep,
-  hash,
 } from 'three/tsl';
 
 /**

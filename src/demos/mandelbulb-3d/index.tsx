@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
@@ -9,7 +9,6 @@ import {
   vec2,
   uniform,
   screenUV,
-  time,
   mix,
   smoothstep,
   Loop,
@@ -20,11 +19,10 @@ import {
   sin,
   cos,
   normalize,
-  dot,
   abs,
   pow,
-  max,
   min,
+  atan,
 } from 'three/tsl';
 
 const MARCH_STEPS = 80;
@@ -68,9 +66,12 @@ function MandelbulbPlane() {
       // ── Mandelbulb SDF ──
       // Returns distance estimate to power-N Mandelbulb
       const mandelbulbDE = Fn(([pos]: [ReturnType<typeof vec3>]) => {
-        const zx = pos.x.toVar();
-        const zy = pos.y.toVar();
-        const zz = pos.z.toVar();
+        const px = float(pos.x);
+        const py = float(pos.y);
+        const pz = float(pos.z);
+        const zx = px.toVar();
+        const zy = py.toVar();
+        const zz = pz.toVar();
         const dr = float(1.0).toVar();
         const r = float(0.0).toVar();
 
@@ -85,11 +86,11 @@ function MandelbulbPlane() {
             Fn(() => {
               // atan2(sqrt(zx^2+zy^2), zz)
               const xy = sqrt(zx.mul(zx).add(zy.mul(zy)));
-              const t = xy.atan2(zz);
+              const t = atan(xy, zz);
               return t;
             })()
           );
-          const phi = float(POWER).mul(zx.atan2(zy));
+          const phi = float(POWER).mul(atan(zx, zy));
 
           // Update dr: dr = power * r^(power-1) * dr + 1
           dr.assign(pow(r, float(POWER - 1.0)).mul(float(POWER)).mul(dr).add(float(1.0)));
@@ -97,9 +98,9 @@ function MandelbulbPlane() {
           // New z components
           const rPow = pow(r, float(POWER));
           const sinTheta = sin(theta);
-          const newZx = rPow.mul(sinTheta).mul(cos(phi)).add(pos.x);
-          const newZy = rPow.mul(sinTheta).mul(sin(phi)).add(pos.y);
-          const newZz = rPow.mul(cos(theta)).add(pos.z);
+          const newZx = rPow.mul(sinTheta).mul(cos(phi)).add(px);
+          const newZy = rPow.mul(sinTheta).mul(sin(phi)).add(py);
+          const newZz = rPow.mul(cos(theta)).add(pz);
           zx.assign(newZx);
           zy.assign(newZy);
           zz.assign(newZz);

@@ -6,8 +6,6 @@ import {
   color,
   time,
   positionWorld,
-  positionLocal,
-  normalLocal,
   normalWorld,
   cameraPosition,
   uv,
@@ -65,7 +63,7 @@ function makeRingMaterial(level: number) {
 
   const ringFn = Fn(() => {
     const t = time.mul(float(0.5));
-    const n = hash(positionWorld.mul(float(5.0)));
+    hash(positionWorld.mul(float(5.0)));
     // Flowing energy pattern on ring
     const flow = fract(positionWorld.y.mul(float(3.0)).add(t.mul(float(1.2))));
     const energyLine = smoothstep(float(0.88), float(0.92), flow).add(
@@ -285,7 +283,7 @@ function Portal() {
   const ref = useRef<THREE.Mesh>(null);
   const portalMat = useMemo(() => makePortalMaterial(), []);
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (ref.current) ref.current.rotation.y += 0.003;
   });
 
@@ -345,6 +343,8 @@ function HaloShells() {
   );
 }
 
+const skyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode: color(0x020007) });
+
 export default function AlienMegastructure() {
   return (
     <>
@@ -354,9 +354,8 @@ export default function AlienMegastructure() {
       <pointLight position={[-4, 2, -3]} intensity={2.5} color="#ff22cc" distance={15} />
 
       {/* Deep space background */}
-      <mesh>
+      <mesh material={skyMat}>
         <sphereGeometry args={[80, 16, 10]} />
-        <meshBasicNodeMaterial side={THREE.BackSide} colorNode={color(0x020007)} />
       </mesh>
 
       <Starfield />

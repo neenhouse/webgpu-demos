@@ -1331,7 +1331,7 @@ function TraceRequestBall({
   traceStep,
   traceProgress,
   activePath,
-  visitedConnections,
+  visitedConnections: _visitedConnections,
   onBallArrival,
   onFloorPoint,
 }: {
@@ -1344,7 +1344,6 @@ function TraceRequestBall({
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const trailRef = useRef<THREE.InstancedMesh>(null);
-  const speedTrailRef = useRef<THREE.InstancedMesh>(null);
   const historyRef = useRef<THREE.Vector3[]>([]);
   // #82: Speed trail position history
   const speedHistoryRef = useRef<THREE.Vector3[]>([]);
@@ -1858,7 +1857,7 @@ function FloorGlowRings() {
 export default function ArchitectureBlueprint() {
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [hoveredService, setHoveredService] = useState<string | null>(null);
-  const [focusedService, setFocusedService] = useState<string | null>(null);
+  const [, setFocusedService] = useState<string | null>(null);
   const [traceActive, setTraceActive] = useState(false);
   const [traceIsWrite, setTraceIsWrite] = useState(false);
   const traceIsWriteRef = useRef(false);
@@ -2333,7 +2332,7 @@ export default function ArchitectureBlueprint() {
       </mesh>
 
       {/* #72: Subtle exponential fog for depth */}
-      <fogExp2 attach="fog" color={0x010408} density={0.015} />
+      <fogExp2 attach="fog" args={[0x010408, 0.015]} />
 
       {/* Blueprint grid floor */}
       <BlueprintGridFloor />

@@ -9,8 +9,6 @@ import {
   uniform,
   float,
   int,
-  vec3,
-  hash,
   color,
   mix,
   smoothstep,

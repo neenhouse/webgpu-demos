@@ -2,8 +2,6 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  color,
-  time,
   positionWorld,
   normalLocal,
   Fn,
@@ -28,6 +26,8 @@ import {
 const GRID_SIZE = 20;
 const PILLAR_COUNT = GRID_SIZE * GRID_SIZE;
 const SPACING = 0.6;
+
+const floorMat = (() => { const m = new THREE.MeshStandardNodeMaterial(); m.color.set(0x050520); m.roughness = 0.1; m.metalness = 0.9; return m; })();
 
 export default function BeatPulseGrid() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -175,13 +175,8 @@ export default function BeatPulseGrid() {
       </instancedMesh>
 
       {/* Floor reflection plane */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} material={floorMat}>
         <planeGeometry args={[30, 30]} />
-        <meshStandardNodeMaterial
-          color={new THREE.Color(0x050520)}
-          roughness={0.1}
-          metalness={0.9}
-        />
       </mesh>
     </>
   );

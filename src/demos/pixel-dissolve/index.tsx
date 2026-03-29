@@ -10,15 +10,12 @@ import {
   uniform,
   screenUV,
   screenSize,
-  time,
   sin,
-  cos,
-  fract,
   floor,
   mix,
   smoothstep,
   clamp,
-  mod,
+  atan,
 } from 'three/tsl';
 
 /**
@@ -31,13 +28,6 @@ import {
  * 4. Animated resolution cycling smooth->chunky->smooth
  */
 
-// 4x4 Bayer dither matrix (normalized 0-1)
-const BAYER = [
-  [ 0/16,  8/16,  2/16, 10/16],
-  [12/16,  4/16, 14/16,  6/16],
-  [ 3/16, 11/16,  1/16,  9/16],
-  [15/16,  7/16, 13/16,  5/16],
-];
 
 function PixelPlane() {
   const { viewport } = useThree();
@@ -66,12 +56,11 @@ function PixelPlane() {
       // ── Base scene content (rotating torus knot via UV) ──
       const sceneUV = pixUV.sub(0.5);
       const dist = sceneUV.length();
-      const angle = sceneUV.y.atan2(sceneUV.x);
+      const angle = atan(sceneUV.y, sceneUV.x);
       const rotAngle = angle.add(timeUniform.mul(0.5));
 
       // Torus knot pattern via nested sinusoids
       const p = float(2.0);
-      const q = float(3.0);
       const knotR = sin(rotAngle.mul(p).sub(timeUniform)).mul(0.06).add(float(0.18));
       const innerMask = smoothstep(knotR.add(float(0.02)), knotR, dist);
       const outerMask = smoothstep(knotR.sub(float(0.02)), knotR, dist);

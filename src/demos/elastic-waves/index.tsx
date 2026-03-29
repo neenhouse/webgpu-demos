@@ -12,6 +12,7 @@ import {
   color,
   mix,
   smoothstep,
+  min,
 } from 'three/tsl';
 
 /**
@@ -73,8 +74,11 @@ export default function ElasticWaves() {
       const v = velocities.element(idx);
 
       // Boundary absorption: damp near edges
-      const edgeDist = col.min(int(GRID_SIZE - 1).sub(col)).min(row).min(int(GRID_SIZE - 1).sub(row));
-      const edgeFade = float(edgeDist).div(float(8.0)).min(float(1.0));
+      const colF = col.toFloat();
+      const rowF = row.toFloat();
+      const maxColF = float(GRID_SIZE - 1);
+      const edgeDist = min(min(min(colF, maxColF.sub(colF)), rowF), maxColF.sub(rowF));
+      const edgeFade = min(edgeDist.div(float(8.0)), float(1.0));
 
       // Laplacian (5-point stencil)
       const laplacian = float(0.0).toVar();

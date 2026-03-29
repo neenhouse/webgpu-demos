@@ -6,7 +6,6 @@ import {
   float,
   color,
   mix,
-  smoothstep,
   positionWorld,
   normalWorld,
   cameraPosition,
