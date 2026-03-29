@@ -319,6 +319,132 @@
   box-shadow: 0 8px 30px rgba(0, 255, 136, 0.25), 0 0 40px rgba(0, 255, 136, 0.1);
 }
 
+/* Filter Bar */
+.filter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 1rem 0;
+  background: rgba(8, 8, 15, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-search-wrapper {
+  position: relative;
+}
+
+.filter-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  pointer-events: none;
+}
+
+.filter-search {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  background: #141420;
+  border: 1px solid #222;
+  border-radius: 8px;
+  color: #eee;
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.filter-search::placeholder {
+  color: #555;
+}
+
+.filter-search:focus {
+  border-color: #4488ff;
+}
+
+/* Hide default search clear button in WebKit */
+.filter-search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.filter-tags {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.filter-tags::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-tag {
+  flex-shrink: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #aaa;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.filter-tag:hover {
+  border-color: #555;
+  color: #ddd;
+}
+
+.filter-tag.active {
+  background: rgba(68, 136, 255, 0.2);
+  border-color: #4488ff;
+  color: #88bbff;
+}
+
+.filter-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 1.4rem;
+}
+
+.filter-count {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.filter-clear {
+  background: transparent;
+  border: none;
+  color: #4488ff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  transition: color 0.15s;
+}
+
+.filter-clear:hover {
+  color: #88bbff;
+}
+
+.filter-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #555;
+  font-size: 1rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gallery {

@@ -6,6 +6,7 @@ export interface DemoMeta {
   description: string;
   requiresWebGPU: boolean;
   color: string; // accent color for gallery card
+  tags: string[];
 }
 
 export interface DemoEntry extends DemoMeta {
@@ -19,6 +20,7 @@ export const demos: DemoEntry[] = [
     description: 'Animated torus knot with TSL fresnel glow and color oscillation',
     requiresWebGPU: false,
     color: '#0088ff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/tsl-torus')),
   },
   {
@@ -27,6 +29,7 @@ export const demos: DemoEntry[] = [
     description: '2000 instanced spheres with position-driven color gradients and fresnel glow',
     requiresWebGPU: false,
     color: '#ff44aa',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/particle-field')),
   },
   {
@@ -35,6 +38,7 @@ export const demos: DemoEntry[] = [
     description: 'Rolling hills with layered sine-wave displacement and height-based coloring',
     requiresWebGPU: false,
     color: '#1a9926',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/procedural-terrain')),
   },
   {
@@ -43,6 +47,7 @@ export const demos: DemoEntry[] = [
     description: 'Faceted icosahedrons with rainbow wave animation and metallic fresnel rim',
     requiresWebGPU: false,
     color: '#8844ff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/crystal-grid')),
   },
   {
@@ -51,6 +56,7 @@ export const demos: DemoEntry[] = [
     description: 'Translucent ribbons flowing through green, cyan, purple, and pink',
     requiresWebGPU: false,
     color: '#00ff88',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/aurora-waves')),
   },
   {
@@ -59,6 +65,7 @@ export const demos: DemoEntry[] = [
     description: 'Organic alien blob with layered sine-wave vertex displacement',
     requiresWebGPU: false,
     color: '#ff6600',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/morphing-sphere')),
   },
   {
@@ -67,6 +74,7 @@ export const demos: DemoEntry[] = [
     description: 'Concentric torus rings with pulsing neon emissive glow',
     requiresWebGPU: false,
     color: '#ff00ff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/neon-rings')),
   },
   {
@@ -75,6 +83,7 @@ export const demos: DemoEntry[] = [
     description: 'Stylized ocean with layered wave displacement and glossy surface',
     requiresWebGPU: false,
     color: '#0066cc',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/ocean-surface')),
   },
   {
@@ -83,6 +92,7 @@ export const demos: DemoEntry[] = [
     description: '400 boxes pulsing in expanding circular ripple waves',
     requiresWebGPU: false,
     color: '#1144aa',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/pulse-grid')),
   },
   {
@@ -91,6 +101,7 @@ export const demos: DemoEntry[] = [
     description: '3000 instanced stars in three spiral arms with warm-to-cool gradient',
     requiresWebGPU: false,
     color: '#ffcc44',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/spiral-galaxy')),
   },
   {
@@ -99,6 +110,7 @@ export const demos: DemoEntry[] = [
     description: 'Sphere with aggressive fire-like flickering and warm emission',
     requiresWebGPU: false,
     color: '#ff3300',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/flame-orb')),
   },
   {
@@ -107,6 +119,7 @@ export const demos: DemoEntry[] = [
     description: 'Double helix of instanced spheres with blue-red gradient and connecting rungs',
     requiresWebGPU: false,
     color: '#4488ff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/dna-helix')),
   },
   {
@@ -115,6 +128,7 @@ export const demos: DemoEntry[] = [
     description: 'Retro Tron-style scrolling wireframe terrain with neon glow',
     requiresWebGPU: false,
     color: '#00ffff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/wireframe-landscape')),
   },
   {
@@ -123,6 +137,7 @@ export const demos: DemoEntry[] = [
     description: 'Electric purple-blue sphere with swirling plasma discharge patterns',
     requiresWebGPU: false,
     color: '#6600ff',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/plasma-globe')),
   },
   {
@@ -131,6 +146,7 @@ export const demos: DemoEntry[] = [
     description: 'Colorful ribbons twisting and spiraling through space',
     requiresWebGPU: false,
     color: '#ff2244',
+    tags: ['tsl'],
     component: lazy(() => import('../demos/ribbon-dance')),
   },
   {
@@ -139,6 +155,7 @@ export const demos: DemoEntry[] = [
     description: 'Dodecahedron dissolving and reforming with hash noise, burning edges, and fresnel rim',
     requiresWebGPU: false,
     color: '#ee8833',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/noise-dissolve')),
   },
   {
@@ -147,6 +164,7 @@ export const demos: DemoEntry[] = [
     description: 'Holographic projection with screen-space scanlines, glitch bands, and fresnel rim glow',
     requiresWebGPU: false,
     color: '#22ddcc',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/screen-hologram')),
   },
   {
@@ -155,6 +173,7 @@ export const demos: DemoEntry[] = [
     description: 'Procedural mandala with polar UV folding, spherize warping, and animated concentric patterns',
     requiresWebGPU: false,
     color: '#dd2288',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/uv-kaleidoscope')),
   },
   {
@@ -163,6 +182,7 @@ export const demos: DemoEntry[] = [
     description: 'Floating orbs with TSL-driven glow halos, fresnel rims, additive blending, and pulsing emissive bloom',
     requiresWebGPU: false,
     color: '#ccff00',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/bloom-orbs')),
   },
   {
@@ -171,6 +191,7 @@ export const demos: DemoEntry[] = [
     description: 'Billboard point-sprite particle fountain with TSL-driven size, color gradients, and pulsing opacity',
     requiresWebGPU: false,
     color: '#ff8844',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/sprite-sparks')),
   },
   {
@@ -179,6 +200,7 @@ export const demos: DemoEntry[] = [
     description: 'Layered shell volumetric nebula with TSL Fn() noise-driven density, animated swirling, and warm-to-cool emissive glow',
     requiresWebGPU: false,
     color: '#aa44cc',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/volumetric-cloud')),
   },
   {
@@ -187,6 +209,7 @@ export const demos: DemoEntry[] = [
     description: 'Cube assembled from 6 planes, each with a unique TSL material: fire, ice, electric, gold, nature, and plasma',
     requiresWebGPU: false,
     color: '#33cc99',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/multi-material')),
   },
   {
@@ -195,6 +218,7 @@ export const demos: DemoEntry[] = [
     description: '20,000 GPU-driven particles with compute shader physics, gravity, respawn, and velocity-based color',
     requiresWebGPU: true,
     color: '#ff5577',
+    tags: ['shader-art', 'compute'],
     component: lazy(() => import('../demos/compute-particles')),
   },
   {
@@ -203,6 +227,7 @@ export const demos: DemoEntry[] = [
     description: 'CRT pixelation sphere using TSL screenSize for pixel-scale grids, phosphor sub-pixels, scanlines, and moiré patterns',
     requiresWebGPU: false,
     color: '#44bbdd',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/resolution-warp')),
   },
   {
@@ -211,6 +236,7 @@ export const demos: DemoEntry[] = [
     description: 'Programmatic skinned mesh tentacles with CPU-driven bone animation and TSL height-based color gradients',
     requiresWebGPU: false,
     color: '#bb44ff',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/skeletal-wave')),
   },
   {
@@ -219,6 +245,7 @@ export const demos: DemoEntry[] = [
     description: 'Two spiral galaxies collide with GPU compute gravity driving 10000+ stars',
     requiresWebGPU: true,
     color: '#2244aa',
+    tags: ['shader-art', 'compute'],
     component: lazy(() => import('../demos/galaxy-collision')),
   },
   {
@@ -227,6 +254,7 @@ export const demos: DemoEntry[] = [
     description: 'Mandelbrot set with infinite zoom, smooth coloring, and cycling vivid gradients rendered in TSL',
     requiresWebGPU: false,
     color: '#ff6622',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/fractal-zoom')),
   },
   {
@@ -235,6 +263,7 @@ export const demos: DemoEntry[] = [
     description: '256x256 GPU compute fluid with semi-Lagrangian advection, vorticity confinement, and multi-color dye injection',
     requiresWebGPU: true,
     color: '#11ccaa',
+    tags: ['shader-art', 'compute', 'physics'],
     component: lazy(() => import('../demos/fluid-sim')),
   },
   {
@@ -243,6 +272,7 @@ export const demos: DemoEntry[] = [
     description: 'Rotating planet with hash-noise biome coloring, transparent cloud layer, atmospheric fresnel glow, and instanced starfield',
     requiresWebGPU: false,
     color: '#2288aa',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/procedural-planet')),
   },
   {
@@ -251,6 +281,7 @@ export const demos: DemoEntry[] = [
     description: 'Concentric rings of instanced spheres deform to simulated audio frequencies with intensity-driven color shifts',
     requiresWebGPU: false,
     color: '#0055ee',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/waveform-viz')),
   },
   {
@@ -259,6 +290,7 @@ export const demos: DemoEntry[] = [
     description: 'Procedural cyberpunk skyline with 350 instanced neon buildings, reflective ground plane, and atmospheric fog',
     requiresWebGPU: false,
     color: '#ff1177',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/cyber-city')),
   },
   {
@@ -267,6 +299,7 @@ export const demos: DemoEntry[] = [
     description: 'Bioluminescent jellyfish with chain tentacles, luminous plankton, volumetric light shafts, and depth fog',
     requiresWebGPU: false,
     color: '#00aacc',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/deep-sea')),
   },
   {
@@ -275,6 +308,7 @@ export const demos: DemoEntry[] = [
     description: '5000 particles morphing between sphere, cube, torus, and icosahedron with spring physics',
     requiresWebGPU: false,
     color: '#00ddaa',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/particle-morph')),
   },
   {
@@ -283,6 +317,7 @@ export const demos: DemoEntry[] = [
     description: 'Event horizon with gravitational lensing, swirling accretion disk, photon ring, and warped starfield',
     requiresWebGPU: false,
     color: '#221133',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/black-hole')),
   },
   {
@@ -291,12 +326,14 @@ export const demos: DemoEntry[] = [
     description: '5-layer neural network with 48 nodes, 420 glowing edges, and traveling data pulses',
     requiresWebGPU: false,
     color: '#44ccbb',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/neural-net')),
   },
   {
     name: 'test-scene',
     title: 'Test Scene (Pipeline)',
     description: 'Integration test: terrain, rocks, and CSG archway rendered from scene YAML',
+    tags: ['scene'],
     requiresWebGPU: false,
     color: '#66aa44',
     component: lazy(() => import('../demos/test-scene')),
@@ -307,6 +344,7 @@ export const demos: DemoEntry[] = [
     description: 'Post-apocalyptic junkyard with rusted vehicles, debris piles, CSG barriers, and scattered rocks',
     requiresWebGPU: false,
     color: '#8B6914',
+    tags: ['scene'],
     component: lazy(() => import('../demos/junkyard')),
   },
   {
@@ -315,6 +353,7 @@ export const demos: DemoEntry[] = [
     description: 'Bioluminescent alien garden with glowing mushrooms, exotic vegetation, and SDF organic shapes',
     requiresWebGPU: false,
     color: '#6622cc',
+    tags: ['scene'],
     component: lazy(() => import('../demos/alien-garden')),
   },
   {
@@ -323,6 +362,7 @@ export const demos: DemoEntry[] = [
     description: 'Blacksmith workshop with forge fire, weapon rack, anvil workbench, and scattered debris',
     requiresWebGPU: false,
     color: '#cc6622',
+    tags: ['scene'],
     component: lazy(() => import('../demos/medieval-forge')),
   },
   {
@@ -331,6 +371,7 @@ export const demos: DemoEntry[] = [
     description: 'Submerged ancient temple with broken columns, coral growths, kelp, and bioluminescent lighting',
     requiresWebGPU: false,
     color: '#1177aa',
+    tags: ['scene'],
     component: lazy(() => import('../demos/underwater-ruins')),
   },
   {
@@ -339,6 +380,7 @@ export const demos: DemoEntry[] = [
     description: 'Neon-lit urban night scene with tower buildings, parked vehicles, vendor stall, and dense purple fog',
     requiresWebGPU: false,
     color: '#ee11aa',
+    tags: ['scene'],
     component: lazy(() => import('../demos/cyberpunk-street')),
   },
   {
@@ -347,6 +389,7 @@ export const demos: DemoEntry[] = [
     description: 'Remote desert camp with outpost building, rock formations, old truck, and supply crates',
     requiresWebGPU: false,
     color: '#cc8833',
+    tags: ['scene'],
     component: lazy(() => import('../demos/desert-outpost')),
   },
   {
@@ -355,6 +398,7 @@ export const demos: DemoEntry[] = [
     description: 'Automated manufacturing floor with robot workers, workbenches, pipes, and industrial lighting',
     requiresWebGPU: false,
     color: '#4488cc',
+    tags: ['scene'],
     component: lazy(() => import('../demos/robot-factory')),
   },
   {
@@ -363,6 +407,7 @@ export const demos: DemoEntry[] = [
     description: 'Underground cave with glowing crystal clusters, hash-noise cave walls, fresnel refraction, bloom halos, and colored point lights',
     requiresWebGPU: false,
     color: '#9944cc',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/crystal-cavern')),
   },
   {
@@ -371,6 +416,7 @@ export const demos: DemoEntry[] = [
     description: 'Spiraling temporal distortion with SDF vortex funnel, compute-driven particles, clock elements, gravitational UV warping, and bloom halos',
     requiresWebGPU: true,
     color: '#ddaa33',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/time-vortex')),
   },
   {
@@ -379,6 +425,7 @@ export const demos: DemoEntry[] = [
     description: 'Magical woodland with giant glowing mushrooms, dense trees, mossy boulders, and ancient stone arch',
     requiresWebGPU: false,
     color: '#22bb44',
+    tags: ['scene'],
     component: lazy(() => import('../demos/enchanted-forest')),
   },
   {
@@ -387,6 +434,7 @@ export const demos: DemoEntry[] = [
     description: 'Sci-fi corridor with holographic displays, alien specimen, pipe conduits, and cool fluorescent lighting',
     requiresWebGPU: false,
     color: '#3366dd',
+    tags: ['scene'],
     component: lazy(() => import('../demos/space-station')),
   },
   {
@@ -395,6 +443,7 @@ export const demos: DemoEntry[] = [
     description: 'Roman colosseum floor with arena walls, two gladiators with weapons, rubble, and harsh midday sun',
     requiresWebGPU: false,
     color: '#bb8844',
+    tags: ['scene'],
     component: lazy(() => import('../demos/gladiator-arena')),
   },
   {
@@ -403,6 +452,7 @@ export const demos: DemoEntry[] = [
     description: 'Bioluminescent space jellyfish with bone-animated tentacles, volumetric dome, bloom halos, and compute-driven particle trails',
     requiresWebGPU: true,
     color: '#00eebb',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/cosmic-jellyfish')),
   },
   {
@@ -411,6 +461,7 @@ export const demos: DemoEntry[] = [
     description: 'Full-viewport storm with compute wind-driven rain, fractal lightning branches, SDF cloud layer, and ambient flash bloom',
     requiresWebGPU: true,
     color: '#5533bb',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/digital-storm')),
   },
   {
@@ -419,6 +470,7 @@ export const demos: DemoEntry[] = [
     description: 'Molten planet with hash noise lava cracks, atmospheric halo shells, and 250 orbiting debris rocks',
     requiresWebGPU: false,
     color: '#ff3300',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/lava-planet')),
   },
   {
@@ -427,6 +479,7 @@ export const demos: DemoEntry[] = [
     description: 'Infinite SDF hexagonal tunnel fly-through with neon rings, speed lines, and color cycling',
     requiresWebGPU: false,
     color: '#ff22cc',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/cyber-tunnel')),
   },
   {
@@ -435,6 +488,7 @@ export const demos: DemoEntry[] = [
     description: '1200 compute-driven aurora strips with 5-stop color gradient, ground reflections, and bloom sky glow',
     requiresWebGPU: true,
     color: '#00ff66',
+    tags: ['shader-art', 'compute'],
     component: lazy(() => import('../demos/aurora-cascade')),
   },
   {
@@ -443,6 +497,7 @@ export const demos: DemoEntry[] = [
     description: '10000 compute particles forming a skull shape with proximity-based coloring and orbital shimmer',
     requiresWebGPU: true,
     color: '#3355ff',
+    tags: ['shader-art', 'compute'],
     component: lazy(() => import('../demos/particle-galaxy-portrait')),
   },
   {
@@ -451,6 +506,7 @@ export const demos: DemoEntry[] = [
     description: '8000 compute particles with Brownian motion and periodic wave function collapse flash',
     requiresWebGPU: true,
     color: '#4477ff',
+    tags: ['shader-art', 'compute'],
     component: lazy(() => import('../demos/quantum-field')),
   },
   {
@@ -459,6 +515,7 @@ export const demos: DemoEntry[] = [
     description: 'Flaming bird with bone-animated wings, dissolve fire effect, 1500 trailing particles, and falling ash',
     requiresWebGPU: false,
     color: '#ff4400',
+    tags: ['shader-art'],
     component: lazy(() => import('../demos/phoenix-rising')),
   },
   {
@@ -467,6 +524,7 @@ export const demos: DemoEntry[] = [
     description: 'Gray-Scott reaction-diffusion model producing organic Turing patterns on a 256x256 GPU compute grid',
     requiresWebGPU: true,
     color: '#22bbaa',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/reaction-diffusion')),
   },
   {
@@ -475,6 +533,7 @@ export const demos: DemoEntry[] = [
     description: '10,000 bird-like particles flocking via GPU compute with separation, alignment, and cohesion rules',
     requiresWebGPU: true,
     color: '#6644ff',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/boids-murmuration')),
   },
   {
@@ -483,6 +542,7 @@ export const demos: DemoEntry[] = [
     description: 'Multiple wave sources creating constructive/destructive interference patterns with rainbow color mapping',
     requiresWebGPU: false,
     color: '#00ddff',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/interference-waves')),
   },
   {
@@ -491,6 +551,7 @@ export const demos: DemoEntry[] = [
     description: '256x256 Game of Life cellular automaton with GPU compute double-buffered grid and age-based coloring',
     requiresWebGPU: true,
     color: '#44ff22',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/cellular-life')),
   },
   {
@@ -499,6 +560,7 @@ export const demos: DemoEntry[] = [
     description: '20 pendulums with slightly different periods creating mesmerizing wave patterns as they drift in and out of phase',
     requiresWebGPU: false,
     color: '#ff8800',
+    tags: ['emergent', 'physics'],
     component: lazy(() => import('../demos/pendulum-wave')),
   },
   {
@@ -507,6 +569,7 @@ export const demos: DemoEntry[] = [
     description: '128x128 GPU compute hydraulic erosion with rain, water flow, sediment transport, and height-based terrain coloring',
     requiresWebGPU: true,
     color: '#886633',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/terrain-erosion')),
   },
   {
@@ -515,6 +578,7 @@ export const demos: DemoEntry[] = [
     description: '5000 particles orbiting 4 moving attractors with GPU compute gravitational forces and speed-based color',
     requiresWebGPU: true,
     color: '#ffaa22',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/gravitational-orbits')),
   },
   {
@@ -523,6 +587,7 @@ export const demos: DemoEntry[] = [
     description: 'Animated Voronoi cell pattern on a sphere with neon crack lines, per-cell coloring, and pulsing emissive edges',
     requiresWebGPU: false,
     color: '#ff3366',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/voronoi-shatter')),
   },
   {
@@ -531,6 +596,7 @@ export const demos: DemoEntry[] = [
     description: '6000 wispy smoke particles rising and curling with GPU compute curl-noise turbulence',
     requiresWebGPU: true,
     color: '#aaaaaa',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/smoke-tendrils')),
   },
   {
@@ -539,6 +605,7 @@ export const demos: DemoEntry[] = [
     description: 'Raymarched SDF landscape of morphing geometric primitives blending with smooth unions',
     requiresWebGPU: false,
     color: '#9944cc',
+    tags: ['emergent'],
     component: lazy(() => import('../demos/sdf-morphscape')),
   },
   {
@@ -547,6 +614,7 @@ export const demos: DemoEntry[] = [
     description: 'Interactive 3D visualization of the Forge developer workflow with clickable phases, orbiting skills, and particle flow connections',
     requiresWebGPU: false,
     color: '#22cc88',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/forge-lifecycle')),
   },
   {
@@ -555,6 +623,7 @@ export const demos: DemoEntry[] = [
     description: 'Forge drive decision tree as a 3D branching structure with click-to-highlight paths and flowing edge particles',
     requiresWebGPU: false,
     color: '#ffaa22',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/decision-forest')),
   },
   {
@@ -563,6 +632,7 @@ export const demos: DemoEntry[] = [
     description: 'Force-directed 3D graph of package dependencies with click-to-select nodes, edge highlighting, and smooth camera transitions',
     requiresWebGPU: false,
     color: '#61dafb',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/dependency-graph-3d')),
   },
   {
@@ -571,6 +641,7 @@ export const demos: DemoEntry[] = [
     description: 'Codebase files as a star constellation with directory clusters, import connections, type-based coloring, and zoom-to-cluster interactivity',
     requiresWebGPU: false,
     color: '#3178c6',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/code-constellation')),
   },
   {
@@ -579,6 +650,7 @@ export const demos: DemoEntry[] = [
     description: 'Interactive AI inference pipeline with transformer stages, flowing data particles, and click-to-zoom detail views',
     requiresWebGPU: false,
     color: '#44aaff',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/neural-pipeline-flow')),
   },
   {
@@ -587,6 +659,7 @@ export const demos: DemoEntry[] = [
     description: 'Data transformation pipeline with filtering, merging, splitting, and 300 particles flowing through a 3D pipe network',
     requiresWebGPU: false,
     color: '#cc44ff',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/data-flow-pipes')),
   },
   {
@@ -595,6 +668,7 @@ export const demos: DemoEntry[] = [
     description: 'Interactive state machine diagram showing a Forge project lifecycle with clickable transitions and animated particles',
     requiresWebGPU: false,
     color: '#ffaa22',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/state-machine-3d')),
   },
   {
@@ -603,6 +677,7 @@ export const demos: DemoEntry[] = [
     description: 'System architecture diagram with 3D floating service platforms, animated data flow particles, and interactive zoom',
     requiresWebGPU: false,
     color: '#4488ff',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/architecture-blueprint')),
   },
   {
@@ -611,6 +686,7 @@ export const demos: DemoEntry[] = [
     description: 'Project timeline rendered as a DNA-like double helix with clickable event spheres, traveling particles, and type-colored rungs',
     requiresWebGPU: false,
     color: '#ff4488',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/timeline-helix')),
   },
   {
@@ -619,6 +695,7 @@ export const demos: DemoEntry[] = [
     description: 'Data metrics visualized as 3D terrain with height-mapped values, sweeping time cursor, and interactive peak markers',
     requiresWebGPU: false,
     color: '#ffaa22',
+    tags: ['data-viz'],
     component: lazy(() => import('../demos/metric-terrain')),
   },
   {
@@ -627,6 +704,7 @@ export const demos: DemoEntry[] = [
     description: '400 pillars pulsing to simulated beat frequencies with bass-reactive height and color gradient',
     requiresWebGPU: false,
     color: '#ff2266',
+    tags: ['audio'],
     component: lazy(() => import('../demos/beat-pulse-grid')),
   },
   {
@@ -635,6 +713,7 @@ export const demos: DemoEntry[] = [
     description: '3D terrain with vertex displacement driven by simulated 64-band frequency spectrum',
     requiresWebGPU: false,
     color: '#4400ff',
+    tags: ['audio'],
     component: lazy(() => import('../demos/frequency-mountains')),
   },
   {
@@ -643,6 +722,7 @@ export const demos: DemoEntry[] = [
     description: 'Fly-through tunnel with walls deforming to scrolling waveform sine patterns',
     requiresWebGPU: false,
     color: '#00ffaa',
+    tags: ['audio'],
     component: lazy(() => import('../demos/waveform-tunnel')),
   },
   {
@@ -651,6 +731,7 @@ export const demos: DemoEntry[] = [
     description: 'Aurora ribbon curtains with color and sway driven by simulated synthesizer tones',
     requiresWebGPU: false,
     color: '#8800ff',
+    tags: ['audio'],
     component: lazy(() => import('../demos/synth-aurora')),
   },
   {
@@ -659,6 +740,7 @@ export const demos: DemoEntry[] = [
     description: '4x4 instrument grid with cubes triggering scale and emissive pulses on rhythmic beat patterns',
     requiresWebGPU: false,
     color: '#ff8800',
+    tags: ['audio'],
     component: lazy(() => import('../demos/drum-machine-cubes')),
   },
   {
@@ -667,6 +749,7 @@ export const demos: DemoEntry[] = [
     description: 'Volumetric shell cloud pulsing radius and opacity to simulated bass frequency',
     requiresWebGPU: false,
     color: '#2200aa',
+    tags: ['audio'],
     component: lazy(() => import('../demos/bass-nebula')),
   },
   {
@@ -675,6 +758,7 @@ export const demos: DemoEntry[] = [
     description: 'Spinning vinyl record with concentric groove displacement and tonearm animation',
     requiresWebGPU: false,
     color: '#cc8800',
+    tags: ['audio'],
     component: lazy(() => import('../demos/vinyl-grooves')),
   },
   {
@@ -683,6 +767,7 @@ export const demos: DemoEntry[] = [
     description: 'Cityscape of 200 instanced buildings with heights animated by simulated frequency band data',
     requiresWebGPU: false,
     color: '#ff0066',
+    tags: ['audio'],
     component: lazy(() => import('../demos/equalizer-city')),
   },
   {
@@ -691,6 +776,7 @@ export const demos: DemoEntry[] = [
     description: '88-key MIDI waterfall with cascading note blocks and velocity-based glow',
     requiresWebGPU: false,
     color: '#0088ff',
+    tags: ['audio'],
     component: lazy(() => import('../demos/piano-waterfall')),
   },
   {
@@ -699,6 +785,7 @@ export const demos: DemoEntry[] = [
     description: 'Procedural flowers that bloom and pulse in response to simulated harmonic overtone series',
     requiresWebGPU: false,
     color: '#ff44ff',
+    tags: ['audio'],
     component: lazy(() => import('../demos/sonic-bloom')),
   },
   {
@@ -707,6 +794,7 @@ export const demos: DemoEntry[] = [
     description: 'GPU compute cloth simulation with 64x64 particle grid, spring constraints, wind forces, and pinned top edge',
     requiresWebGPU: true,
     color: '#44aaff',
+    tags: ['physics'],
     component: lazy(() => import('../demos/cloth-wind')),
   },
   {
@@ -715,6 +803,7 @@ export const demos: DemoEntry[] = [
     description: 'Deformable pressure-based soft body sphere bouncing off a floor with stress-based coloring',
     requiresWebGPU: true,
     color: '#ff6644',
+    tags: ['physics'],
     component: lazy(() => import('../demos/soft-body-bounce')),
   },
   {
@@ -723,6 +812,7 @@ export const demos: DemoEntry[] = [
     description: 'Verlet integration rope bridge with gravity, wind sway, fixed endpoints, and plank segments',
     requiresWebGPU: false,
     color: '#88cc22',
+    tags: ['physics'],
     component: lazy(() => import('../demos/rope-bridge')),
   },
   {
@@ -731,6 +821,7 @@ export const demos: DemoEntry[] = [
     description: 'SPH-inspired fluid particles with pressure forces, viscosity, and container boundaries',
     requiresWebGPU: true,
     color: '#2288ff',
+    tags: ['physics'],
     component: lazy(() => import('../demos/fluid-pressure')),
   },
   {
@@ -739,6 +830,7 @@ export const demos: DemoEntry[] = [
     description: 'Articulated stick figure with joint constraints tumbling through horizontal bar obstacles',
     requiresWebGPU: false,
     color: '#ff4488',
+    tags: ['physics'],
     component: lazy(() => import('../demos/ragdoll-fall')),
   },
   {
@@ -747,6 +839,7 @@ export const demos: DemoEntry[] = [
     description: 'Spring-connected grid that ripples and deforms from periodic impact points with height-based coloring',
     requiresWebGPU: true,
     color: '#44ffaa',
+    tags: ['physics'],
     component: lazy(() => import('../demos/spring-mesh')),
   },
   {
@@ -755,6 +848,7 @@ export const demos: DemoEntry[] = [
     description: '3000 particles tracing magnetic field lines between dipole pairs with field-strength coloring',
     requiresWebGPU: true,
     color: '#8844ff',
+    tags: ['physics'],
     component: lazy(() => import('../demos/magnetic-fields')),
   },
   {
@@ -763,6 +857,7 @@ export const demos: DemoEntry[] = [
     description: 'Chain reaction of 200 rigid spheres with elastic collision response and kinetic energy coloring',
     requiresWebGPU: true,
     color: '#ffaa00',
+    tags: ['physics'],
     component: lazy(() => import('../demos/collision-cascade')),
   },
   {
@@ -771,6 +866,7 @@ export const demos: DemoEntry[] = [
     description: '2D wave equation on 128x128 grid with compute-driven propagation and periodic point-source disturbances',
     requiresWebGPU: true,
     color: '#00aaff',
+    tags: ['physics'],
     component: lazy(() => import('../demos/elastic-waves')),
   },
   {
@@ -779,6 +875,7 @@ export const demos: DemoEntry[] = [
     description: 'Triple pendulum with chaotic diverging trajectories, RK4 integration, and trail rendering',
     requiresWebGPU: false,
     color: '#ff2244',
+    tags: ['physics'],
     component: lazy(() => import('../demos/pendulum-chaos')),
   },
   {
@@ -787,6 +884,7 @@ export const demos: DemoEntry[] = [
     description: 'Endless scrolling terrain with multi-octave noise displacement, 4 biomes, and LOD detail rings',
     requiresWebGPU: false,
     color: '#44aa22',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/infinite-terrain')),
   },
   {
@@ -795,6 +893,7 @@ export const demos: DemoEntry[] = [
     description: 'Procedural city blocks with roads, varied building heights, neon window lights, and traffic signals',
     requiresWebGPU: false,
     color: '#ff6600',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/city-generator')),
   },
   {
@@ -803,6 +902,7 @@ export const demos: DemoEntry[] = [
     description: 'Underground cave with noise-carved walls, stalactites, bioluminescent pools, and crystal clusters',
     requiresWebGPU: false,
     color: '#664422',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/cave-system')),
   },
   {
@@ -811,6 +911,7 @@ export const demos: DemoEntry[] = [
     description: 'Sky islands with waterfalls, vegetation tufts, cloud wisps, and atmospheric depth',
     requiresWebGPU: false,
     color: '#44ccff',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/floating-islands')),
   },
   {
@@ -819,6 +920,7 @@ export const demos: DemoEntry[] = [
     description: 'Vast animated ocean with multi-layer wave displacement, foam lines, and underwater caustic patterns',
     requiresWebGPU: false,
     color: '#0066aa',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/ocean-world')),
   },
   {
@@ -827,6 +929,7 @@ export const demos: DemoEntry[] = [
     description: 'Wind-sculpted sand dune field with ripple displacement, heat haze, and drifting sand particles',
     requiresWebGPU: false,
     color: '#cc9944',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/desert-dunes')),
   },
   {
@@ -835,6 +938,7 @@ export const demos: DemoEntry[] = [
     description: 'Crystalline ice structures with fresnel refraction glow, sub-surface lighting, and frost particles',
     requiresWebGPU: false,
     color: '#88ddff',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/ice-fortress')),
   },
   {
@@ -843,6 +947,7 @@ export const demos: DemoEntry[] = [
     description: 'Giant bioluminescent mushrooms with pulsing caps, spore particles, and ground fog',
     requiresWebGPU: false,
     color: '#22cc88',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/mushroom-forest')),
   },
   {
@@ -851,6 +956,7 @@ export const demos: DemoEntry[] = [
     description: 'Lava river through cracked terrain with smoke particles, ember sparks, and heat distortion',
     requiresWebGPU: false,
     color: '#ff3300',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/volcanic-rift')),
   },
   {
@@ -859,6 +965,7 @@ export const demos: DemoEntry[] = [
     description: 'Non-euclidean architecture with nested rotating frames, energy conduits, and portal distortion',
     requiresWebGPU: false,
     color: '#aa22ff',
+    tags: ['procedural'],
     component: lazy(() => import('../demos/alien-megastructure')),
   },
   {
@@ -867,6 +974,7 @@ export const demos: DemoEntry[] = [
     description: 'Full CRT simulation with scanlines, phosphor glow, barrel distortion, vignette, and color bleed',
     requiresWebGPU: false,
     color: '#33ff33',
+    tags: ['retro'],
     component: lazy(() => import('../demos/crt-monitor')),
   },
   {
@@ -875,6 +983,7 @@ export const demos: DemoEntry[] = [
     description: 'VHS tape degradation with tracking errors, chromatic aberration, noise bands, and color shift',
     requiresWebGPU: false,
     color: '#ff3333',
+    tags: ['retro'],
     component: lazy(() => import('../demos/vhs-glitch')),
   },
   {
@@ -883,6 +992,7 @@ export const demos: DemoEntry[] = [
     description: '80s retrowave infinite perspective grid with neon sun, mountain silhouette, and chrome aesthetic',
     requiresWebGPU: false,
     color: '#ff00ff',
+    tags: ['retro'],
     component: lazy(() => import('../demos/synthwave-grid')),
   },
   {
@@ -891,6 +1001,7 @@ export const demos: DemoEntry[] = [
     description: '3D scene progressively pixelating with color quantization and ordered dithering at the transition edge',
     requiresWebGPU: false,
     color: '#00ff88',
+    tags: ['retro'],
     component: lazy(() => import('../demos/pixel-dissolve')),
   },
   {
@@ -899,6 +1010,7 @@ export const demos: DemoEntry[] = [
     description: 'Classic demo plasma effect with layered sine wave interference and 8-stop cycling color palette',
     requiresWebGPU: false,
     color: '#ff8800',
+    tags: ['retro'],
     component: lazy(() => import('../demos/demoscene-plasma')),
   },
   {
@@ -907,6 +1019,7 @@ export const demos: DemoEntry[] = [
     description: '3D scene rendered as ASCII characters via luminance-to-glyph mapping with terminal aesthetic',
     requiresWebGPU: false,
     color: '#00ff00',
+    tags: ['retro'],
     component: lazy(() => import('../demos/ascii-render')),
   },
   {
@@ -915,6 +1028,7 @@ export const demos: DemoEntry[] = [
     description: 'Rain-soaked neon street with wet reflections, volumetric light cones, and film noir palette',
     requiresWebGPU: false,
     color: '#ff0044',
+    tags: ['retro'],
     component: lazy(() => import('../demos/neon-noir')),
   },
   {
@@ -923,6 +1037,7 @@ export const demos: DemoEntry[] = [
     description: 'DMG-style 4-color rendering with ordered dithering, LCD pixel grid, and screen border frame',
     requiresWebGPU: false,
     color: '#88bb22',
+    tags: ['retro'],
     component: lazy(() => import('../demos/gameboy-shader')),
   },
   {
@@ -931,6 +1046,7 @@ export const demos: DemoEntry[] = [
     description: 'Wireframe vector graphics with phosphor glow trails in Asteroids/Tempest aesthetic',
     requiresWebGPU: false,
     color: '#00ffff',
+    tags: ['retro'],
     component: lazy(() => import('../demos/vector-arcade')),
   },
   {
@@ -939,6 +1055,7 @@ export const demos: DemoEntry[] = [
     description: 'Abstract face mesh with block displacement, RGB split, scan distortion, and periodic glitch bursts',
     requiresWebGPU: false,
     color: '#ff22aa',
+    tags: ['retro'],
     component: lazy(() => import('../demos/glitch-portrait')),
   },
   {
@@ -947,6 +1064,7 @@ export const demos: DemoEntry[] = [
     description: 'L-system tree growing in real time with branching cylinders, leaf particles, and wind sway',
     requiresWebGPU: false,
     color: '#228822',
+    tags: ['organic'],
     component: lazy(() => import('../demos/tree-growth')),
   },
   {
@@ -955,6 +1073,7 @@ export const demos: DemoEntry[] = [
     description: 'Branching coral structures with swaying anemones, swimming fish, and caustic floor lighting',
     requiresWebGPU: false,
     color: '#ff8844',
+    tags: ['organic'],
     component: lazy(() => import('../demos/coral-reef')),
   },
   {
@@ -963,6 +1082,7 @@ export const demos: DemoEntry[] = [
     description: 'Cycling weather states with volumetric clouds, compute-driven rain, lightning, and dynamic lighting',
     requiresWebGPU: true,
     color: '#4488cc',
+    tags: ['organic'],
     component: lazy(() => import('../demos/weather-system')),
   },
   {
@@ -971,6 +1091,7 @@ export const demos: DemoEntry[] = [
     description: 'Crystals growing from seed points with animated extension, branching, and refraction glow',
     requiresWebGPU: false,
     color: '#aa44ff',
+    tags: ['organic'],
     component: lazy(() => import('../demos/crystal-formation')),
   },
   {
@@ -979,6 +1100,7 @@ export const demos: DemoEntry[] = [
     description: 'Underground fungal network spreading tendrils with nutrient pulse particles and bioluminescent fruiting bodies',
     requiresWebGPU: false,
     color: '#ccaa22',
+    tags: ['organic'],
     component: lazy(() => import('../demos/mycelium-network')),
   },
   {
@@ -987,6 +1109,7 @@ export const demos: DemoEntry[] = [
     description: 'Morpho butterflies with iridescent fresnel wings, flocking behavior, and garden backdrop',
     requiresWebGPU: false,
     color: '#2288ff',
+    tags: ['organic'],
     component: lazy(() => import('../demos/butterfly-swarm')),
   },
   {
@@ -995,6 +1118,7 @@ export const demos: DemoEntry[] = [
     description: 'Time-lapse flower opening with petal unfurling animation, stem growth, and floating pollen',
     requiresWebGPU: false,
     color: '#ff66aa',
+    tags: ['organic'],
     component: lazy(() => import('../demos/flower-bloom')),
   },
   {
@@ -1003,6 +1127,7 @@ export const demos: DemoEntry[] = [
     description: 'Hydraulic erosion carving a canyon with layered rock strata, river flow, and rim vegetation',
     requiresWebGPU: true,
     color: '#aa6633',
+    tags: ['organic'],
     component: lazy(() => import('../demos/erosion-canyon')),
   },
   {
@@ -1011,6 +1136,7 @@ export const demos: DemoEntry[] = [
     description: 'DLA ice crystal formation on glass with branching structures and warm background glow',
     requiresWebGPU: true,
     color: '#88ccff',
+    tags: ['organic'],
     component: lazy(() => import('../demos/frost-patterns')),
   },
   {
@@ -1019,6 +1145,7 @@ export const demos: DemoEntry[] = [
     description: 'Underwater kelp strands swaying in current with light shafts, fish, and rising bubbles',
     requiresWebGPU: false,
     color: '#22aa44',
+    tags: ['organic'],
     component: lazy(() => import('../demos/kelp-forest')),
   },
   {
@@ -1027,6 +1154,7 @@ export const demos: DemoEntry[] = [
     description: 'Lorenz and Rössler attractors with 5000 instanced trail particles and velocity-based color gradients',
     requiresWebGPU: false,
     color: '#ff4400',
+    tags: ['math'],
     component: lazy(() => import('../demos/strange-attractor')),
   },
   {
@@ -1035,6 +1163,7 @@ export const demos: DemoEntry[] = [
     description: 'Poincaré disk tessellation with hyperbolic reflections and distance-based coloring',
     requiresWebGPU: false,
     color: '#8822ff',
+    tags: ['math'],
     component: lazy(() => import('../demos/hyperbolic-plane')),
   },
   {
@@ -1043,6 +1172,7 @@ export const demos: DemoEntry[] = [
     description: '3D Lissajous curves forming web structures with animated phase morphing',
     requiresWebGPU: false,
     color: '#00ddff',
+    tags: ['math'],
     component: lazy(() => import('../demos/lissajous-web')),
   },
   {
@@ -1051,6 +1181,7 @@ export const demos: DemoEntry[] = [
     description: 'Non-orientable Klein bottle surface with parametric mesh, inside/outside coloring, and wireframe overlay',
     requiresWebGPU: false,
     color: '#ff8822',
+    tags: ['math'],
     component: lazy(() => import('../demos/klein-bottle')),
   },
   {
@@ -1059,6 +1190,7 @@ export const demos: DemoEntry[] = [
     description: '3D Mandelbrot set via SDF raymarching with orbit trap coloring and animated rotation',
     requiresWebGPU: false,
     color: '#2244ff',
+    tags: ['math'],
     component: lazy(() => import('../demos/mandelbulb-3d')),
   },
   {
@@ -1067,6 +1199,7 @@ export const demos: DemoEntry[] = [
     description: 'Phyllotaxis sunflower pattern with golden-angle arrangement and animated angle deviation',
     requiresWebGPU: false,
     color: '#ffcc00',
+    tags: ['math'],
     component: lazy(() => import('../demos/fibonacci-spiral')),
   },
   {
@@ -1075,6 +1208,7 @@ export const demos: DemoEntry[] = [
     description: 'Particles flowing along Möbius strip surface showing topology with color-shift on traversal',
     requiresWebGPU: false,
     color: '#44ff88',
+    tags: ['math'],
     component: lazy(() => import('../demos/moebius-flow')),
   },
   {
@@ -1083,6 +1217,7 @@ export const demos: DemoEntry[] = [
     description: 'Aperiodic Penrose tiling extruded into 3D with thick/thin rhombus coloring',
     requiresWebGPU: false,
     color: '#ff44cc',
+    tags: ['math'],
     component: lazy(() => import('../demos/penrose-tiles')),
   },
   {
@@ -1091,6 +1226,7 @@ export const demos: DemoEntry[] = [
     description: '4D-to-3D stereographic projection of Hopf fibration circles with rainbow fiber coloring',
     requiresWebGPU: false,
     color: '#4488ff',
+    tags: ['math'],
     component: lazy(() => import('../demos/hopf-fibration')),
   },
   {
@@ -1099,6 +1235,7 @@ export const demos: DemoEntry[] = [
     description: 'Animated Julia set with morphing c-parameter creating continuously evolving fractal shapes',
     requiresWebGPU: false,
     color: '#ff2266',
+    tags: ['math'],
     component: lazy(() => import('../demos/julia-morph')),
   },
   {
@@ -1107,6 +1244,7 @@ export const demos: DemoEntry[] = [
     description: 'Cascaded shadow maps with 3 directional lights, soft shadows, and color-coded cascade visualization',
     requiresWebGPU: false,
     color: '#334455',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/shadow-cascade')),
   },
   {
@@ -1115,6 +1253,7 @@ export const demos: DemoEntry[] = [
     description: 'Screen-space ambient occlusion on a dense scene demonstrating contact shadows in corners and crevices',
     requiresWebGPU: false,
     color: '#556677',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/ssao-showcase')),
   },
   {
@@ -1123,6 +1262,7 @@ export const demos: DemoEntry[] = [
     description: '7x7 grid of spheres exploring roughness and metalness parameter space with colored lighting',
     requiresWebGPU: false,
     color: '#aabbcc',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/pbr-material-lab')),
   },
   {
@@ -1131,6 +1271,7 @@ export const demos: DemoEntry[] = [
     description: '10000 instanced objects with compute frustum culling showing visible vs culled counts',
     requiresWebGPU: true,
     color: '#44cc44',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/gpu-culling')),
   },
   {
@@ -1139,6 +1280,7 @@ export const demos: DemoEntry[] = [
     description: '3 LOD levels of torus knots with smooth cross-fade transitions and color-coded detail visualization',
     requiresWebGPU: false,
     color: '#ff8844',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/lod-transition')),
   },
   {
@@ -1147,6 +1289,7 @@ export const demos: DemoEntry[] = [
     description: '100 dynamic point lights illuminating a room scene with orbiting light visualization spheres',
     requiresWebGPU: true,
     color: '#ffcc44',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/deferred-lights')),
   },
   {
@@ -1155,6 +1298,7 @@ export const demos: DemoEntry[] = [
     description: 'God rays streaming through window openings with dust motes and atmospheric fog',
     requiresWebGPU: false,
     color: '#aabb88',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/volumetric-fog-rays')),
   },
   {
@@ -1163,6 +1307,7 @@ export const demos: DemoEntry[] = [
     description: 'Glossy floor reflections using Y-flip technique with blur fade and colorful objects',
     requiresWebGPU: false,
     color: '#4466aa',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/screen-reflections')),
   },
   {
@@ -1171,6 +1316,7 @@ export const demos: DemoEntry[] = [
     description: 'Per-object motion blur via ghost copies showing speed and direction of moving objects',
     requiresWebGPU: false,
     color: '#ff6644',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/motion-blur-demo')),
   },
   {
@@ -1179,6 +1325,7 @@ export const demos: DemoEntry[] = [
     description: 'Cel shading with N-tone lighting quantization and inverted hull outline technique',
     requiresWebGPU: false,
     color: '#ffaa22',
+    tags: ['game-ready'],
     component: lazy(() => import('../demos/toon-outline')),
   },
 ];
