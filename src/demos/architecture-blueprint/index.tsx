@@ -52,19 +52,19 @@ interface DataFlow {
 // slight Z-depth variation per tier for visual depth
 const SERVICES: Service[] = [
   // Tier 1: Client
-  { id: 'browser', label: 'Browser', type: 'frontend', tier: 'client', position: [-5, 6.5, 0.1], color: '#61dafb', hex: 0x61dafb, desc: 'React SPA', tech: 'React + Vite', health: 'healthy', throughput: '—' },
+  { id: 'browser', label: 'Browser', type: 'frontend', tier: 'client', position: [-5, 4.5, 0.1], color: '#61dafb', hex: 0x61dafb, desc: 'React SPA', tech: 'React + Vite', health: 'healthy', throughput: '—' },
   // Tier 2: Edge
-  { id: 'cdn', label: 'CDN', type: 'cdn', tier: 'edge', position: [-1.3, 4, -0.2], color: '#f38020', hex: 0xf38020, desc: 'Edge caching', tech: 'Cloudflare Pages', health: 'healthy', throughput: '8.4k req/s' },
-  { id: 'gateway', label: 'API Gateway', type: 'backend', tier: 'edge', position: [2.6, 4, 0.2], color: '#22cc88', hex: 0x22cc88, desc: 'Request routing', tech: 'Workers', health: 'healthy', throughput: '3.1k req/s' },
+  { id: 'cdn', label: 'CDN', type: 'cdn', tier: 'edge', position: [-1.3, 2.5, -0.2], color: '#f38020', hex: 0xf38020, desc: 'Edge caching', tech: 'Cloudflare Pages', health: 'healthy', throughput: '8.4k req/s' },
+  { id: 'gateway', label: 'API Gateway', type: 'backend', tier: 'edge', position: [2.6, 2.5, 0.2], color: '#22cc88', hex: 0x22cc88, desc: 'Request routing', tech: 'Workers', health: 'healthy', throughput: '3.1k req/s' },
   // Tier 3: Services
-  { id: 'auth', label: 'Auth Service', type: 'backend', tier: 'services', position: [-2.6, 1.5, 0.2], color: '#ff6644', hex: 0xff6644, desc: 'JWT + sessions', tech: 'Workers', health: 'healthy', throughput: '1.8k req/s' },
-  { id: 'api', label: 'API Server', type: 'backend', tier: 'services', position: [1.3, 1.5, -0.1], color: '#4488ff', hex: 0x4488ff, desc: 'Business logic', tech: 'Workers', health: 'healthy', throughput: '2.5k req/s' },
-  { id: 'ai', label: 'AI Service', type: 'external', tier: 'services', position: [5.2, 1.5, 0.3], color: '#cc44ff', hex: 0xcc44ff, desc: 'LLM inference', tech: 'Claude API', health: 'degraded', throughput: '45 req/s' },
-  { id: 'queue', label: 'Task Queue', type: 'queue', tier: 'edge', position: [5.2, 4, -0.2], color: '#ff4488', hex: 0xff4488, desc: 'Async jobs', tech: 'Queues', health: 'healthy', throughput: '320 msg/s' },
+  { id: 'auth', label: 'Auth Service', type: 'backend', tier: 'services', position: [-2.6, 0.5, 0.2], color: '#ff6644', hex: 0xff6644, desc: 'JWT + sessions', tech: 'Workers', health: 'healthy', throughput: '1.8k req/s' },
+  { id: 'api', label: 'API Server', type: 'backend', tier: 'services', position: [1.3, 0.5, -0.1], color: '#4488ff', hex: 0x4488ff, desc: 'Business logic', tech: 'Workers', health: 'healthy', throughput: '2.5k req/s' },
+  { id: 'ai', label: 'AI Service', type: 'external', tier: 'services', position: [5.2, 0.5, 0.3], color: '#cc44ff', hex: 0xcc44ff, desc: 'LLM inference', tech: 'Claude API', health: 'degraded', throughput: '45 req/s' },
+  { id: 'queue', label: 'Task Queue', type: 'queue', tier: 'edge', position: [5.2, 2.5, -0.2], color: '#ff4488', hex: 0xff4488, desc: 'Async jobs', tech: 'Queues', health: 'healthy', throughput: '320 msg/s' },
   // Tier 4: Data
-  { id: 'db', label: 'Database', type: 'database', tier: 'data', position: [-1.3, -1, 0.1], color: '#ffaa22', hex: 0xffaa22, desc: 'Relational data', tech: 'D1 (SQLite)', health: 'healthy', throughput: '1.2k qps' },
-  { id: 'kv', label: 'KV Store', type: 'cache', tier: 'data', position: [2.6, -1, -0.3], color: '#ff8844', hex: 0xff8844, desc: 'Session + config', tech: 'KV', health: 'healthy', throughput: '500 req/s' },
-  { id: 'storage', label: 'Object Store', type: 'database', tier: 'data', position: [6.5, -1, 0.2], color: '#44cc88', hex: 0x44cc88, desc: 'Files + media', tech: 'R2', health: 'healthy', throughput: '150 req/s' },
+  { id: 'db', label: 'Database', type: 'database', tier: 'data', position: [-1.3, -1.5, 0.1], color: '#ffaa22', hex: 0xffaa22, desc: 'Relational data', tech: 'D1 (SQLite)', health: 'healthy', throughput: '1.2k qps' },
+  { id: 'kv', label: 'KV Store', type: 'cache', tier: 'data', position: [2.6, -1.5, -0.3], color: '#ff8844', hex: 0xff8844, desc: 'Session + config', tech: 'KV', health: 'healthy', throughput: '500 req/s' },
+  { id: 'storage', label: 'Object Store', type: 'database', tier: 'data', position: [6.5, -1.5, 0.2], color: '#44cc88', hex: 0x44cc88, desc: 'Files + media', tech: 'R2', health: 'healthy', throughput: '150 req/s' },
 ];
 
 // Customer request trace path (read)
@@ -814,7 +814,7 @@ function ConnectionPipe({
 
 // ── Flow Particles (instanced for performance) ──
 
-const PARTICLES_PER_FLOW = 16; // #30: increased from 12 for denser flow
+const PARTICLES_PER_FLOW = 10; // reduced from 16 for cleaner look
 const TOTAL_PARTICLES = FLOWS.length * PARTICLES_PER_FLOW;
 
 function FlowParticles({
@@ -896,7 +896,7 @@ function FlowParticles({
       const { from, to, flow, curveOffset, color } = flowData[fi];
       const isHighlighted = active !== null &&
         (flow.from === active || flow.to === active);
-      const baseScale = isHighlighted ? 0.08 : 0.05;
+      const baseScale = isHighlighted ? 0.05 : 0.03;
 
       // #24: Boost saturation/vibrance when highlighted by scaling up color channels
       if (colors) {
@@ -1123,9 +1123,9 @@ function buildGridLineGeometry(): THREE.BufferGeometry {
 
   for (let i = -span; i <= span; i += minorStep) {
     // Horizontal line along X axis at Z=i
-    positions.push(-span, -2.49, i,  span, -2.49, i);
+    positions.push(-span, -2.19, i,  span, -2.19, i);
     // Vertical line along Z axis at X=i
-    positions.push(i, -2.49, -span,  i, -2.49,  span);
+    positions.push(i, -2.19, -span,  i, -2.19,  span);
   }
 
   const geo = new THREE.BufferGeometry();
@@ -1141,14 +1141,14 @@ function BlueprintGridFloor() {
   const lineMat = useMemo(() => {
     const mat = new THREE.LineBasicMaterial();
     mat.transparent = true;
-    mat.opacity = 0.14;
+    mat.opacity = 0.05;
     mat.color = new THREE.Color(0x4488cc);
     return mat;
   }, []);
 
   return (
     <>
-      <mesh position={[0, -2.5, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
+      <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]} material={gridMat}>
         <planeGeometry args={[60, 60]} />
       </mesh>
       <lineSegments geometry={GRID_LINE_GEO} material={lineMat} />
@@ -1270,7 +1270,7 @@ function FloorLightTrail({ positions, fadeTime }: { positions: THREE.Vector3[]; 
     mat.opacity = 0.35 * alpha;
     const dummy = trailDummy;
     for (let i = 0; i < positions.length; i++) {
-      dummy.position.set(positions[i].x, -2.49, positions[i].z);
+      dummy.position.set(positions[i].x, -2.19, positions[i].z);
       dummy.scale.setScalar(0.08);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -1542,14 +1542,14 @@ function TraceRequestBall({
 
 function TierLabels() {
   const tiers = [
-    { label: 'CLIENT', y: 6.5 },
-    { label: 'EDGE', y: 4 },
-    { label: 'SERVICES', y: 1.5 },
-    { label: 'DATA', y: -1 },
+    { label: 'CLIENT', y: 4.5 },
+    { label: 'EDGE', y: 2.5 },
+    { label: 'SERVICES', y: 0.5 },
+    { label: 'DATA', y: -1.5 },
   ];
 
   // Separator lines between tiers
-  const separatorY = [5.25, 2.75, 0.25]; // between client-edge, edge-services, services-data
+  const separatorY = [3.5, 1.5, -0.5]; // between client-edge, edge-services, services-data
 
   const sepMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
@@ -1610,7 +1610,7 @@ function BackgroundStars() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   // #53: Group ref for slow rotation of all stars as a group
   const groupRef = useRef<THREE.Group>(null);
-  const COUNT = 150;
+  const COUNT = 60;
 
   const starMat = useMemo(() => {
     const mat = new THREE.MeshBasicNodeMaterial();
@@ -1637,7 +1637,7 @@ function BackgroundStars() {
         Math.sin(elev) * r + 5,
         Math.sin(angle) * Math.cos(elev) * r
       );
-      dummy.scale.setScalar(0.02 + Math.random() * 0.04);
+      dummy.scale.setScalar(0.01 + Math.random() * 0.02);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
       const c = STAR_COLORS[i % STAR_COLORS.length];
@@ -1663,7 +1663,7 @@ function BackgroundStars() {
       dummy.position.setFromMatrixPosition(mat);
       // Subtle twinkle
       const twinkle = 0.5 + Math.sin(t * 1.5 + i * 7.3) * 0.5;
-      const baseScale = 0.02 + (i % 10) * 0.004;
+      const baseScale = 0.01 + (i % 10) * 0.002;
       dummy.scale.setScalar(baseScale * (0.5 + twinkle * 0.5));
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
@@ -1776,7 +1776,7 @@ function AmbientParticleClusters() {
 
 // ── Floor Glow Rings (per service) ──
 
-// #74: Subtle glow ring on floor below each service, at y=-2.49, service color, opacity 0.04, radius 1.2
+// #74: Subtle glow ring on floor below each service, at y=-2.19, service color, opacity 0.02, radius 0.8
 function FloorGlowRings() {
   const mats = useMemo(() =>
     SERVICES.map((s) => {
@@ -1785,7 +1785,7 @@ function FloorGlowRings() {
       m.depthWrite = false;
       m.blending = THREE.AdditiveBlending;
       m.color = new THREE.Color(s.hex);
-      m.opacity = 0.04;
+      m.opacity = 0.02;
       return m;
     }), []);
 
@@ -1794,11 +1794,11 @@ function FloorGlowRings() {
       {SERVICES.map((s, i) => (
         <mesh
           key={s.id}
-          position={[s.position[0], -2.49, s.position[2]]}
+          position={[s.position[0], -2.19, s.position[2]]}
           rotation={[-Math.PI / 2, 0, 0]}
           material={mats[i]}
         >
-          <circleGeometry args={[1.2, 32]} />
+          <circleGeometry args={[0.8, 32]} />
         </mesh>
       ))}
     </>
@@ -1821,8 +1821,8 @@ export default function ArchitectureBlueprint() {
   const traceCompleteTimeRef = useRef(0);
   const traceAutoHoveredRef = useRef<string | null>(null);
   const timeRef = useRef(0);
-  const targetPos = useRef(new THREE.Vector3(1, 3, 22));
-  const targetLookAt = useRef(new THREE.Vector3(1, 2.5, 0));
+  const targetPos = useRef(new THREE.Vector3(1, 2, 12));
+  const targetLookAt = useRef(new THREE.Vector3(1, 1.0, 0));
   const { camera } = useThree();
 
   // #84: Track which connection pairs (fromId-toId) have been visited during trace
@@ -1875,13 +1875,13 @@ export default function ArchitectureBlueprint() {
       if (selectedService === id) {
         setSelectedService(null);
         setFocusedService(null);
-        targetPos.current.set(1, 3, 22);
-        targetLookAt.current.set(1, 2.5, 0);
+        targetPos.current.set(1, 3, 16);
+        targetLookAt.current.set(1, 1.5, 0);
       } else {
         setSelectedService(id);
         setFocusedService(null);
         const s = serviceMap.get(id)!;
-        targetPos.current.set(s.position[0] + 1.5, s.position[1] + 2.5, s.position[2] + 7);
+        targetPos.current.set(s.position[0] + 1.5, s.position[1] + 2, s.position[2] + 6);
         targetLookAt.current.set(s.position[0], s.position[1], s.position[2]);
       }
     },
@@ -1902,15 +1902,15 @@ export default function ArchitectureBlueprint() {
   const handleEmptyClick = useCallback(() => {
     setSelectedService(null);
     setFocusedService(null);
-    targetPos.current.set(1, 3, 22);
-    targetLookAt.current.set(1, 2.5, 0);
+    targetPos.current.set(1, 3, 16);
+    targetLookAt.current.set(1, 1.5, 0);
   }, []);
 
   const handleResetView = useCallback(() => {
     setSelectedService(null);
     setFocusedService(null);
-    targetPos.current.set(1, 3, 22);
-    targetLookAt.current.set(1, 2.5, 0);
+    targetPos.current.set(1, 3, 16);
+    targetLookAt.current.set(1, 1.5, 0);
   }, []);
 
   const handleTraceRequest = useCallback(() => {
@@ -1922,8 +1922,8 @@ export default function ArchitectureBlueprint() {
     setTraceComplete(false);
     setSelectedService(null);
     setFocusedService(null);
-    targetPos.current.set(1, 3, 22);
-    targetLookAt.current.set(1, 2.5, 0);
+    targetPos.current.set(1, 3, 16);
+    targetLookAt.current.set(1, 1.5, 0);
     // Reset trace-related state
     visitedConnectionsRef.current = new Set();
     setVisitedConnections(new Set());
@@ -1946,8 +1946,8 @@ export default function ArchitectureBlueprint() {
     setTraceComplete(false);
     setSelectedService(null);
     setFocusedService(null);
-    targetPos.current.set(1, 3, 22);
-    targetLookAt.current.set(1, 2.5, 0);
+    targetPos.current.set(1, 3, 16);
+    targetLookAt.current.set(1, 1.5, 0);
     // Reset trace-related state
     visitedConnectionsRef.current = new Set();
     setVisitedConnections(new Set());
@@ -1984,8 +1984,8 @@ export default function ArchitectureBlueprint() {
       if (e.key === 'Escape') {
         setSelectedService(null);
         setFocusedService(null);
-        targetPos.current.set(1, 3, 22);
-        targetLookAt.current.set(1, 2.5, 0);
+        targetPos.current.set(1, 3, 16);
+        targetLookAt.current.set(1, 1.5, 0);
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -2047,7 +2047,7 @@ export default function ArchitectureBlueprint() {
     return mat;
   }, []);
 
-  const currentLookAt = useRef(new THREE.Vector3(1, 2.5, 0));
+  const currentLookAt = useRef(new THREE.Vector3(1, 1.5, 0));
 
   // #76: Ambient light ref for slow color cycling
   const ambientLightRef = useRef<THREE.AmbientLight>(null);
@@ -2426,23 +2426,6 @@ export default function ArchitectureBlueprint() {
           <div style={{ marginTop: '6px', fontSize: '10px', opacity: 0.5, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '6px' }}>
             Esc to deselect · sidebar to navigate
           </div>
-          {/* #64: Legend section */}
-          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '8px' }}>
-            <div style={{ fontSize: '9px', fontWeight: 'bold', color: 'rgba(136,187,255,0.6)', letterSpacing: '0.5px', marginBottom: '5px', textTransform: 'uppercase' }}>Shape Legend</div>
-            {[
-              { shape: '▬', label: 'Frontend', color: '#61dafb' },
-              { shape: '■', label: 'Backend', color: '#22cc88' },
-              { shape: '⬡', label: 'Database', color: '#ffaa22' },
-              { shape: '◆', label: 'Cache', color: '#ff8844' },
-              { shape: '◎', label: 'CDN / Queue', color: '#f38020' },
-              { shape: '✦', label: 'External', color: '#cc44ff' },
-            ].map(({ shape, label, color }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', fontSize: '9px' }}>
-                <span style={{ color, fontSize: '11px', lineHeight: 1, flexShrink: 0 }}>{shape}</span>
-                <span style={{ opacity: 0.7 }}>{label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </Html>
 
@@ -2474,11 +2457,12 @@ export default function ArchitectureBlueprint() {
                 handleSelect(s.id);
               }
             };
+            const typeColor = getTypeColor(s.type);
             return (
               <div key={s.id}
                 onClick={handleServiceClick}
                 style={{
-                  padding: '2px 6px', marginBottom: '1px', borderRadius: '3px',
+                  padding: '2px 6px 2px 8px', marginBottom: '1px', borderRadius: '3px',
                   cursor: 'pointer', pointerEvents: 'auto',
                   color: isSelected ? '#fff' : s.color,
                   background: isSelected
@@ -2486,14 +2470,15 @@ export default function ArchitectureBlueprint() {
                     : isHoveredInSidebar
                       ? 'rgba(255,255,255,0.06)'
                       : 'transparent',
-                  fontSize: '10px',
+                  fontSize: '12px',
+                  borderLeft: `2px solid ${typeColor}`,
                   // #95: Smooth transitions for hover/select visual states
                   transition: 'background 0.2s, opacity 0.2s, color 0.2s',
                   fontWeight: isHoveredInSidebar && !isSelected ? '600' : 'normal',
                   display: 'flex', alignItems: 'center', gap: '5px',
                   opacity: isSelected ? 1 : isHoveredInSidebar ? 0.9 : 0.75,
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = isSelected ? 'rgba(255,255,255,0.12)' : isHoveredInSidebar ? 'rgba(255,255,255,0.06)' : 'transparent'; }}
               >
                 <span style={{
