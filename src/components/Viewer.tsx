@@ -145,9 +145,14 @@ export default function Viewer({ demoName }: { demoName: string }) {
       if (available) {
         const renderer = new WebGPURenderer({ ...props, antialias: true });
         await renderer.init();
+        renderer.toneMapping = 4; // ACESFilmicToneMapping
+        renderer.toneMappingExposure = 1.0;
         return renderer;
       }
-      return new WebGLRenderer({ ...props, antialias: true });
+      const renderer = new WebGLRenderer({ ...props, antialias: true });
+      renderer.toneMapping = 4; // ACESFilmicToneMapping
+      renderer.toneMappingExposure = 1.0;
+      return renderer;
     },
     [],
   );

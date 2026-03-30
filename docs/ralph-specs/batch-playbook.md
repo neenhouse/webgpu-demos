@@ -62,6 +62,12 @@ These combinations produced the best visual results in Batch 3:
 3. **InstancedMesh MUST have frustumCulled={false}** — per-instance frustum culling is wasted CPU for our demos where all instances are typically visible.
 4. **Share geometry via useMemo** — if the same geometry type appears 3+ times in a component, create it once with `useMemo` and pass via the `geometry` prop instead of using inline JSX geometry elements.
 
+## Rendering Quality Notes
+- **ACES filmic tone mapping** is enabled globally via the Viewer — colors are compressed into a cinematic range. Don't fight it with excessive emissive values.
+- **Bloom is NOT global** — demos that want bloom must use BackSide halo shells (proven pattern) or implement per-demo PostProcessing. See `docs/research/spike-postprocessing-cleanup.md` for the TSL post-processing pattern.
+- **Never switch material references on hover/state change** — mutate material properties (opacity, emissiveIntensity) imperatively in useFrame instead. Reference switching triggers GPU shader recompilation (3-second freeze).
+- **R3F handles dispose automatically** — don't manually call `.dispose()` on geometry/materials. The Canvas `key={demo.name}` unmounts/remounts the fiber tree on demo switch.
+
 ## Demo Naming Convention
 - Evocative, 2-3 word names (not technical descriptions)
 - Good: "Cosmic Jellyfish", "Phoenix Rising", "Crystal Cavern"
