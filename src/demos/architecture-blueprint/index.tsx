@@ -237,7 +237,7 @@ function ServiceNode({
   onDoubleClick,
   onHover,
   index,
-  mountTime,
+  mountTimeRef,
   pulseWaveTime,
 }: {
   service: Service;
@@ -251,7 +251,7 @@ function ServiceNode({
   onDoubleClick: (id: string) => void;
   onHover: (id: string | null) => void;
   index: number;
-  mountTime: number;
+  mountTimeRef: React.RefObject<number>;
   pulseWaveTime: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -265,9 +265,8 @@ function ServiceNode({
   // #51: Track when this service was last selected for smooth scale-up animation
   const selectionTime = useRef(0);
   const wasSelected = useRef(false);
-  // #58: Degraded health dot blink state
-  const [blinkVisible, setBlinkVisible] = useState(true);
-  const blinkAccRef = useRef(0);
+  // #58: Degraded health dot blink — use ref, not state (avoids re-renders)
+  const blinkVisibleRef = useRef(true);
 
   const serviceMat = useMemo(() => makeServiceMaterial(service.type, service.hex), [service.type, service.hex]);
   const wireframeMat = useMemo(() => makeWireframeMaterial(service.hex), [service.hex]);
@@ -290,20 +289,20 @@ function ServiceNode({
 
   const haloMat = useMemo(() => makeServiceHaloMaterial(service.hex), [service.hex]);
 
-  // Platform base material (needs to be mutable for opacity pulse)
+  // Platform base material — created once, updated imperatively in useFrame
   const platformMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.depthWrite = false;
     mat.color = new THREE.Color(service.hex).multiplyScalar(0.3);
     mat.emissive = new THREE.Color(service.hex);
-    mat.emissiveIntensity = isDimmed ? 0.05 : 0.3;
-    mat.opacity = isDimmed ? 0.05 : 0.15;
+    mat.emissiveIntensity = 0.3;
+    mat.opacity = 0.15;
     mat.roughness = 0.8;
     mat.metalness = 0.0;
     platformMatRef.current = mat;
     return mat;
-  }, [service.hex, isDimmed]);
+  }, [service.hex]);
 
   // Zone of influence ring material (larger, subtle)
   const platformRingMat = useMemo(() => {
@@ -386,9 +385,14 @@ function ServiceNode({
       }
 
       // Platform base opacity pulse (#15): sin(t) between 0.1 and 0.25
-      if (platformMatRef.current && !isDimmed) {
-        platformMatRef.current.opacity = 0.175 + Math.sin(t * 0.6) * 0.075;
-        platformMatRef.current.needsUpdate = false; // opacity change doesn't need needsUpdate
+      if (platformMatRef.current) {
+        if (isDimmed) {
+          platformMatRef.current.opacity = 0.05;
+          platformMatRef.current.emissiveIntensity = 0.05;
+        } else {
+          platformMatRef.current.opacity = 0.175 + Math.sin(t * 0.6) * 0.075;
+          platformMatRef.current.emissiveIntensity = 0.3;
+        }
       }
 
       // Zone of influence ring pulse (slightly different phase) (#16)
@@ -449,10 +453,10 @@ function ServiceNode({
       }
     }
 
-    // #59: Entrance stagger fade — compute opacity based on mountTime and per-service delay
+    // #59: Entrance stagger fade — compute opacity based on mountTimeRef and per-service delay
     const entranceDelay = index * 0.1; // 100ms stagger
     const entranceDuration = 0.5;
-    const entranceProgress = Math.min(Math.max((mountTime - entranceDelay) / entranceDuration, 0), 1);
+    const entranceProgress = Math.min(Math.max((mountTimeRef.current - entranceDelay) / entranceDuration, 0), 1);
     const group2 = groupRef.current;
     if (group2) {
       // Scale the whole group from 0 to 1 for entrance
@@ -462,13 +466,10 @@ function ServiceNode({
         group2.scale.setScalar(1);
       }
     }
-    // #58: Degraded health dot blink at 2Hz (0.25s on, 0.25s off)
+    // #58: Degraded health dot blink at 2Hz — use time-based check, no state
     if (service.health === 'degraded') {
-      blinkAccRef.current += delta;
-      if (blinkAccRef.current >= 0.25) {
-        blinkAccRef.current = blinkAccRef.current % 0.25;
-        setBlinkVisible((v) => !v);
-      }
+      const t2 = groupRef.current?.userData.t || 0;
+      blinkVisibleRef.current = Math.floor(t2 * 4) % 2 === 0;
     }
 
     // #92: Smooth wireframe opacity lerp — 0.2 idle → 0.5 on hover, over ~0.2s
@@ -577,7 +578,7 @@ function ServiceNode({
                   flexShrink: 0,
                   boxShadow: `0 0 4px ${getHealthColor(service.health)}`,
                   // #58: Degraded services blink — toggle opacity between 0.3 and 1.0 at 2Hz
-                  opacity: service.health === 'degraded' ? (blinkVisible ? 1.0 : 0.3) : 1.0,
+                  opacity: service.health === 'degraded' ? (blinkVisibleRef.current ? 1.0 : 0.3) : 1.0,
                 }}
               />
               {service.label}
@@ -663,25 +664,26 @@ function ConnectionPipe({
   const quat = new THREE.Quaternion().setFromUnitVectors(up, dir);
   const radius = isHighlighted ? 0.07 : 0.035;
 
-  const pipeMat = useMemo(
-    () => {
-      const mat = makeConnectionMaterial(flow.hex, isHighlighted);
-      pipeMatRef.current = mat;
-      return mat;
-    },
-    [flow.hex, isHighlighted],
-  );
-
-  // Arrow marker material (same as pipe) — #21
-  const arrowMat = useMemo(() => {
-    const mat = makeConnectionMaterial(flow.hex, isHighlighted);
-    arrowMatRef.current = mat;
+  // Create both material states once — switch via ref, never recreate
+  const pipeMatNormal = useMemo(() => {
+    const mat = makeConnectionMaterial(flow.hex, false);
     return mat;
-  }, [flow.hex, isHighlighted]);
+  }, [flow.hex]);
 
-  // Glow pipe (larger, more transparent) when highlighted
+  const pipeMatHighlight = useMemo(() => {
+    const mat = makeConnectionMaterial(flow.hex, true);
+    return mat;
+  }, [flow.hex]);
+
+  const pipeMat = isHighlighted ? pipeMatHighlight : pipeMatNormal;
+  pipeMatRef.current = pipeMat;
+
+  // Arrow marker uses same material as pipe
+  const arrowMat = pipeMat;
+  arrowMatRef.current = arrowMat;
+
+  // Glow pipe (larger, more transparent) — always created, conditionally rendered
   const glowMat = useMemo(() => {
-    if (!isHighlighted) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.depthWrite = false;
@@ -691,11 +693,10 @@ function ConnectionPipe({
     mat.emissiveIntensity = 1.5;
     mat.opacity = 0.15;
     return mat;
-  }, [flow.hex, isHighlighted]);
+  }, [flow.hex]);
 
-  // #84: Visited connection glow (traversed during trace, stays lit until trace ends)
+  // #84: Visited connection glow — always created, conditionally rendered
   const visitedGlowMat = useMemo(() => {
-    if (!isVisited) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.depthWrite = false;
@@ -705,7 +706,7 @@ function ConnectionPipe({
     mat.emissiveIntensity = 2.0;
     mat.opacity = 0.25;
     return mat;
-  }, [flow.hex, isVisited]);
+  }, [flow.hex]);
 
   // #21: Arrow cone placement — small offset back from endpoint along pipe direction
   // Position the cone at the "to" end, oriented along dir
@@ -1848,7 +1849,6 @@ export default function ArchitectureBlueprint() {
   const completionBallTimerRef = useRef(0);
 
   // #59: Mount time for entrance stagger animation
-  const [mountTime, setMountTime] = useState(0);
   const mountTimeRef = useRef(0);
 
   // #55: Pulse wave time per service — maps service id to time since arrival
@@ -2069,17 +2069,8 @@ export default function ArchitectureBlueprint() {
       ambientLightRef.current.color.setRGB(r, g, b);
     }
 
-    // #59: Advance mount time for entrance stagger animation
+    // #59: Advance mount time for entrance stagger animation (ref-only, no state)
     mountTimeRef.current += delta;
-    if (mountTimeRef.current !== mountTime) {
-      // Only update state while entrance is still running (last service at index 9, delay 0.9s + 0.5s duration = 1.4s)
-      const maxEntranceTime = (SERVICES.length - 1) * 0.1 + 0.5 + 0.05;
-      if (mountTimeRef.current <= maxEntranceTime) {
-        setMountTime(mountTimeRef.current);
-      } else if (mountTime < maxEntranceTime) {
-        setMountTime(maxEntranceTime);
-      }
-    }
 
     // #55: Detect when trace ball arrives at a new service and trigger pulse wave
     const activePath = traceIsWriteRef.current ? TRACE_PATH_WRITE : TRACE_PATH;
@@ -2314,7 +2305,7 @@ export default function ArchitectureBlueprint() {
           onDoubleClick={handleDoubleClick}
           onHover={setHoveredService}
           index={i}
-          mountTime={mountTime}
+          mountTimeRef={mountTimeRef}
           pulseWaveTime={pulseWaveTimes[service.id] ?? 0}
         />
       ))}
