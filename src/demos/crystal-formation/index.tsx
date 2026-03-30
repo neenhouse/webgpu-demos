@@ -27,6 +27,13 @@ import {
 const CRYSTAL_COUNT = 40;
 const CRYSTAL_HALO_COUNT = 40;
 
+// Pre-computed random rotations for floor decorative crystals (module scope avoids impure calls during render)
+const FLOOR_CRYSTAL_ROTATIONS: [number, number, number][] = Array.from({ length: 8 }, (_, i) => [
+  (Math.random() - 0.5) * 0.3,
+  (i / 8) * Math.PI * 2,
+  (Math.random() - 0.5) * 0.2,
+]);
+
 interface CrystalData {
   position: THREE.Vector3;
   scale: THREE.Vector3;
@@ -245,11 +252,7 @@ export default function CrystalFormation() {
             -2.0,
             Math.sin((i / 8) * Math.PI * 2) * 3.5,
           ]}
-          rotation={[
-            (Math.random() - 0.5) * 0.3,
-            (i / 8) * Math.PI * 2,
-            (Math.random() - 0.5) * 0.2,
-          ]}
+          rotation={FLOOR_CRYSTAL_ROTATIONS[i]}
         >
           <coneGeometry args={[0.08, 0.4 + (i % 3) * 0.2, 6]} />
           <meshStandardMaterial

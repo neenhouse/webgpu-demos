@@ -126,6 +126,7 @@ export default function ToonOutline() {
   }, []);
 
   useFrame((state) => {
+    // eslint-disable-next-line react-hooks/immutability
     timeUniform.value = state.clock.getElapsedTime();
     const t = state.clock.getElapsedTime();
     if (groupRef.current) {

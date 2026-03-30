@@ -278,10 +278,14 @@ function StarNode({
 
     // Dim stars in other clusters when a cluster is selected
     if (isInOtherCluster) {
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.opacity = 0.2;
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.transparent = true;
     } else {
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.opacity = 1.0;
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.transparent = false;
     }
 

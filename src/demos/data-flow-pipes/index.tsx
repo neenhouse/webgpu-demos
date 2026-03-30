@@ -92,6 +92,23 @@ const sourceNodeIds = NODES.filter(n => n.type === 'source').map(n => n.id);
 // Source pipe indices
 const sourcePipeIndices = PIPES.map((p, i) => sourceNodeIds.includes(p.from) ? i : -1).filter(i => i >= 0);
 
+// Pre-computed initial particle state (module scope avoids impure Math.random() during render)
+const INITIAL_PARTICLE_STATE = (() => {
+  const pipeIdx = new Int32Array(PARTICLE_COUNT);
+  const progress = new Float32Array(PARTICLE_COUNT);
+  const speed = new Float32Array(PARTICLE_COUNT);
+  const isRejected = new Uint8Array(PARTICLE_COUNT);
+  const rejectTimer = new Float32Array(PARTICLE_COUNT);
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    pipeIdx[i] = sourcePipeIndices[Math.floor(Math.random() * sourcePipeIndices.length)];
+    progress[i] = Math.random();
+    speed[i] = 0.3 + Math.random() * 0.3;
+    isRejected[i] = 0;
+    rejectTimer[i] = 0;
+  }
+  return { pipeIdx, progress, speed, isRejected, rejectTimer };
+})();
+
 // Shared node materials cache by type
 const sharedNodeMaterials = new Map<string, THREE.MeshStandardNodeMaterial>();
 
@@ -313,20 +330,14 @@ function FlowParticles({ selectedNode: _selectedNode }: { selectedNode: string |
 
   // Particle state: each particle is on a specific pipe with a progress
   const particleState = useMemo(() => {
-    const pipeIdx = new Int32Array(PARTICLE_COUNT);
-    const progress = new Float32Array(PARTICLE_COUNT);
-    const speed = new Float32Array(PARTICLE_COUNT);
-    const isRejected = new Uint8Array(PARTICLE_COUNT);
-    const rejectTimer = new Float32Array(PARTICLE_COUNT);
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      pipeIdx[i] = sourcePipeIndices[Math.floor(Math.random() * sourcePipeIndices.length)];
-      progress[i] = Math.random();
-      speed[i] = 0.3 + Math.random() * 0.3;
-      isRejected[i] = 0;
-      rejectTimer[i] = 0;
-    }
-    return { pipeIdx, progress, speed, isRejected, rejectTimer };
+    // Copy pre-computed arrays to avoid Math.random() during render
+    return {
+      pipeIdx: new Int32Array(INITIAL_PARTICLE_STATE.pipeIdx),
+      progress: new Float32Array(INITIAL_PARTICLE_STATE.progress),
+      speed: new Float32Array(INITIAL_PARTICLE_STATE.speed),
+      isRejected: new Uint8Array(INITIAL_PARTICLE_STATE.isRejected),
+      rejectTimer: new Float32Array(INITIAL_PARTICLE_STATE.rejectTimer),
+    };
   }, []);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -342,6 +353,7 @@ function FlowParticles({ selectedNode: _selectedNode }: { selectedNode: string |
 
     switch (destNode.type) {
       case 'sink': {
+        // eslint-disable-next-line react-hooks/immutability
         particleState.pipeIdx[i] = sourcePipeIndices[Math.floor(Math.random() * sourcePipeIndices.length)];
         particleState.progress[i] = 0;
         particleState.speed[i] = 0.3 + Math.random() * 0.3;
@@ -399,6 +411,7 @@ function FlowParticles({ selectedNode: _selectedNode }: { selectedNode: string |
     if (!mesh) return;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
+      // eslint-disable-next-line react-hooks/immutability
       particleState.progress[i] += particleState.speed[i] * delta;
       particleState.rejectTimer[i] = Math.max(0, particleState.rejectTimer[i] - delta);
 

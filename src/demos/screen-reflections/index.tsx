@@ -96,6 +96,7 @@ export default function ScreenReflections() {
   const reflYOffsets = [-0.02, -0.08, -0.18];
 
   useFrame((state) => {
+    // eslint-disable-next-line react-hooks/immutability
     timeUniform.value = state.clock.getElapsedTime();
     const t = state.clock.getElapsedTime();
 

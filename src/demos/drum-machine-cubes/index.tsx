@@ -156,7 +156,6 @@ export default function DrumMachineCubes() {
         const triggered = pattern[offsetStep] === 1;
 
         // Check if this step just triggered (only once per step)
-        Math.floor(t / STEP_DURATION) * STEP_DURATION;
         const lastTriggerStep = Math.floor(triggerTimes.current[inst] / STEP_DURATION);
         const currentStepIndex = Math.floor(t / STEP_DURATION);
         if (triggered && lastTriggerStep !== currentStepIndex) {

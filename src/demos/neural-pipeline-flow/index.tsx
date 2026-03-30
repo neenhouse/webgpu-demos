@@ -27,6 +27,11 @@ const STAGES = [
 
 const PARTICLE_COUNT = 300;
 
+// Pre-computed particle state at module scope to avoid impure Math.random() calls during render
+const INITIAL_PARTICLE_PROGRESS = new Float32Array(PARTICLE_COUNT).map(() => Math.random());
+const INITIAL_PARTICLE_SPEEDS = new Float32Array(PARTICLE_COUNT).map(() => 0.08 + Math.random() * 0.06);
+const INITIAL_PARTICLE_OFFSETS = new Float32Array(PARTICLE_COUNT).map(() => (Math.random() - 0.5) * 0.6);
+
 // ── Helper: get color at progress along pipeline ──
 function getColorAtProgress(progress: number, tmpColor: THREE.Color): THREE.Color {
   const t = Math.max(0, Math.min(1, progress));
@@ -269,18 +274,12 @@ function Particles({ selectedStage }: { selectedStage: string | null }) {
     return mat;
   }, []);
 
-  // Initialize particle state
-  const particleState = useMemo(() => {
-    const progress = new Float32Array(PARTICLE_COUNT);
-    const speeds = new Float32Array(PARTICLE_COUNT);
-    const offsets = new Float32Array(PARTICLE_COUNT);
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      progress[i] = Math.random();
-      speeds[i] = 0.08 + Math.random() * 0.06;
-      offsets[i] = (Math.random() - 0.5) * 0.6;
-    }
-    return { progress, speeds, offsets };
-  }, []);
+  // Initialize particle state from pre-computed arrays to avoid impure Math.random() during render
+  const particleState = useMemo(() => ({
+    progress: new Float32Array(INITIAL_PARTICLE_PROGRESS),
+    speeds: new Float32Array(INITIAL_PARTICLE_SPEEDS),
+    offsets: new Float32Array(INITIAL_PARTICLE_OFFSETS),
+  }), []);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const tmpColor = useMemo(() => new THREE.Color(), []);
@@ -314,6 +313,7 @@ function Particles({ selectedStage }: { selectedStage: string | null }) {
         }
       }
 
+      // eslint-disable-next-line react-hooks/immutability
       particleState.progress[i] += speed * delta;
       if (particleState.progress[i] >= 1.0) {
         particleState.progress[i] = 0;

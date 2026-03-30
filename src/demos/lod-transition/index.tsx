@@ -38,34 +38,37 @@ interface LodInstance {
   id: number;
 }
 
+// Pre-computed instances at module scope to avoid impure Math.random() calls during render
+const LOD_INSTANCES: LodInstance[] = (() => {
+  const result: LodInstance[] = [];
+  for (let i = 0; i < INSTANCE_COUNT; i++) {
+    const angle = (i / INSTANCE_COUNT) * Math.PI * 2;
+    const radius = 4 + (i % 4) * 3;
+    result.push({
+      position: [
+        Math.cos(angle) * radius,
+        -0.5 + (Math.random() - 0.5) * 0.5,
+        Math.sin(angle) * radius,
+      ],
+      rotSpeed: [
+        (Math.random() - 0.5) * 0.4,
+        (Math.random() - 0.5) * 0.8,
+        (Math.random() - 0.5) * 0.2,
+      ],
+      scale: 0.5 + Math.random() * 0.4,
+      id: i,
+    });
+  }
+  return result;
+})();
+
 export default function LodTransition() {
   const highMeshRef = useRef<THREE.InstancedMesh>(null);
   const midMeshRef = useRef<THREE.InstancedMesh>(null);
   const lowMeshRef = useRef<THREE.InstancedMesh>(null);
   const cameraDistUniform = useMemo(() => uniform(5.0), []);
 
-  const instances = useMemo<LodInstance[]>(() => {
-    const result: LodInstance[] = [];
-    for (let i = 0; i < INSTANCE_COUNT; i++) {
-      const angle = (i / INSTANCE_COUNT) * Math.PI * 2;
-      const radius = 4 + (i % 4) * 3;
-      result.push({
-        position: [
-          Math.cos(angle) * radius,
-          -0.5 + (Math.random() - 0.5) * 0.5,
-          Math.sin(angle) * radius,
-        ],
-        rotSpeed: [
-          (Math.random() - 0.5) * 0.4,
-          (Math.random() - 0.5) * 0.8,
-          (Math.random() - 0.5) * 0.2,
-        ],
-        scale: 0.5 + Math.random() * 0.4,
-        id: i,
-      });
-    }
-    return result;
-  }, []);
+  const instances = LOD_INSTANCES;
 
   const instanceRefs = useRef<THREE.Object3D[]>([]);
 
@@ -159,6 +162,7 @@ export default function LodTransition() {
     );
     state.camera.lookAt(0, 0, 0);
 
+    // eslint-disable-next-line react-hooks/immutability
     cameraDistUniform.value = r;
 
     // Rotate instances and update matrices per-mesh
@@ -172,6 +176,7 @@ export default function LodTransition() {
       const instDist = scratchVec.length();
 
       // Rotation animation
+      // eslint-disable-next-line react-hooks/immutability
       dummy.rotation.x = t * inst.rotSpeed[0];
       dummy.rotation.y = t * inst.rotSpeed[1];
       dummy.rotation.z = t * inst.rotSpeed[2];

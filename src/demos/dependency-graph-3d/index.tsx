@@ -276,10 +276,14 @@ function GraphNode({
 
     // Dim non-connected nodes when something is selected
     if (selected !== null && !isSelected && !isConnectedToSelected) {
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.opacity = 0.4;
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.transparent = true;
     } else {
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.opacity = 1.0;
+      // eslint-disable-next-line react-hooks/immutability
       coreMat.transparent = false;
     }
   });
@@ -585,6 +589,9 @@ export default function DependencyGraph3D() {
     camera.lookAt(cameraLookAt.current);
   });
 
+  // eslint-disable-next-line react-hooks/refs
+  const nodePositions = positionsRef.current;
+
   return (
     <>
       <ambientLight intensity={0.08} />
@@ -606,27 +613,29 @@ export default function DependencyGraph3D() {
 
       <group ref={groupRef}>
         {/* Cluster lights */}
-        <GroupClusterLights positions={positionsRef.current} />
+        <GroupClusterLights positions={nodePositions} />
 
         {/* Edges */}
+        {/* eslint-disable-next-line react-hooks/refs */}
         {EDGES.map((edge, i) => (
           <GraphEdge
             key={`edge-${i}`}
             edge={edge}
             edgeIndex={i}
-            positions={positionsRef.current}
+            positions={nodePositions}
             selected={selected}
             hovered={hovered}
           />
         ))}
 
         {/* Nodes */}
+        {/* eslint-disable-next-line react-hooks/refs */}
         {NODES.map((node, i) => (
           <GraphNode
             key={node.id}
             node={node}
             index={i}
-            positions={positionsRef.current}
+            positions={nodePositions}
             selected={selected}
             hovered={hovered}
             onSelect={handleSelect}

@@ -35,63 +35,60 @@ interface LightData {
   color: THREE.Color;
 }
 
+// Module-scope constants to avoid impure Math.random() calls during render
+const LIGHT_DATA: LightData[] = (() => {
+  const lights: LightData[] = [];
+  for (let i = 0; i < LIGHT_COUNT; i++) {
+    const x = (Math.random() - 0.5) * 16;
+    const y = 0.5 + Math.random() * 3.0;
+    const z = (Math.random() - 0.5) * 10;
+    let lightColor: THREE.Color;
+    if (i % 3 === 0) {
+      lightColor = new THREE.Color().setHSL(0.05 + Math.random() * 0.1, 0.9, 0.6);
+    } else if (i % 3 === 1) {
+      lightColor = new THREE.Color().setHSL(0.6 + Math.random() * 0.15, 0.8, 0.65);
+    } else {
+      lightColor = new THREE.Color().setHSL(0.45 + Math.random() * 0.1, 0.7, 0.6);
+    }
+    lights.push({
+      basePos: new THREE.Vector3(x, y, z),
+      orbitRadius: 0.3 + Math.random() * 0.8,
+      orbitSpeed: 0.5 + Math.random() * 1.5,
+      orbitPhase: Math.random() * Math.PI * 2,
+      color: lightColor,
+    });
+  }
+  return lights;
+})();
+
+const FURNITURE_MATRICES: THREE.Matrix4[] = (() => {
+  const dummy = new THREE.Object3D();
+  const matrices: THREE.Matrix4[] = [];
+  for (let i = 0; i < FURNITURE_COUNT; i++) {
+    const col = i % 5;
+    const row = Math.floor(i / 5);
+    const x = -8 + col * 4 + (Math.random() - 0.5) * 1.5;
+    const z = -3 + row * 2 + (Math.random() - 0.5) * 0.5;
+    const w = 0.8 + Math.random() * 0.8;
+    const h = 0.4 + Math.random() * 1.2;
+    const d = 0.6 + Math.random() * 0.6;
+    dummy.position.set(x, h * 0.5, z);
+    dummy.scale.set(w, h, d);
+    dummy.rotation.y = (Math.random() - 0.5) * 0.3;
+    dummy.updateMatrix();
+    matrices.push(dummy.matrix.clone());
+  }
+  return matrices;
+})();
+
 export default function DeferredLights() {
   const lightSphereRef = useRef<THREE.InstancedMesh>(null);
   const lightRefs = useRef<THREE.PointLight[]>([]);
   const furnitureMeshRef = useRef<THREE.InstancedMesh>(null);
   const timeUniform = useMemo(() => uniform(0), []);
 
-  const lightData = useMemo<LightData[]>(() => {
-    const lights: LightData[] = [];
-    for (let i = 0; i < LIGHT_COUNT; i++) {
-      // Spread lights through room volume
-      const x = (Math.random() - 0.5) * 16;
-      const y = 0.5 + Math.random() * 3.0;
-      const z = (Math.random() - 0.5) * 10;
-
-      // Alternate warm/cool colors
-      let lightColor: THREE.Color;
-      if (i % 3 === 0) {
-        // Warm orange/red
-        lightColor = new THREE.Color().setHSL(0.05 + Math.random() * 0.1, 0.9, 0.6);
-      } else if (i % 3 === 1) {
-        // Cool blue/purple
-        lightColor = new THREE.Color().setHSL(0.6 + Math.random() * 0.15, 0.8, 0.65);
-      } else {
-        // Teal/green accent
-        lightColor = new THREE.Color().setHSL(0.45 + Math.random() * 0.1, 0.7, 0.6);
-      }
-
-      lights.push({
-        basePos: new THREE.Vector3(x, y, z),
-        orbitRadius: 0.3 + Math.random() * 0.8,
-        orbitSpeed: 0.5 + Math.random() * 1.5,
-        orbitPhase: Math.random() * Math.PI * 2,
-        color: lightColor,
-      });
-    }
-    return lights;
-  }, []);
-
-  const furnitureMatrices = useMemo(() => {
-    const dummy = new THREE.Object3D();
-    const matrices: THREE.Matrix4[] = [];
-    for (let i = 0; i < FURNITURE_COUNT; i++) {
-      const col = i % 5;
-      const row = Math.floor(i / 5);
-      const x = -8 + col * 4 + (Math.random() - 0.5) * 1.5;
-      const z = -3 + row * 2 + (Math.random() - 0.5) * 0.5;
-      const w = 0.8 + Math.random() * 0.8;
-      const h = 0.4 + Math.random() * 1.2;
-      const d = 0.6 + Math.random() * 0.6;
-      dummy.position.set(x, h * 0.5, z);
-      dummy.scale.set(w, h, d);
-      dummy.rotation.y = (Math.random() - 0.5) * 0.3;
-      dummy.updateMatrix();
-      matrices.push(dummy.matrix.clone());
-    }
-    return matrices;
-  }, []);
+  const lightData = LIGHT_DATA;
+  const furnitureMatrices = FURNITURE_MATRICES;
 
   // Light sphere material: small emissive spheres visualizing each light
   const lightSphereMat = useMemo(() => {
@@ -168,6 +165,7 @@ export default function DeferredLights() {
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
+    // eslint-disable-next-line react-hooks/immutability
     timeUniform.value = t;
 
     // Update light sphere positions to match orbiting lights

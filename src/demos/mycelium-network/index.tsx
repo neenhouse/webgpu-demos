@@ -78,30 +78,31 @@ function buildNetwork(roots: THREE.Vector3[], maxDepth: number): NetworkSegment[
 const MAX_SEGMENTS = 180;
 const PULSE_COUNT = 50;
 
+// Pre-compute at module scope to avoid impure Math.random() calls during render
+const MODULE_SEGMENTS = (() => {
+  const roots = [
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(-1.5, 0, 1),
+    new THREE.Vector3(1.5, 0, -0.5),
+  ];
+  return buildNetwork(roots, 5).slice(0, MAX_SEGMENTS);
+})();
+
+const MODULE_PULSE_DATA = Array.from({ length: PULSE_COUNT }, (_, i) => ({
+  segmentIndex: Math.floor((i / PULSE_COUNT) * MODULE_SEGMENTS.length),
+  speed: 0.4 + Math.random() * 0.6,
+  phase: Math.random(),
+  size: 0.03 + Math.random() * 0.04,
+}));
+
 export default function MyceliumNetwork() {
   const networkRef = useRef<THREE.InstancedMesh>(null);
   const pulseRef = useRef<THREE.InstancedMesh>(null);
   const totalTimeRef = useRef(0);
   const groupRef = useRef<THREE.Group>(null);
 
-  const segments = useMemo(() => {
-    const roots = [
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(-1.5, 0, 1),
-      new THREE.Vector3(1.5, 0, -0.5),
-    ];
-    return buildNetwork(roots, 5).slice(0, MAX_SEGMENTS);
-  }, []);
-
-  // Pre-computed pulse paths: each pulse travels along a random segment path
-  const pulseData = useMemo(() => {
-    return Array.from({ length: PULSE_COUNT }, (_, i) => ({
-      segmentIndex: Math.floor((i / PULSE_COUNT) * segments.length),
-      speed: 0.4 + Math.random() * 0.6,
-      phase: Math.random(),
-      size: 0.03 + Math.random() * 0.04,
-    }));
-  }, [segments]);
+  const segments = MODULE_SEGMENTS;
+  const pulseData = MODULE_PULSE_DATA;
 
   // Network material: brown organic
   const networkMaterial = useMemo(() => {

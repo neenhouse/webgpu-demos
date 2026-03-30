@@ -196,22 +196,19 @@ function CrossRung({ index }: { index: number }) {
 const PARTICLE_COUNT = 40;
 const GHOST_COPIES = 3;
 
+// Pre-computed particle data at module scope to avoid impure Math.random() calls during render
+const TRAVELING_OFFSETS = Array.from({ length: PARTICLE_COUNT }, () => Math.random());
+const TRAVELING_SPEEDS = Array.from({ length: PARTICLE_COUNT }, () => 0.06 + Math.random() * 0.06);
+const TRAVELING_STRAND = Array.from({ length: PARTICLE_COUNT }, () => Math.random() > 0.5 ? Math.PI : 0);
+
 function TravelingParticles() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const totalHeight = (EVENTS.length - 1) * VERTICAL_SPACING;
   const totalAngle = (EVENTS.length - 1) * ((Math.PI * 2) / EVENTS_PER_TURN);
 
-  const offsets = useMemo(() => {
-    return Array.from({ length: PARTICLE_COUNT }, () => Math.random());
-  }, []);
-
-  const speeds = useMemo(() => {
-    return Array.from({ length: PARTICLE_COUNT }, () => 0.06 + Math.random() * 0.06);
-  }, []);
-
-  const strandAssignment = useMemo(() => {
-    return Array.from({ length: PARTICLE_COUNT }, () => Math.random() > 0.5 ? Math.PI : 0);
-  }, []);
+  const offsets = TRAVELING_OFFSETS;
+  const speeds = TRAVELING_SPEEDS;
+  const strandAssignment = TRAVELING_STRAND;
 
   const particleMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
@@ -462,21 +459,20 @@ function OrbitalRing({ radius, colorHex, speed }: { radius: number; colorHex: nu
 // ── Ambient floating particles ──
 
 const AMBIENT_PARTICLE_COUNT = 60;
+const AMBIENT_TOTAL_HEIGHT = (EVENTS.length - 1) * VERTICAL_SPACING;
+// Pre-computed at module scope to avoid impure Math.random() calls during render
+const AMBIENT_PARTICLE_DATA = Array.from({ length: AMBIENT_PARTICLE_COUNT }, () => ({
+  angle: Math.random() * Math.PI * 2,
+  radius: HELIX_RADIUS * (0.5 + Math.random() * 1.5),
+  y: Math.random() * AMBIENT_TOTAL_HEIGHT,
+  speed: 0.1 + Math.random() * 0.3,
+  drift: 0.02 + Math.random() * 0.05,
+  phase: Math.random() * Math.PI * 2,
+}));
 
 function AmbientParticles() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const totalHeight = (EVENTS.length - 1) * VERTICAL_SPACING;
-
-  const particleData = useMemo(() => {
-    return Array.from({ length: AMBIENT_PARTICLE_COUNT }, () => ({
-      angle: Math.random() * Math.PI * 2,
-      radius: HELIX_RADIUS * (0.5 + Math.random() * 1.5),
-      y: Math.random() * totalHeight,
-      speed: 0.1 + Math.random() * 0.3,
-      drift: 0.02 + Math.random() * 0.05,
-      phase: Math.random() * Math.PI * 2,
-    }));
-  }, [totalHeight]);
+  const particleData = AMBIENT_PARTICLE_DATA;
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();

@@ -38,6 +38,23 @@ interface KelpData {
   totalHeight: number;
 }
 
+// Pre-computed kelp data at module scope to avoid impure Math.random() calls during render
+const KELP_DATA: KelpData[] = Array.from({ length: KELP_COUNT }, (_, i) => {
+  const angle = (i / KELP_COUNT) * Math.PI * 2;
+  const r = 1.0 + (i % 4) * 0.8;
+  return {
+    basePosition: new THREE.Vector3(
+      Math.cos(angle) * r + (Math.random() - 0.5) * 0.5,
+      -2.5,
+      Math.sin(angle) * r + (Math.random() - 0.5) * 0.5,
+    ),
+    segmentCount: KELP_SEGMENTS,
+    swayFreq: 0.6 + Math.random() * 0.5,
+    swayAmp: 0.08 + Math.random() * 0.06,
+    totalHeight: 4.0 + Math.random() * 2.0,
+  };
+});
+
 export default function KelpForest() {
   const kelpRef = useRef<THREE.InstancedMesh>(null);
   const fishRef = useRef<THREE.InstancedMesh>(null);
@@ -45,22 +62,7 @@ export default function KelpForest() {
   const groupRef = useRef<THREE.Group>(null);
   const totalTimeRef = useRef(0);
 
-  const kelpData = useMemo<KelpData[]>(() =>
-    Array.from({ length: KELP_COUNT }, (_, i) => {
-      const angle = (i / KELP_COUNT) * Math.PI * 2;
-      const r = 1.0 + (i % 4) * 0.8;
-      return {
-        basePosition: new THREE.Vector3(
-          Math.cos(angle) * r + (Math.random() - 0.5) * 0.5,
-          -2.5,
-          Math.sin(angle) * r + (Math.random() - 0.5) * 0.5,
-        ),
-        segmentCount: KELP_SEGMENTS,
-        swayFreq: 0.6 + Math.random() * 0.5,
-        swayAmp: 0.08 + Math.random() * 0.06,
-        totalHeight: 4.0 + Math.random() * 2.0,
-      };
-    }), []);
+  const kelpData = KELP_DATA;
 
   // Kelp material: dark green base, lighter top
   const kelpMaterial = useMemo(() => {

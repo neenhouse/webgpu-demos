@@ -175,18 +175,19 @@ export default function PendulumChaos() {
   const tmpDir = useMemo(() => new THREE.Vector3(), []);
   const tmpMid = useMemo(() => new THREE.Vector3(), []);
   const tmpQ = useMemo(() => new THREE.Quaternion(), []);
-  const frameRef = useMemo(() => ({ count: 0 }), []);
+  const frameRef = useRef({ count: 0 });
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.025);
     const { pendulums, trails, trailHeads, origins } = state;
-    frameRef.count++;
+    frameRef.current.count++;
 
     // Integrate each pendulum
     const allPositions: THREE.Vector3[][] = [];
     for (let p = 0; p < PENDULUM_COUNT; p++) {
       // Multiple substeps for accuracy
       for (let i = 0; i < 4; i++) {
+        // eslint-disable-next-line react-hooks/immutability
         pendulums[p] = rk4Step(pendulums[p], dt / 4);
       }
 

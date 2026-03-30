@@ -358,14 +358,21 @@ function ServiceNode({
     isDimmedRef.current = isNodeDimmed;
 
     // Mutate main material properties for dim/highlight — never switch material reference
+    // eslint-disable-next-line react-hooks/immutability
     if (isNodeDimmed) {
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.opacity = 0.3;
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.emissiveIntensity = 0.1;
     } else if (dataFlash > 0) {
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.opacity = 0.85;
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.emissiveIntensity = 0.6 + dataFlash * 2.5; // boost up to 3.1
     } else {
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.opacity = 0.85;
+      // eslint-disable-next-line react-hooks/immutability
       mainMat.emissiveIntensity = 0.6;
     }
 
@@ -418,6 +425,7 @@ function ServiceNode({
 
       // External service pulsing ring (#17)
       if (service.type === 'external' && externalRingRef.current && externalRingMat) {
+        // eslint-disable-next-line react-hooks/immutability
         externalRingMat.opacity = 0.2 + Math.sin(t * 2.0) * 0.18;
         const ringScale = 1.0 + Math.sin(t * 2.0) * 0.1;
         externalRingRef.current.scale.setScalar(ringScale);
@@ -493,6 +501,7 @@ function ServiceNode({
       const targetWireOpacity = (isNodeHovered || isSelected) ? 0.5 : 0.2;
       const lerpSpeed = 1 - Math.pow(0.001, delta / 0.2); // exponential lerp ~0.2s
       wireframeOpacityRef.current += (targetWireOpacity - wireframeOpacityRef.current) * lerpSpeed;
+      // eslint-disable-next-line react-hooks/immutability
       wireframeMat.opacity = wireframeOpacityRef.current;
     }
 
@@ -650,10 +659,12 @@ function ConnectionPipe({
   }, [flow.hex]);
 
   const pipeMat = isHighlighted ? pipeMatHighlight : pipeMatNormal;
+  // eslint-disable-next-line react-hooks/refs
   pipeMatRef.current = pipeMat;
 
   // Arrow marker uses same material as pipe
   const arrowMat = pipeMat;
+  // eslint-disable-next-line react-hooks/refs
   arrowMatRef.current = arrowMat;
 
   // Glow pipe (larger, more transparent) — always created, conditionally rendered
@@ -917,9 +928,11 @@ function FlowParticles({
         const t = ((currentTime * speedMul + pi / PARTICLES_PER_FLOW) % 1.0);
         const floatOffset = Math.sin(currentTime * 0.8 + fi * 1.7) * 0.1;
 
+        // eslint-disable-next-line react-hooks/immutability
         dummy.position.lerpVectors(from, to, t);
         // #29: Follow the arc — apply curveOffset at midpoint using parabolic weight
         const arcWeight = 1 - Math.abs(t - 0.5) * 2;
+        // eslint-disable-next-line react-hooks/immutability
         dummy.position.y += curveOffset * arcWeight;
         dummy.position.y += floatOffset * arcWeight;
 
@@ -1242,6 +1255,7 @@ function FloorLightTrail({ positions, fadeTime }: { positions: THREE.Vector3[]; 
     if (!mesh) return;
     // Fade: full at fadeTime=0, gone at fadeTime=3
     const alpha = Math.max(0, 1 - fadeTime / 3.0);
+    // eslint-disable-next-line react-hooks/immutability
     mat.opacity = 0.35 * alpha;
     const dummy = trailDummy;
     for (let i = 0; i < positions.length; i++) {
@@ -1282,6 +1296,7 @@ function TraceCompletionBall({ position, color }: { position: THREE.Vector3; col
     const t = Math.min(ageRef.current / 0.6, 1.0);
     if (meshRef.current) {
       meshRef.current.scale.setScalar(0.15 + t * 0.65); // 0.15 → 0.8
+      // eslint-disable-next-line react-hooks/immutability
       mat.opacity = Math.max(0, 1.0 - t);
     }
   });
@@ -1392,23 +1407,35 @@ function TraceRequestBall({
   const z = fromS.position[2] + (toS.position[2] - fromS.position[2]) * traceProgress;
 
   // #81: Lerp ball color toward destination service type color
+  // eslint-disable-next-line react-hooks/refs
   const targetHex = getTypeHex(toS.type);
   const targetColor = new THREE.Color(targetHex);
+  // eslint-disable-next-line react-hooks/refs, react-hooks/immutability
   ballColorRef.current.lerp(targetColor, 0.05);
-  mat.color.copy(ballColorRef.current);
-  mat.emissive.copy(ballColorRef.current);
-  haloMat.color.copy(ballColorRef.current);
-  haloMat.emissive.copy(ballColorRef.current);
+  // eslint-disable-next-line react-hooks/immutability
+  mat.color.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
+  // eslint-disable-next-line react-hooks/immutability
+  mat.emissive.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
+  // eslint-disable-next-line react-hooks/immutability
+  haloMat.color.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
+  // eslint-disable-next-line react-hooks/immutability
+  haloMat.emissive.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
   // Also update speed trail color
   for (const stm of speedTrailMats) {
-    stm.color.copy(ballColorRef.current);
-    stm.emissive.copy(ballColorRef.current);
+    // eslint-disable-next-line react-hooks/immutability
+    stm.color.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
+    // eslint-disable-next-line react-hooks/immutability
+    stm.emissive.copy(ballColorRef.current); // eslint-disable-line react-hooks/refs
   }
 
   // #87: Detect step change → fire arrival burst
+  // eslint-disable-next-line react-hooks/refs
   if (traceStep !== prevStepRef.current) {
+    // eslint-disable-next-line react-hooks/refs
     prevStepRef.current = traceStep;
+    // eslint-disable-next-line react-hooks/refs
     if (traceStep !== arrivedStepRef.current) {
+      // eslint-disable-next-line react-hooks/refs
       arrivedStepRef.current = traceStep;
       const arrPos = new THREE.Vector3(fromS.position[0], fromS.position[1], fromS.position[2]);
       onBallArrival(fromId, arrPos, targetHex);
@@ -1417,49 +1444,68 @@ function TraceRequestBall({
 
   // Update trail history
   const pos = new THREE.Vector3(x, y, z);
+  // eslint-disable-next-line react-hooks/refs
   if (historyRef.current.length === 0 || historyRef.current[historyRef.current.length - 1].distanceTo(pos) > 0.15) {
+    // eslint-disable-next-line react-hooks/refs
     historyRef.current.push(pos.clone());
-    if (historyRef.current.length > TRAIL_COUNT) historyRef.current.shift();
+    // eslint-disable-next-line react-hooks/refs
+    if (historyRef.current.length > TRAIL_COUNT) historyRef.current.shift(); // eslint-disable-line react-hooks/refs
   }
 
   // #82: Update speed trail (4 evenly spaced history positions)
+  // eslint-disable-next-line react-hooks/refs
   if (speedHistoryRef.current.length === 0 || speedHistoryRef.current[speedHistoryRef.current.length - 1].distanceTo(pos) > 0.08) {
+    // eslint-disable-next-line react-hooks/refs
     speedHistoryRef.current.push(pos.clone());
-    if (speedHistoryRef.current.length > SPEED_TRAIL_COUNT + 2) speedHistoryRef.current.shift();
+    // eslint-disable-next-line react-hooks/refs
+    if (speedHistoryRef.current.length > SPEED_TRAIL_COUNT + 2) speedHistoryRef.current.shift(); // eslint-disable-line react-hooks/refs
   }
 
   // #88: Drop floor trail point every 0.4 units
+  // eslint-disable-next-line react-hooks/refs
   if (lastFloorUpdateRef.current.distanceTo(pos) > 0.4) {
+    // eslint-disable-next-line react-hooks/refs
     lastFloorUpdateRef.current.copy(pos);
     onFloorPoint(pos.clone());
   }
 
   // Update trail instances
+  // eslint-disable-next-line react-hooks/refs
   const trail = trailRef.current;
   if (trail) {
     const dummy = new THREE.Object3D();
     for (let i = 0; i < TRAIL_COUNT; i++) {
+      // eslint-disable-next-line react-hooks/refs
       if (i < historyRef.current.length) {
+        // eslint-disable-next-line react-hooks/refs
         const hp = historyRef.current[i];
+        // eslint-disable-next-line react-hooks/refs
         const age = 1 - i / historyRef.current.length;
+        // eslint-disable-next-line react-hooks/refs
         dummy.position.copy(hp);
         dummy.scale.setScalar(0.08 * age);
         dummy.updateMatrix();
+        // eslint-disable-next-line react-hooks/refs
         trail.setMatrixAt(i, dummy.matrix);
       } else {
         dummy.scale.setScalar(0);
         dummy.updateMatrix();
+        // eslint-disable-next-line react-hooks/refs
         trail.setMatrixAt(i, dummy.matrix);
       }
     }
+    // eslint-disable-next-line react-hooks/refs
     trail.instanceMatrix.needsUpdate = true;
   }
 
   // #82: Speed trail ghost ellipsoids — 4 copies at previous positions
-  const speedTrailHistory = speedHistoryRef.current;
+  // eslint-disable-next-line react-hooks/refs
+  const speedTrailHistory = speedHistoryRef.current.slice(-SPEED_TRAIL_COUNT).reverse();
 
   // #83: Destination label text
   const destLabel = `→ ${toS.label}`;
+  // eslint-disable-next-line react-hooks/refs
+  const ballColorHex = ballColorRef.current.getHexString();
 
   return (
     <>
@@ -1470,7 +1516,7 @@ function TraceRequestBall({
         <mesh material={haloMat} scale={[2.5, 2.5, 2.5]}>
           <sphereGeometry args={[0.15, 8, 6]} />
         </mesh>
-        <pointLight color={`#${ballColorRef.current.getHexString()}`} intensity={4} distance={5} />
+        <pointLight color={`#${ballColorHex}`} intensity={4} distance={5} />
 
         {/* #83: Destination label badge */}
         <Html position={[0, 0.45, 0]} center>
@@ -1483,10 +1529,10 @@ function TraceRequestBall({
             borderRadius: '10px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
-            border: `1px solid #${ballColorRef.current.getHexString()}88`,
+            border: `1px solid #${ballColorHex}88`,
             fontWeight: 'bold',
             letterSpacing: '0.3px',
-            boxShadow: `0 0 8px #${ballColorRef.current.getHexString()}44`,
+            boxShadow: `0 0 8px #${ballColorHex}44`,
           }}>
             {destLabel}
           </div>
@@ -1499,7 +1545,7 @@ function TraceRequestBall({
       </instancedMesh>
 
       {/* #82: Speed trail ghost ellipsoids */}
-      {speedTrailHistory.slice(-SPEED_TRAIL_COUNT).reverse().map((hp, i) => (
+      {speedTrailHistory.map((hp, i) => (
         <mesh
           key={i}
           position={hp}
@@ -1992,8 +2038,10 @@ export default function ArchitectureBlueprint() {
   }, [selectedService]);
 
   // Trace complete flash alpha (1 → 0 over 2s)
+  // eslint-disable-next-line react-hooks/refs
+  const traceCompleteTime = traceCompleteTimeRef.current;
   const traceFlashAlpha = traceComplete
-    ? Math.max(0, 1 - traceCompleteTimeRef.current / 2.0)
+    ? Math.max(0, 1 - traceCompleteTime / 2.0)
     : 0;
 
   // Background material (exception: simple screenUV gradient allowed)

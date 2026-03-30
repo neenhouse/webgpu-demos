@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
@@ -573,7 +573,7 @@ function CameraController({
   const { camera } = useThree();
 
   // Update targets when selection changes
-  useMemo(() => {
+  useEffect(() => {
     if (selectedPhase !== null) {
       const phasePos = getPhasePosition(selectedPhase);
       // Position camera 4 above and 4 behind the platform

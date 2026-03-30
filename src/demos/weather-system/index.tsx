@@ -192,7 +192,6 @@ export default function WeatherSystem() {
 
     // Ground wetness
     if (groundRef.current) {
-      // @ts-ignore
       const wetUniform = (groundMaterial as unknown as { wetFactor: { value: number } }).wetFactor;
       if (wetUniform) {
         const targetWet = isRaining ? 0.85 : isClear ? 0.0 : 0.3;

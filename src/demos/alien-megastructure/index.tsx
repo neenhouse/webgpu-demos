@@ -183,47 +183,47 @@ function makeHaloMaterial(layer: number) {
 }
 
 function NestedFrames() {
-  const refs = [
-    useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null),
-  ];
+  const ref0 = useRef<THREE.Mesh>(null);
+  const ref1 = useRef<THREE.Mesh>(null);
+  const ref2 = useRef<THREE.Mesh>(null);
   const frameMats = useMemo(() => [0,1,2].map(i => makeFrameMaterial(i)), []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     // Each cube rotates on different axis
-    if (refs[0].current) refs[0].current.rotation.set(t * 0.3, t * 0.2, 0);
-    if (refs[1].current) refs[1].current.rotation.set(0, t * 0.35, t * 0.25);
-    if (refs[2].current) refs[2].current.rotation.set(t * 0.2, 0, t * 0.3);
+    if (ref0.current) ref0.current.rotation.set(t * 0.3, t * 0.2, 0);
+    if (ref1.current) ref1.current.rotation.set(0, t * 0.35, t * 0.25);
+    if (ref2.current) ref2.current.rotation.set(t * 0.2, 0, t * 0.3);
   });
 
   const sizes = [1.4, 2.0, 2.7];
 
   return (
     <>
-      {refs.map((ref, i) => (
-        <mesh key={i} ref={ref} material={frameMats[i]}>
-          <boxGeometry args={[sizes[i], sizes[i], sizes[i]]} />
-        </mesh>
-      ))}
+      <mesh ref={ref0} material={frameMats[0]}>
+        <boxGeometry args={[sizes[0], sizes[0], sizes[0]]} />
+      </mesh>
+      <mesh ref={ref1} material={frameMats[1]}>
+        <boxGeometry args={[sizes[1], sizes[1], sizes[1]]} />
+      </mesh>
+      <mesh ref={ref2} material={frameMats[2]}>
+        <boxGeometry args={[sizes[2], sizes[2], sizes[2]]} />
+      </mesh>
     </>
   );
 }
 
 function TorusPlatforms() {
   const ringMats = useMemo(() => [0,1,2].map(i => makeRingMaterial(i)), []);
-  const refs = [
-    useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null),
-  ];
+  const ref0 = useRef<THREE.Mesh>(null);
+  const ref1 = useRef<THREE.Mesh>(null);
+  const ref2 = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (refs[0].current) refs[0].current.rotation.y = t * 0.15;
-    if (refs[1].current) refs[1].current.rotation.y = -t * 0.22;
-    if (refs[2].current) refs[2].current.rotation.y = t * 0.18;
+    if (ref0.current) ref0.current.rotation.y = t * 0.15;
+    if (ref1.current) ref1.current.rotation.y = -t * 0.22;
+    if (ref2.current) ref2.current.rotation.y = t * 0.18;
   });
 
   const heights = [-2.2, 2.8, -4.5];
@@ -231,11 +231,15 @@ function TorusPlatforms() {
 
   return (
     <>
-      {refs.map((ref, i) => (
-        <mesh key={i} ref={ref} material={ringMats[i]} position={[0, heights[i], 0]}>
-          <torusGeometry args={[radii[i], 0.18, 8, 48]} />
-        </mesh>
-      ))}
+      <mesh ref={ref0} material={ringMats[0]} position={[0, heights[0], 0]}>
+        <torusGeometry args={[radii[0], 0.18, 8, 48]} />
+      </mesh>
+      <mesh ref={ref1} material={ringMats[1]} position={[0, heights[1], 0]}>
+        <torusGeometry args={[radii[1], 0.18, 8, 48]} />
+      </mesh>
+      <mesh ref={ref2} material={ringMats[2]} position={[0, heights[2], 0]}>
+        <torusGeometry args={[radii[2], 0.18, 8, 48]} />
+      </mesh>
     </>
   );
 }

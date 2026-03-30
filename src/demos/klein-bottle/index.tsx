@@ -28,7 +28,7 @@ function kleinPoint(u: number, v: number): THREE.Vector3 {
   const sinu = Math.sin(u);
   const cosv = Math.cos(v);
   const sinv = Math.sin(v);
-  let x: number, y: number, z: number;
+  let x: number, y: number;
 
   if (u < Math.PI) {
     x = 3 * cosu * (1 + sinu) + (2 * (1 - cosu / 2)) * cosu * cosv;
@@ -37,7 +37,7 @@ function kleinPoint(u: number, v: number): THREE.Vector3 {
     x = 3 * cosu * (1 + sinu) + (2 * (1 - cosu / 2)) * cosv;
     y = 8 * sinu;
   }
-  z = (2 * (1 - cosu / 2)) * sinv;
+  const z = (2 * (1 - cosu / 2)) * sinv;
 
   // Scale down
   return new THREE.Vector3(x * 0.08, y * 0.08, z * 0.15);

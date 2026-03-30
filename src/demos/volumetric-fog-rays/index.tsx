@@ -28,26 +28,26 @@ import {
 
 const DUST_COUNT = 200;
 
+// Dust mote positions computed at module scope to avoid impure calls during render
+const DUST_MATRICES: THREE.Matrix4[] = (() => {
+  const dummy = new THREE.Object3D();
+  const matrices: THREE.Matrix4[] = [];
+  for (let i = 0; i < DUST_COUNT; i++) {
+    // Concentrate in beam from window (x: -3..3, y: 0..4, z: -2..2)
+    const wx = (Math.random() - 0.5) * 5;
+    const wy = Math.random() * 4.5;
+    const wz = (Math.random() - 0.5) * 3;
+    dummy.position.set(wx, wy, wz);
+    dummy.scale.setScalar(0.015 + Math.random() * 0.02);
+    dummy.updateMatrix();
+    matrices.push(dummy.matrix.clone());
+  }
+  return matrices;
+})();
+
 export default function VolumetricFogRays() {
   const dustRef = useRef<THREE.InstancedMesh>(null);
   const timeUniform = useMemo(() => uniform(0), []);
-
-  // Dust mote positions — clustered in light beam areas
-  const dustMatrices = useMemo(() => {
-    const dummy = new THREE.Object3D();
-    const matrices: THREE.Matrix4[] = [];
-    for (let i = 0; i < DUST_COUNT; i++) {
-      // Concentrate in beam from window (x: -3..3, y: 0..4, z: -2..2)
-      const wx = (Math.random() - 0.5) * 5;
-      const wy = Math.random() * 4.5;
-      const wz = (Math.random() - 0.5) * 3;
-      dummy.position.set(wx, wy, wz);
-      dummy.scale.setScalar(0.015 + Math.random() * 0.02);
-      dummy.updateMatrix();
-      matrices.push(dummy.matrix.clone());
-    }
-    return matrices;
-  }, []);
 
   // Dust material: small glowing motes
   const dustMat = useMemo(() => {
@@ -121,14 +121,15 @@ export default function VolumetricFogRays() {
 
   useEffect(() => {
     if (dustRef.current) {
-      dustMatrices.forEach((m, i) => dustRef.current!.setMatrixAt(i, m));
+      DUST_MATRICES.forEach((m, i) => dustRef.current!.setMatrixAt(i, m));
       dustRef.current.instanceMatrix.needsUpdate = true;
     }
-  }, [dustMatrices]);
+  }, []);
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame((state, delta) => {
+    // eslint-disable-next-line react-hooks/immutability
     timeUniform.value = state.clock.getElapsedTime();
 
     // Slowly drift dust particles upward

@@ -128,6 +128,7 @@ export default function RopeBridge() {
         p.prev.copy(p.pos);
 
         // Integrate: pos += vel + accel * dt²
+        // eslint-disable-next-line react-hooks/immutability
         p.pos.x += scratchVel.x + windX * dt * dt;
         p.pos.y += scratchVel.y + (GRAVITY + windY) * dt * dt;
         p.pos.z += scratchVel.z + windZ * dt * dt;

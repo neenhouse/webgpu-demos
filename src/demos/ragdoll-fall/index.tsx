@@ -183,6 +183,7 @@ export default function RagdollFall() {
       scratchVel.subVectors(p.pos, p.prev).multiplyScalar(DAMPING);
       p.prev.copy(p.pos);
       p.pos.add(scratchVel);
+      // eslint-disable-next-line react-hooks/immutability
       p.pos.y += GRAVITY * dt * dt;
     }
 

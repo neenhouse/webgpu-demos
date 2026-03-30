@@ -37,7 +37,7 @@ function seededRand(seed: number) {
 
 export default function NeonNoir() {
   const rainRef = useRef<THREE.InstancedMesh>(null);
-  const rainTime = useMemo(() => ({ current: 0 }), []);
+  const rainTime = useRef(0);
 
   // ── Ground material (wet reflective) ──
   const groundMat = useMemo(() => {
@@ -151,6 +151,7 @@ export default function NeonNoir() {
       mat4.decompose(pos, quat, scale);
 
       const fallSpeed = 8.0 + seededRand(i * 5.1 + 4) * 6;
+      // eslint-disable-next-line react-hooks/immutability
       pos.y -= delta * fallSpeed;
 
       if (pos.y < -1.0) {

@@ -599,31 +599,32 @@ interface ShockwaveData {
   colorHex: number;
 }
 
+function ShockwaveRing({ sw, currentTime }: { sw: ShockwaveData; currentTime: number }) {
+  const mat = useMemo(() => makeShockwaveMaterial(sw.colorHex), [sw.colorHex]);
+  const elapsed = currentTime - sw.startTime;
+  const duration = 0.8;
+  if (elapsed < 0 || elapsed > duration) return null;
+  const progress = elapsed / duration;
+  const scale = 1.0 + progress * 3.0;
+  const opacity = 1.0 - progress;
+  return (
+    <mesh
+      position={sw.position}
+      rotation={[Math.PI / 2, 0, 0]}
+      scale={[scale, scale, scale]}
+    >
+      <torusGeometry args={[1.0, 0.04, 6, 24]} />
+      <primitive object={(() => { const m = mat.clone(); m.opacity = opacity; return m; })()} attach="material" />
+    </mesh>
+  );
+}
+
 function ShockwaveRings({ shockwaves, time: currentTime }: { shockwaves: ShockwaveData[]; time: number }) {
   return (
     <>
-      {shockwaves.map((sw, i) => {
-        const elapsed = currentTime - sw.startTime;
-        const duration = 0.8;
-        if (elapsed < 0 || elapsed > duration) return null;
-        const progress = elapsed / duration;
-        const scale = 1.0 + progress * 3.0;
-        const opacity = 1.0 - progress;
-
-        const mat = useMemo(() => makeShockwaveMaterial(sw.colorHex), [sw.colorHex]);
-
-        return (
-          <mesh
-            key={i}
-            position={sw.position}
-            rotation={[Math.PI / 2, 0, 0]}
-            scale={[scale, scale, scale]}
-          >
-            <torusGeometry args={[1.0, 0.04, 6, 24]} />
-            <primitive object={(() => { const m = mat.clone(); m.opacity = opacity; return m; })()} attach="material" />
-          </mesh>
-        );
-      })}
+      {shockwaves.map((sw, i) => (
+        <ShockwaveRing key={i} sw={sw} currentTime={currentTime} />
+      ))}
     </>
   );
 }
@@ -915,6 +916,9 @@ export default function StateMachine3D() {
     return mat;
   }, []);
 
+  // eslint-disable-next-line react-hooks/refs
+  const currentTime = timeRef.current;
+
   return (
     <>
       <ambientLight intensity={0.08} />
@@ -935,6 +939,7 @@ export default function StateMachine3D() {
       <GridFloor states={STATES} activeState={activeState} />
 
       {/* State platforms */}
+      {/* eslint-disable-next-line react-hooks/refs */}
       {STATES.map((state, i) => (
         <StatePlatform
           key={state.id}
@@ -944,7 +949,7 @@ export default function StateMachine3D() {
           isHovered={hoveredState === state.id}
           onHover={setHoveredState}
           onClick={handleStateClick}
-          time={timeRef.current}
+          time={currentTime}
           index={i}
         />
       ))}
@@ -971,13 +976,13 @@ export default function StateMachine3D() {
       )}
 
       {/* Shockwave rings on transition */}
-      <ShockwaveRings shockwaves={shockwaves} time={timeRef.current} />
+      <ShockwaveRings shockwaves={shockwaves} time={currentTime} />
 
       {/* Transition particles */}
-      <TransitionParticles particles={transitionParticles} time={timeRef.current} />
+      <TransitionParticles particles={transitionParticles} time={currentTime} />
 
       {/* Ambient flow particles */}
-      <AmbientFlowParticles arrows={arrows} time={timeRef.current} />
+      <AmbientFlowParticles arrows={arrows} time={currentTime} />
 
       {/* Instructions overlay (top-left) */}
       <Html fullscreen>
