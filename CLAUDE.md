@@ -1,6 +1,6 @@
-# WebGPU Demos
+# ThreeForge
 
-Batch experiments showcasing Three.js WebGPURenderer — procedural scenes, compute shaders, and GPU-driven particle systems. Each demo explores a different WebGPU capability.
+A gallery of 146 Three.js WebGPU experiments — shader art, compute simulations, procedural worlds, physics, retro aesthetics, and more. Each demo explores a different WebGPU capability. Built with the Forge delivery pipeline.
 
 ## Tech Stack
 

@@ -1,8 +1,8 @@
-# WebGPU Demos — Vision
+# ThreeForge — Vision
 
 ## Vision
 
-A gallery of WebGPU experiments built with Three.js — each demo showcases a different capability of the WebGPURenderer. Compute shaders, GPU particles, TSL materials, procedural worlds. Built for creative coders and Three.js developers exploring the future of browser 3D.
+A gallery of Three.js WebGPU experiments — each demo explores a different capability of the WebGPURenderer. Shader art, compute simulations, procedural worlds, physics playgrounds, retro aesthetics, organic nature, and game-ready techniques. Built for creative coders and Three.js developers exploring the future of browser 3D. Powered by the Forge delivery pipeline.
 
 ## Current State
 

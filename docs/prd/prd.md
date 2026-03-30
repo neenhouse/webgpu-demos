@@ -1,10 +1,10 @@
 ---
-title: WebGPU Demos Product Requirements
+title: ThreeForge Product Requirements
 status: ACTIVE
 last_updated: 2026-03-28
 ---
 
-# WebGPU Demos — Product Requirements
+# ThreeForge — Product Requirements
 
 ## Executive Summary
 
