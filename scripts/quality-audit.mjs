@@ -147,6 +147,15 @@ function auditDemo(slug, src, tags) {
     }
   }
 
+  // === MATERIAL RECREATION ON STATE CHANGE ===
+  const matMemoBlocks = [...src.matchAll(/useMemo\(\s*\(\)\s*=>\s*\{[\s\S]*?new THREE\.Mesh\w*NodeMaterial[\s\S]*?\}\s*,\s*\[([^\]]*)\]\s*\)/g)];
+  for (const block of matMemoBlocks) {
+    const deps = block[1];
+    if (/isDimmed|isSelected|isHovered|isHighlighted|isActive|isReachable/.test(deps)) {
+      issues.push(`PERF: Material useMemo depends on boolean state (${deps.trim()}) — triggers GPU shader recompilation. Mutate properties in useFrame instead.`);
+    }
+  }
+
   // === MISSING frustumCulled ON INSTANCED MESH ===
   const instancedLines = [...src.matchAll(/<instancedMesh[^>]*>/g)];
   for (const m of instancedLines) {

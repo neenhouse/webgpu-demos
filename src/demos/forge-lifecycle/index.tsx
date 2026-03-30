@@ -131,17 +131,24 @@ function PhasePlatform({
   const floatY = Math.sin(t * 0.8 + index * 1.2) * 0.1;
 
   // Simple property-based platform material (no shader compilation)
+  // Created once per phase color — never recreated on selection change.
   const platformMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.opacity = 0.9;
     mat.color = new THREE.Color(phase.hex);
     mat.emissive = new THREE.Color(phase.hex);
-    mat.emissiveIntensity = isSelected ? 1.2 : 0.4;
+    mat.emissiveIntensity = 0.4; // updated imperatively in useFrame
     mat.roughness = 0.3;
     mat.metalness = 0.4;
     return mat;
-  }, [phase.hex, isSelected]);
+  }, [phase.hex]);
+
+  // Imperatively update emissiveIntensity — no shader recompile on state change.
+  useFrame(() => {
+    // eslint-disable-next-line react-hooks/immutability
+    platformMaterial.emissiveIntensity = isSelected ? 1.2 : 0.4;
+  });
 
   return (
     <mesh

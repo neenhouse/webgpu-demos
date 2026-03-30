@@ -142,28 +142,6 @@ function makeHaloShellMaterial(hexColor: number, layer: number) {
   return mat;
 }
 
-function makeArrowMaterial(hexColor: number, isReachable: boolean) {
-  const mat = new THREE.MeshStandardNodeMaterial();
-  mat.transparent = true;
-
-  if (isReachable) {
-    mat.color = new THREE.Color(hexColor).multiplyScalar(0.5);
-    mat.emissive = new THREE.Color(hexColor);
-    mat.emissiveIntensity = 0.8;
-    mat.opacity = 0.7;
-  } else {
-    mat.color = new THREE.Color(hexColor).multiplyScalar(0.05);
-    mat.emissive = new THREE.Color(hexColor);
-    mat.emissiveIntensity = 0.05;
-    mat.opacity = 0.08;
-  }
-
-  mat.roughness = 0.4;
-  mat.metalness = 0.2;
-
-  return mat;
-}
-
 function makeOrbitalRingMaterial(hexColor: number) {
   const mat = new THREE.MeshStandardNodeMaterial();
   mat.color = new THREE.Color(hexColor);
@@ -283,10 +261,21 @@ function TransitionArrow({
     return { position: tip, quaternion: quat };
   }, [arrow.points]);
 
-  const arrowMat = useMemo(() => makeArrowMaterial(arrow.colorHex, arrow.isReachable), [arrow.colorHex, arrow.isReachable]);
+  // arrowMat: created once per colorHex. isReachable drives properties imperatively.
+  const arrowMat = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.color = new THREE.Color(arrow.colorHex).multiplyScalar(0.05);
+    mat.emissive = new THREE.Color(arrow.colorHex);
+    mat.emissiveIntensity = 0.05;
+    mat.opacity = 0.08;
+    mat.roughness = 0.4;
+    mat.metalness = 0.2;
+    return mat;
+  }, [arrow.colorHex]);
 
+  // hoveredMat: created once per colorHex, always available, properties updated imperatively.
   const hoveredMat = useMemo(() => {
-    if (!arrow.isReachable) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.color = new THREE.Color(arrow.colorHex);
@@ -296,9 +285,24 @@ function TransitionArrow({
     mat.roughness = 0.2;
     mat.metalness = 0.3;
     return mat;
-  }, [arrow.colorHex, arrow.isReachable]);
+  }, [arrow.colorHex]);
 
-  const activeMat = (hovered || isActive) && hoveredMat ? hoveredMat : arrowMat;
+  // Update arrowMat properties imperatively based on isReachable.
+  useFrame(() => {
+    /* eslint-disable react-hooks/immutability */
+    if (arrow.isReachable) {
+      arrowMat.color.set(arrow.colorHex).multiplyScalar(0.5);
+      arrowMat.emissiveIntensity = 0.8;
+      arrowMat.opacity = 0.7;
+    } else {
+      arrowMat.color.set(arrow.colorHex).multiplyScalar(0.05);
+      arrowMat.emissiveIntensity = 0.05;
+      arrowMat.opacity = 0.08;
+    }
+    /* eslint-enable react-hooks/immutability */
+  });
+
+  const activeMat = (hovered || isActive) ? hoveredMat : arrowMat;
   const arrowColor = useMemo(() => new THREE.Color(arrow.colorHex), [arrow.colorHex]);
 
   return (
@@ -374,10 +378,21 @@ function SelfLoopArrow({
     state.position[2],
   );
 
-  const loopMat = useMemo(() => makeArrowMaterial(state.hex, isReachable), [state.hex, isReachable]);
+  // loopMat: created once per hex, isReachable drives properties imperatively.
+  const loopMat = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.color = new THREE.Color(state.hex).multiplyScalar(0.05);
+    mat.emissive = new THREE.Color(state.hex);
+    mat.emissiveIntensity = 0.05;
+    mat.opacity = 0.08;
+    mat.roughness = 0.4;
+    mat.metalness = 0.2;
+    return mat;
+  }, [state.hex]);
 
+  // brightMat: created once per hex, always available.
   const brightMat = useMemo(() => {
-    if (!isReachable) return null;
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.color = new THREE.Color(state.hex);
@@ -387,9 +402,24 @@ function SelfLoopArrow({
     mat.roughness = 0.2;
     mat.metalness = 0.3;
     return mat;
-  }, [state.hex, isReachable]);
+  }, [state.hex]);
 
-  const activeMat = (hovered || isActive) && brightMat ? brightMat : loopMat;
+  // Update loopMat properties imperatively based on isReachable.
+  useFrame(() => {
+    /* eslint-disable react-hooks/immutability */
+    if (isReachable) {
+      loopMat.color.set(state.hex).multiplyScalar(0.5);
+      loopMat.emissiveIntensity = 0.8;
+      loopMat.opacity = 0.7;
+    } else {
+      loopMat.color.set(state.hex).multiplyScalar(0.05);
+      loopMat.emissiveIntensity = 0.05;
+      loopMat.opacity = 0.08;
+    }
+    /* eslint-enable react-hooks/immutability */
+  });
+
+  const activeMat = (hovered || isActive) ? brightMat : loopMat;
 
   return (
     <group>
@@ -474,9 +504,9 @@ function StatePlatform({
     return [makeHaloShellMaterial(state.hex, 0)];
   }, [state.hex, mode]);
 
-  // Orbital ring material for active state
-  const orbitalRingMat = useMemo(() => isActive ? makeOrbitalRingMaterial(state.hex) : null, [state.hex, isActive]);
-  const orbitalHaloMat = useMemo(() => isActive ? makeOrbitalHaloMaterial(state.hex) : null, [state.hex, isActive]);
+  // Orbital ring materials — always created, visibility toggled imperatively.
+  const orbitalRingMat = useMemo(() => makeOrbitalRingMaterial(state.hex), [state.hex]);
+  const orbitalHaloMat = useMemo(() => makeOrbitalHaloMaterial(state.hex), [state.hex]);
 
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -490,14 +520,20 @@ function StatePlatform({
       const s = 1.0 + Math.sin(t * 2.5) * 0.06;
       meshRef.current.scale.setScalar(s);
     }
-    // Orbit the rings
+    // Toggle orbital ring visibility imperatively — no material switching.
     if (ring1Ref.current) {
-      ring1Ref.current.rotation.z += delta * 1.5;
-      ring1Ref.current.rotation.x = Math.PI / 2 + Math.sin((groupRef.current?.userData.t || 0) * 0.7) * 0.2;
+      ring1Ref.current.visible = isActive;
+      if (isActive) {
+        ring1Ref.current.rotation.z += delta * 1.5;
+        ring1Ref.current.rotation.x = Math.PI / 2 + Math.sin((groupRef.current?.userData.t || 0) * 0.7) * 0.2;
+      }
     }
     if (ring2Ref.current) {
-      ring2Ref.current.rotation.z -= delta * 1.0;
-      ring2Ref.current.rotation.x = Math.PI / 3 + Math.cos((groupRef.current?.userData.t || 0) * 0.5) * 0.3;
+      ring2Ref.current.visible = isActive;
+      if (isActive) {
+        ring2Ref.current.rotation.z -= delta * 1.0;
+        ring2Ref.current.rotation.x = Math.PI / 3 + Math.cos((groupRef.current?.userData.t || 0) * 0.5) * 0.3;
+      }
     }
   });
 
@@ -529,17 +565,13 @@ function StatePlatform({
         </mesh>
       ))}
 
-      {/* Orbiting energy ring for active state */}
-      {isActive && orbitalRingMat && (
-        <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]} material={orbitalRingMat}>
-          <torusGeometry args={[1.35, 0.06, 8, 32]} />
-        </mesh>
-      )}
-      {isActive && orbitalHaloMat && (
-        <mesh ref={ring2Ref} rotation={[Math.PI / 3, 0, 0]} material={orbitalHaloMat}>
-          <torusGeometry args={[1.35, 0.15, 8, 32]} />
-        </mesh>
-      )}
+      {/* Orbiting energy rings — always mounted, visibility set imperatively in useFrame. */}
+      <mesh ref={ring1Ref} rotation={[Math.PI / 2, 0, 0]} material={orbitalRingMat} visible={false}>
+        <torusGeometry args={[1.35, 0.06, 8, 32]} />
+      </mesh>
+      <mesh ref={ring2Ref} rotation={[Math.PI / 3, 0, 0]} material={orbitalHaloMat} visible={false}>
+        <torusGeometry args={[1.35, 0.15, 8, 32]} />
+      </mesh>
 
       {/* Point light at each state */}
       <pointLight
@@ -716,6 +748,41 @@ function AmbientFlowParticles({ arrows, time: currentTime }: { arrows: ArrowData
   );
 }
 
+// ── Grid Floor zone — single tinted circle beneath a state platform ──
+
+function GridZone({ state, activeState }: { state: State; activeState: string }) {
+  // Material created once per state hex — no activeState dependency.
+  const zoneMat = useMemo(() => {
+    const mat = new THREE.MeshStandardNodeMaterial();
+    mat.transparent = true;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+    mat.color = new THREE.Color(state.hex).multiplyScalar(0.03);
+    mat.emissive = new THREE.Color(state.hex).multiplyScalar(0.015);
+    mat.emissiveIntensity = 1.0;
+    mat.roughness = 0.9;
+    mat.metalness = 0.0;
+    return mat;
+  }, [state.hex]);
+
+  // Update color imperatively — no shader recompile on active state change.
+  useFrame(() => {
+    const intensity = activeState === state.id ? 0.15 : 0.03;
+    zoneMat.color.set(state.hex).multiplyScalar(intensity);
+    zoneMat.emissive.set(state.hex).multiplyScalar(intensity * 0.5);
+  });
+
+  return (
+    <mesh
+      position={[state.position[0], -1.49, -0.5]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      material={zoneMat}
+    >
+      <circleGeometry args={[2.0, 6]} />
+    </mesh>
+  );
+}
+
 // ── Grid Floor with state-color-tinted zones ──
 
 function GridFloor({ states, activeState }: { states: State[]; activeState: string }) {
@@ -729,34 +796,9 @@ function GridFloor({ states, activeState }: { states: State[]; activeState: stri
       </mesh>
 
       {/* Tinted zones beneath each platform */}
-      {states.map((state) => {
-        const isActiveState = state.id === activeState;
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const zoneMat = useMemo(() => {
-          const mat = new THREE.MeshStandardNodeMaterial();
-          mat.transparent = true;
-          mat.depthWrite = false;
-          mat.blending = THREE.AdditiveBlending;
-          const intensity = isActiveState ? 0.15 : 0.03;
-          mat.color = new THREE.Color(state.hex).multiplyScalar(intensity);
-          mat.emissive = new THREE.Color(state.hex).multiplyScalar(intensity * 0.5);
-          mat.emissiveIntensity = 1.0;
-          mat.roughness = 0.9;
-          mat.metalness = 0.0;
-          return mat;
-        }, [state.hex, isActiveState]);
-
-        return (
-          <mesh
-            key={state.id}
-            position={[state.position[0], -1.49, -0.5]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            material={zoneMat}
-          >
-            <circleGeometry args={[2.0, 6]} />
-          </mesh>
-        );
-      })}
+      {states.map((state) => (
+        <GridZone key={state.id} state={state} activeState={activeState} />
+      ))}
     </group>
   );
 }

@@ -337,26 +337,32 @@ function DecisionNode({
 
   const radius = isRoot ? 0.5 : node.isLeaf ? 0.25 : 0.3;
 
-  // Simple property-based core material (no shader compilation)
+  // Simple property-based core material — only data deps (hex color), no boolean state
   const coreMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
     mat.color = new THREE.Color(node.hex);
     mat.emissive = new THREE.Color(node.hex);
+    mat.emissiveIntensity = isRoot ? 1.2 : 0.5;
+    mat.opacity = 1.0;
+    mat.roughness = 0.2;
+    mat.metalness = 0.4;
+    return mat;
+  }, [node.hex, isRoot]);
 
-    if (isRoot) {
-      mat.emissiveIntensity = 1.2;
-    } else {
+  // Mutate material properties based on boolean state — avoids GPU shader recompilation
+  useFrame(() => {
+    const mat = coreMaterial;
+    if (!mat) return;
+    /* eslint-disable react-hooks/immutability */
+    if (!isRoot) {
       const brightness = isOnPath ? 1.5 : isHovered ? 1.0 : 0.5;
       const dimFactor = isDimmed ? 0.15 : 1.0;
       mat.emissiveIntensity = brightness * dimFactor;
       mat.opacity = isDimmed ? 0.2 : 1.0;
     }
-
-    mat.roughness = 0.2;
-    mat.metalness = 0.4;
-    return mat;
-  }, [node.hex, isRoot, isDimmed, isOnPath, isHovered]);
+    /* eslint-enable react-hooks/immutability */
+  });
 
 
 
@@ -449,6 +455,8 @@ function TreeEdge({
   isOnPath: boolean;
   isDimmed: boolean;
 }) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
   const { midpoint, length, quat } = useMemo(() => {
     const mid = new THREE.Vector3().lerpVectors(edge.from, edge.to, 0.5);
     const dir = new THREE.Vector3().subVectors(edge.to, edge.from);
@@ -458,7 +466,7 @@ function TreeEdge({
     return { midpoint: mid, length: len, quat: q };
   }, [edge.from, edge.to]);
 
-  // Simple transparent edge material (no shader compilation)
+  // Simple transparent edge material — only data deps (hex colors), no boolean state
   const edgeMaterial = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
@@ -466,31 +474,38 @@ function TreeEdge({
     const avgColor = new THREE.Color(edge.fromHex).lerp(new THREE.Color(edge.toHex), 0.5);
     mat.color = avgColor;
     mat.emissive = avgColor.clone();
-
-    const dimFactor = isDimmed ? 0.08 : 1.0;
-    const pathBoost = isOnPath ? 2.0 : 0.5;
-    const thickness = isOnPath ? 0.03 : 0.015;
-
-    mat.emissiveIntensity = pathBoost * dimFactor;
-    mat.opacity = isDimmed ? 0.08 : isOnPath ? 0.7 : 0.3;
-
+    mat.emissiveIntensity = 0.5;
+    mat.opacity = 0.3;
     mat.roughness = 0.2;
     mat.metalness = 0.4;
 
-    // Store thickness for geometry
-    (mat as unknown as Record<string, number>)._thickness = thickness;
     return mat;
-  }, [edge.fromHex, edge.toHex, isOnPath, isDimmed]);
+  }, [edge.fromHex, edge.toHex]);
 
-  const thickness = (edgeMaterial as unknown as Record<string, number>)._thickness || 0.015;
+  // Mutate material properties and mesh scale based on boolean state — avoids GPU shader recompilation
+  useFrame(() => {
+    const mat = edgeMaterial;
+    const mesh = meshRef.current;
+    if (!mat || !mesh) return;
+    /* eslint-disable react-hooks/immutability */
+    const dimFactor = isDimmed ? 0.08 : 1.0;
+    const pathBoost = isOnPath ? 2.0 : 0.5;
+    mat.emissiveIntensity = pathBoost * dimFactor;
+    mat.opacity = isDimmed ? 0.08 : isOnPath ? 0.7 : 0.3;
+    // Drive thickness via mesh scale (X/Z axes) instead of recreating geometry
+    const thicknessScale = isOnPath ? 2.0 : 1.0;
+    mesh.scale.set(thicknessScale, 1.0, thicknessScale);
+    /* eslint-enable react-hooks/immutability */
+  });
 
   return (
     <mesh
+      ref={meshRef}
       position={[midpoint.x, midpoint.y, midpoint.z]}
       quaternion={quat}
       material={edgeMaterial}
     >
-      <cylinderGeometry args={[thickness, thickness, length, 8]} />
+      <cylinderGeometry args={[0.015, 0.015, length, 8]} />
     </mesh>
   );
 }

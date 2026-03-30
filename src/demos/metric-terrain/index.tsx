@@ -278,7 +278,7 @@ function GridFloor() {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.color = new THREE.Color(0x0a0a1a);
     mat.emissive = new THREE.Color(0x0a0a2a);
-    mat.emissiveIntensity = 0.15;
+    mat.emissiveIntensity = 0.4;
     mat.roughness = 0.9;
     mat.metalness = 0.1;
     return mat;

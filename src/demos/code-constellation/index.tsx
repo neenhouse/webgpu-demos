@@ -206,7 +206,7 @@ function makeBackgroundMaterial() {
   mat.side = THREE.BackSide;
   mat.color = new THREE.Color(0x040418);
   mat.emissive = new THREE.Color(0x020210);
-  mat.emissiveIntensity = 0.05;
+  mat.emissiveIntensity = 0.4;
   mat.roughness = 1.0;
   mat.metalness = 0.0;
   return mat;

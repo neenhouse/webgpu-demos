@@ -364,7 +364,7 @@ function GridFloor() {
     m.transparent = true;
     m.color = new THREE.Color(0x112233);
     m.emissive = new THREE.Color(0x112233);
-    m.emissiveIntensity = 0.15;
+    m.emissiveIntensity = 0.4;
     m.opacity = 0.5;
     m.roughness = 0.8;
     m.metalness = 0.1;
