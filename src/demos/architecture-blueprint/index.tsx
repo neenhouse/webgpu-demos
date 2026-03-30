@@ -228,9 +228,8 @@ function ServiceShape({ type }: { type: Service['type'] }) {
 function ServiceNode({
   service,
   isSelected,
-  isHovered,
-  isHighlighted,
-  isDimmed,
+  hoveredServiceRef,
+  selectedService,
   traceFlash,
   dataFlash,
   onSelect,
@@ -242,9 +241,8 @@ function ServiceNode({
 }: {
   service: Service;
   isSelected: boolean;
-  isHovered: boolean;
-  isHighlighted: boolean;
-  isDimmed: boolean;
+  hoveredServiceRef: React.RefObject<string | null>;
+  selectedService: string | null;
   traceFlash: number;
   dataFlash: number;
   onSelect: (id: string) => void;
@@ -257,6 +255,7 @@ function ServiceNode({
   const meshRef = useRef<THREE.Mesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   const haloMeshRef = useRef<THREE.Mesh>(null);
+  const wireframeMeshRef = useRef<THREE.Mesh>(null);
   const platformRef = useRef<THREE.Mesh>(null);
   const platformRingRef = useRef<THREE.Mesh>(null);
   const externalRingRef = useRef<THREE.Mesh>(null);
@@ -272,20 +271,8 @@ function ServiceNode({
   const wireframeMat = useMemo(() => makeWireframeMaterial(service.hex), [service.hex]);
   // #92: Track wireframe opacity for smooth hover lerp
   const wireframeOpacityRef = useRef(0.2);
-
-  // Dim material overlay for non-connected services when something is selected
-  // Created once per hex color — isDimmed toggles which material is used, not recreates it
-  const dimMat = useMemo(() => {
-    const mat = new THREE.MeshStandardNodeMaterial();
-    mat.transparent = true;
-    mat.color = new THREE.Color(service.hex).multiplyScalar(0.1);
-    mat.emissive = new THREE.Color(service.hex);
-    mat.emissiveIntensity = 0.1;
-    mat.opacity = 0.3;
-    mat.roughness = 0.8;
-    mat.metalness = 0.2;
-    return mat;
-  }, [service.hex]);
+  // Track dim state imperatively (avoids re-render to toggle)
+  const isDimmedRef = useRef(false);
 
   const haloMat = useMemo(() => makeServiceHaloMaterial(service.hex), [service.hex]);
 
@@ -354,13 +341,42 @@ function ServiceNode({
 
   const typeColor = useMemo(() => getTypeColor(service.type), [service.type]);
 
-  // Choose main material: frontend gets breathe material
-  const activeMat = isDimmed && dimMat
-    ? dimMat
-    : (service.type === 'frontend' && frontendBreatheMat ? frontendBreatheMat : serviceMat);
+  // Always use same material reference — never switch, just mutate in useFrame
+  const mainMat = service.type === 'frontend' && frontendBreatheMat ? frontendBreatheMat : serviceMat;
 
   useFrame((state, delta) => {
     const group = groupRef.current;
+    // Compute hover/dim/highlight state imperatively from ref — zero re-renders on hover
+    const currentHover = hoveredServiceRef.current;
+    const active = currentHover ?? selectedService;
+    const isNodeHovered = currentHover === service.id;
+    const isNodeHighlighted = active !== null && (
+      active === service.id ||
+      FLOWS.some(f => (f.from === active && f.to === service.id) || (f.to === active && f.from === service.id))
+    );
+    const isNodeDimmed = active !== null && !isNodeHighlighted;
+    isDimmedRef.current = isNodeDimmed;
+
+    // Mutate main material properties for dim/highlight — never switch material reference
+    if (isNodeDimmed) {
+      mainMat.opacity = 0.3;
+      mainMat.emissiveIntensity = 0.1;
+    } else if (dataFlash > 0) {
+      mainMat.opacity = 0.85;
+      mainMat.emissiveIntensity = 0.6 + dataFlash * 2.5; // boost up to 3.1
+    } else {
+      mainMat.opacity = 0.85;
+      mainMat.emissiveIntensity = 0.6;
+    }
+
+    // Show/hide wireframe and halo meshes imperatively
+    if (haloMeshRef.current) {
+      haloMeshRef.current.visible = !isNodeDimmed;
+    }
+    if (wireframeMeshRef.current) {
+      wireframeMeshRef.current.visible = !isNodeDimmed;
+    }
+
     if (group) {
       const t = (group.userData.t || 0) + delta;
       group.userData.t = t;
@@ -386,7 +402,7 @@ function ServiceNode({
 
       // Platform base opacity pulse (#15): sin(t) between 0.1 and 0.25
       if (platformMatRef.current) {
-        if (isDimmed) {
+        if (isNodeDimmed) {
           platformMatRef.current.opacity = 0.05;
           platformMatRef.current.emissiveIntensity = 0.05;
         } else {
@@ -396,7 +412,7 @@ function ServiceNode({
       }
 
       // Zone of influence ring pulse (slightly different phase) (#16)
-      if (platformRingMatRef.current && !isDimmed) {
+      if (platformRingMatRef.current && !isNodeDimmed) {
         platformRingMatRef.current.opacity = 0.04 + Math.sin(t * 0.6 + 1.0) * 0.02;
       }
 
@@ -473,20 +489,11 @@ function ServiceNode({
     }
 
     // #92: Smooth wireframe opacity lerp — 0.2 idle → 0.5 on hover, over ~0.2s
-    if (!isDimmed) {
-      const targetWireOpacity = (isHovered || isSelected) ? 0.5 : 0.2;
+    if (!isNodeDimmed) {
+      const targetWireOpacity = (isNodeHovered || isSelected) ? 0.5 : 0.2;
       const lerpSpeed = 1 - Math.pow(0.001, delta / 0.2); // exponential lerp ~0.2s
       wireframeOpacityRef.current += (targetWireOpacity - wireframeOpacityRef.current) * lerpSpeed;
       wireframeMat.opacity = wireframeOpacityRef.current;
-    }
-
-    // #93: Data received flash — boost emissive intensity briefly when dataFlash > 0
-    if (dataFlash > 0 && activeMat) {
-      const flashIntensity = 0.6 + dataFlash * 2.5; // boost up to 3.1 at peak flash=1
-      (activeMat as THREE.MeshStandardNodeMaterial).emissiveIntensity = flashIntensity;
-    } else if (!isDimmed && activeMat) {
-      // Restore base emissive
-      (activeMat as THREE.MeshStandardNodeMaterial).emissiveIntensity = 0.6;
     }
 
     void state;
@@ -497,7 +504,7 @@ function ServiceNode({
       {/* Main mesh */}
       <mesh
         ref={meshRef}
-        material={activeMat}
+        material={mainMat}
         onClick={(e) => {
           e.stopPropagation();
           onSelect(service.id);
@@ -519,12 +526,10 @@ function ServiceNode({
         <ServiceShape type={service.type} />
       </mesh>
 
-      {/* Wireframe overlay — holographic tech feel (#11) */}
-      {!isDimmed && (
-        <mesh material={wireframeMat}>
-          <ServiceShape type={service.type} />
-        </mesh>
-      )}
+      {/* Wireframe overlay — holographic tech feel (#11) — always mounted, visibility toggled imperatively */}
+      <mesh ref={wireframeMeshRef} material={wireframeMat}>
+        <ServiceShape type={service.type} />
+      </mesh>
 
       {/* Platform base circle with pulsing opacity (#15) */}
       <mesh ref={platformRef} position={[0, -0.45, 0]} rotation={[-Math.PI / 2, 0, 0]} material={platformMat} geometry={SHARED_CIRCLE_GEO} />
@@ -539,84 +544,53 @@ function ServiceNode({
         </mesh>
       )}
 
-      {/* Halo shell (#52: slow rotation on Y axis) */}
-      {!isDimmed && (
-        <mesh ref={haloMeshRef} material={haloMat} scale={[1.25, 1.25, 1.25]}>
-          <ServiceShape type={service.type} />
-        </mesh>
-      )}
+      {/* Halo shell (#52: slow rotation on Y axis) — always mounted, visibility toggled imperatively in useFrame */}
+      <mesh ref={haloMeshRef} material={haloMat} scale={[1.25, 1.25, 1.25]}>
+        <ServiceShape type={service.type} />
+      </mesh>
 
-      {/* Service label — skip for dimmed services to reduce Html overhead */}
-      {!isDimmed && (
-        <Html position={[0, 0.9, 0]} center>
-          <div
-            style={{
-              color: 'white',
-              fontSize: '11px',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              background: 'rgba(5,10,25,0.9)',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              borderLeft: `3px solid ${typeColor}`,
-              fontWeight: isSelected ? 'bold' : 'normal',
-              transform: 'translateY(-100%)',
-              boxShadow: isSelected ? `0 0 12px ${typeColor}40` : 'none',
-              transition: 'opacity 0.3s, box-shadow 0.3s',
-              // #91: Scanline effect on hover — thin repeating horizontal lines
-              backgroundImage: isHovered
-                ? `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px), linear-gradient(rgba(5,10,25,0.9), rgba(5,10,25,0.9))`
-                : undefined,
-            }}
-          >
-            <div style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span
-                style={{
-                  display: 'inline-block', width: '6px', height: '6px',
-                  borderRadius: '50%', background: getHealthColor(service.health),
-                  flexShrink: 0,
-                  boxShadow: `0 0 4px ${getHealthColor(service.health)}`,
-                  // #58: Degraded services blink — toggle opacity between 0.3 and 1.0 at 2Hz
-                  opacity: service.health === 'degraded' ? (blinkVisibleRef.current ? 1.0 : 0.3) : 1.0,
-                }}
-              />
-              {service.label}
-            </div>
-            <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '1px' }}>{service.tech}</div>
-          </div>
-        </Html>
-      )}
-
-      {/* Warning tooltip for degraded AI Service when hovered — only mount when hovered */}
-      {isHovered && service.id === 'ai' && (
-        <Html position={[0, 1.8, 0]} center>
-          <div style={{
-            color: '#ffcc22',
-            fontSize: '10px',
+      {/* Service label — always mounted to avoid Html mount/unmount overhead */}
+      <Html position={[0, 0.9, 0]} center>
+        <div
+          style={{
+            color: 'white',
+            fontSize: '11px',
             fontFamily: 'system-ui, -apple-system, sans-serif',
-            background: 'rgba(40,20,5,0.95)',
-            padding: '5px 10px',
-            borderRadius: '5px',
+            background: 'rgba(5,10,25,0.9)',
+            padding: '4px 10px',
+            borderRadius: '4px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
-            border: '1px solid #ffcc2266',
-            boxShadow: '0 2px 12px rgba(255,200,0,0.2)',
-            fontWeight: 'bold',
-          }}>
-            ⚠ High latency detected — 95th percentile: 2.3s
+            borderLeft: `3px solid ${typeColor}`,
+            fontWeight: isSelected ? 'bold' : 'normal',
+            transform: 'translateY(-100%)',
+            boxShadow: isSelected ? `0 0 12px ${typeColor}40` : 'none',
+            transition: 'opacity 0.3s, box-shadow 0.3s',
+          }}
+        >
+          <div style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span
+              style={{
+                display: 'inline-block', width: '6px', height: '6px',
+                borderRadius: '50%', background: getHealthColor(service.health),
+                flexShrink: 0,
+                boxShadow: `0 0 4px ${getHealthColor(service.health)}`,
+                // #58: Degraded services blink — toggle opacity between 0.3 and 1.0 at 2Hz
+                opacity: service.health === 'degraded' ? (blinkVisibleRef.current ? 1.0 : 0.3) : 1.0,
+              }}
+            />
+            {service.label}
           </div>
-        </Html>
-      )}
+          <div style={{ fontSize: '8px', opacity: 0.5, marginTop: '1px' }}>{service.tech}</div>
+        </div>
+      </Html>
 
-      {/* Point light at service — skip when dimmed to reduce light count */}
-      {!isDimmed && (
-        <pointLight
-          color={service.color}
-          intensity={isSelected ? 2.5 : isHovered ? 1.5 : isHighlighted ? 0.8 : 0.4 + traceFlash * 3.0 + dataFlash * 2.0}
-          distance={isSelected ? 7 : 5}
-        />
-      )}
+      {/* Point light at service — fixed intensity, no re-render on hover */}
+      <pointLight
+        color={service.color}
+        intensity={isSelected ? 2.5 : 0.4 + traceFlash * 3.0 + dataFlash * 2.0}
+        distance={isSelected ? 7 : 5}
+      />
     </group>
   );
 }
@@ -819,11 +793,11 @@ const PARTICLES_PER_FLOW = 10; // reduced from 16 for cleaner look
 const TOTAL_PARTICLES = FLOWS.length * PARTICLES_PER_FLOW;
 
 function FlowParticles({
-  hoveredService,
+  hoveredServiceRef,
   selectedService,
   onParticleArrival,
 }: {
-  hoveredService: string | null;
+  hoveredServiceRef: React.RefObject<string | null>;
   selectedService: string | null;
   onParticleArrival?: (serviceId: string) => void;
 }) {
@@ -879,8 +853,6 @@ function FlowParticles({
     return mat;
   }, []);
 
-  const active = hoveredService ?? selectedService;
-
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const scratchFlowDir = useMemo(() => new THREE.Vector3(), []);
   const scratchPerpVec = useMemo(() => new THREE.Vector3(), []);
@@ -890,6 +862,8 @@ function FlowParticles({
     const mesh = meshRef.current;
     if (!mesh) return;
 
+    // Read hover from ref inside useFrame so it's always current
+    const active = hoveredServiceRef.current ?? selectedService;
     const currentTime = state.clock.elapsedTime;
     const colors = colorsRef.current;
 
@@ -1810,7 +1784,10 @@ function FloorGlowRings() {
 
 export default function ArchitectureBlueprint() {
   const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [hoveredService, setHoveredService] = useState<string | null>(null);
+  // hoveredService as ref — hover changes never trigger React re-renders of 3D scene
+  const hoveredServiceRef = useRef<string | null>(null);
+  // Separate state for sidebar highlight only — updated lazily, not on every hover event
+  const [hoveredSidebarService, setHoveredSidebarService] = useState<string | null>(null);
   const [, setFocusedService] = useState<string | null>(null);
   const [traceActive, setTraceActive] = useState(false);
   const [traceIsWrite, setTraceIsWrite] = useState(false);
@@ -1961,6 +1938,13 @@ export default function ArchitectureBlueprint() {
     setBurstEffects([]);
   }, []);
 
+  // Hover handler — writes to ref only, no setState (zero re-renders on hover)
+  const handleHover = useCallback((id: string | null) => {
+    hoveredServiceRef.current = id;
+    // Update sidebar highlight with same value — sidebar re-renders are OK (it's HTML)
+    setHoveredSidebarService(id);
+  }, []);
+
   // #87: Callback when trace ball arrives at a service
   const handleBallArrival = useCallback((serviceId: string, pos: THREE.Vector3, color: number) => {
     void serviceId;
@@ -1997,36 +1981,20 @@ export default function ArchitectureBlueprint() {
     return getConnectedFlows(selectedService);
   }, [selectedService]);
 
-  const highlightedServiceIds = useMemo(() => {
-    const active = hoveredService ?? selectedService;
-    if (!active) return new Set<string>();
-    const ids = new Set<string>();
-    ids.add(active);
-    for (const f of FLOWS) {
-      if (f.from === active) ids.add(f.to);
-      if (f.to === active) ids.add(f.from);
-    }
-    return ids;
-  }, [hoveredService, selectedService]);
-
+  // highlightedFlows: only based on selectedService (hover highlighting happens imperatively in useFrame)
   const highlightedFlows = useMemo(() => {
-    const active = hoveredService ?? selectedService;
-    if (!active) return new Set<number>();
+    if (!selectedService) return new Set<number>();
     const indices = new Set<number>();
     FLOWS.forEach((f, i) => {
-      if (f.from === active || f.to === active) indices.add(i);
+      if (f.from === selectedService || f.to === selectedService) indices.add(i);
     });
     return indices;
-  }, [hoveredService, selectedService]);
+  }, [selectedService]);
 
   // Trace complete flash alpha (1 → 0 over 2s)
   const traceFlashAlpha = traceComplete
     ? Math.max(0, 1 - traceCompleteTimeRef.current / 2.0)
     : 0;
-
-  // Determine if we should dim non-connected services
-  const activeContext = hoveredService ?? selectedService;
-  const shouldDim = activeContext !== null;
 
   // Background material (exception: simple screenUV gradient allowed)
   const bgMat = useMemo(() => {
@@ -2197,15 +2165,16 @@ export default function ArchitectureBlueprint() {
       }
     }
 
-    // Auto-highlight current trace service during trace (only call setState on change)
+    // Auto-highlight current trace service during trace — write to ref, no setState
     if (traceActive) {
       const currentId = activePath[Math.min(traceStep, activePath.length - 1)];
       if (traceAutoHoveredRef.current !== currentId) {
         traceAutoHoveredRef.current = currentId;
-        setHoveredService(currentId);
+        hoveredServiceRef.current = currentId;
       }
     } else if (traceAutoHoveredRef.current !== null) {
       traceAutoHoveredRef.current = null;
+      hoveredServiceRef.current = null;
     }
 
     // Trace complete flash — fade over 2s
@@ -2214,7 +2183,7 @@ export default function ArchitectureBlueprint() {
       if (traceCompleteTimeRef.current >= 2.0) {
         setTraceComplete(false);
         setTraceCompletePath([]);
-        setHoveredService(null);
+        hoveredServiceRef.current = null;
         // Also clear visited connections after completion flash
         visitedConnectionsRef.current = new Set();
         setVisitedConnections(new Set());
@@ -2296,14 +2265,13 @@ export default function ArchitectureBlueprint() {
           key={service.id}
           service={service}
           isSelected={selectedService === service.id}
-          isHovered={hoveredService === service.id}
-          isHighlighted={highlightedServiceIds.has(service.id)}
-          isDimmed={shouldDim && !highlightedServiceIds.has(service.id)}
+          hoveredServiceRef={hoveredServiceRef}
+          selectedService={selectedService}
           traceFlash={traceCompletePath.includes(service.id) ? traceFlashAlpha : 0}
           dataFlash={dataFlashTimes[service.id] ?? 0}
           onSelect={handleSelect}
           onDoubleClick={handleDoubleClick}
-          onHover={setHoveredService}
+          onHover={handleHover}
           index={i}
           mountTimeRef={mountTimeRef}
           pulseWaveTime={pulseWaveTimes[service.id] ?? 0}
@@ -2334,7 +2302,7 @@ export default function ArchitectureBlueprint() {
 
       {/* Data flow particles */}
       <FlowParticles
-        hoveredService={hoveredService}
+        hoveredServiceRef={hoveredServiceRef}
         selectedService={selectedService}
         onParticleArrival={handleParticleArrival}
       />
@@ -2437,7 +2405,7 @@ export default function ArchitectureBlueprint() {
           <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#88bbff', fontSize: '11px' }}>Services</div>
           {SERVICES.map(s => {
             const isSelected = selectedService === s.id;
-            const isHoveredInSidebar = hoveredService === s.id;
+            const isHoveredInSidebar = hoveredSidebarService === s.id;
             const healthColor = getHealthColor(s.health);
             // #90: During trace, clicking a service shows its details without interrupting trace
             const handleServiceClick = () => {
