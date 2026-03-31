@@ -248,6 +248,7 @@ export default function LodTransition() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[8, 10, 5]} intensity={0.6} />
       <directionalLight position={[-5, 8, -8]} intensity={0.3} color="#8899ff" />
       <pointLight position={[0, 3, 0]} intensity={15} color="#ffeecc" distance={20} />

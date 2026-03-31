@@ -169,7 +169,8 @@ export default function BloomOrbs() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       {/* Minimal scene lighting — the orbs provide their own glow */}
       <directionalLight position={[5, 5, 5]} intensity={0.2} />
 

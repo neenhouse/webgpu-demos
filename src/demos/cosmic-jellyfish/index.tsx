@@ -624,7 +624,8 @@ export default function CosmicJellyfish() {
   return (
     <>
       {/* Minimal scene lighting — emissive-driven scene (proven) */}
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 5, 3]} intensity={0.15} />
       {/* Core glow */}
       <pointLight position={[0, 0.3, 0]} intensity={4.0} color="#00eeff" distance={8} />

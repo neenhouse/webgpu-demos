@@ -326,6 +326,7 @@ export default function ParticleMorph() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 4, 5]} intensity={0.3} />
       <pointLight position={[0, 0, 0]} intensity={3.0} color="#00ccff" distance={10} />
       <pointLight position={[2, 2, 2]} intensity={2.0} color="#ff6644" distance={8} />

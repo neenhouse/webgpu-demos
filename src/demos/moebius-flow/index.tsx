@@ -218,6 +218,7 @@ export default function MoebiusFlow() {
       </mesh>
 
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[3, 2, 4]} intensity={2} color={0x44ff88} />
       <pointLight position={[-3, -2, 3]} intensity={1.5} color={0xff8844} />
       <pointLight position={[0, 4, -3]} intensity={1.2} color={0x4488ff} />

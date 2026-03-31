@@ -147,6 +147,7 @@ export default function ScreenReflections() {
       </mesh>
 
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 3]} intensity={0.5} color="#ffffff" />
       <directionalLight position={[-4, 6, -4]} intensity={0.3} color="#8899ff" />
       <pointLight position={[0, 6, 0]} intensity={10} color="#ffffff" distance={20} />

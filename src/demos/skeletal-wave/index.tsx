@@ -272,6 +272,7 @@ export default function SkeletalWave() {
       </mesh>
 
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[4, 6, 3]} intensity={0.8} />
       <pointLight position={[0, 0.5, 0]} intensity={5.0} color="#bb44ff" distance={10} />
       <pointLight position={[0, -2, 0]} intensity={3.0} color="#22ccff" distance={8} />

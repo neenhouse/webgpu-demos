@@ -309,7 +309,8 @@ export default function CaveSystem() {
   return (
     <>
       {/* Very dark ambient — bioluminescence is primary light */}
-      <ambientLight intensity={0.03} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       {/* Crystal-colored point lights */}
       <pointLight position={[1.5, -2.5, 1.0]} intensity={5.0} color="#00ddaa" distance={9} />
       <pointLight position={[-2.0, -1.5, 1.5]} intensity={4.0} color="#ff22cc" distance={9} />

@@ -223,6 +223,7 @@ export default function SoftBodyBounce() {
 
       <color attach="background" args={['#080510']} />
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 3]} intensity={0.6} />
       <pointLight position={[0, 0, 0]} intensity={15} color="#ff6600" distance={8} />
       <pointLight position={[-3, 3, 0]} intensity={8} color="#2266ff" distance={10} />

@@ -224,7 +224,8 @@ export default function WaveformViz() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 5, 5]} intensity={0.2} />
       {/* Colored accent lights */}
       <pointLight position={[0, 0, 0]} intensity={1.5} color={0x0088ff} distance={8} />

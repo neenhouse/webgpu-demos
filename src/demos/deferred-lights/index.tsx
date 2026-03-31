@@ -195,7 +195,8 @@ export default function DeferredLights() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
-      <ambientLight intensity={0.05} color="#112233" />
+      <ambientLight intensity={0.1} color="#112233" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* 100 actual point lights */}
       {lightData.map((ld, i) => (

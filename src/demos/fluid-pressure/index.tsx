@@ -240,6 +240,7 @@ export default function FluidPressure() {
 
       <color attach="background" args={['#010510']} />
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 3]} intensity={0.5} />
       <pointLight position={[0, 3, 0]} intensity={20} color="#2288ff" distance={10} />
       <pointLight position={[-3, -2, -3]} intensity={10} color="#0044aa" distance={8} />

@@ -259,6 +259,7 @@ export default function CityGenerator() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.15} color="#334466" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[8, 14, 6]} intensity={0.6} color="#aabbdd" />
       <pointLight position={[0, 8, 0]} intensity={2.0} color="#ffcc88" distance={40} />
       <pointLight position={[-8, 2, 0]} intensity={1.2} color="#ff4488" distance={20} />

@@ -451,7 +451,8 @@ export default function TimeVortex() {
   return (
     <>
       {/* Minimal ambient — vortex is emissive-driven */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 0, 0]} intensity={6.0} color="#ffcc44" distance={10} />
       <pointLight position={[0, 2, 0]} intensity={3.0} color="#4466cc" distance={8} />
       <pointLight position={[2, -1, 2]} intensity={2.0} color="#ddaa33" distance={8} />

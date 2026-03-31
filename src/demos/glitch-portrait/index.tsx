@@ -204,7 +204,8 @@ export default function GlitchPortrait() {
 
   return (
     <>
-      <ambientLight intensity={0.05} color="#110022" />
+      <ambientLight intensity={0.1} color="#110022" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 3]} intensity={2.0} color="#ff00cc" distance={12} />
       <pointLight position={[-3, 2, 2]} intensity={1.5} color="#00ffff" distance={15} />
       <pointLight position={[3, -2, 2]} intensity={1.5} color="#ff1166" distance={15} />

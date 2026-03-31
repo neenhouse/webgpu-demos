@@ -225,7 +225,8 @@ export default function BeatPulseGrid() {
   return (
     <>
       <color attach="background" args={['#050510']} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 15, 5]} intensity={0.4} color="#ffffff" />
       <pointLight position={[0, 5, 0]} intensity={8} color="#ff22ff" distance={20} />
       <pointLight position={[-5, 3, -5]} intensity={4} color="#0088ff" distance={15} />

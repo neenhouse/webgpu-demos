@@ -352,7 +352,8 @@ const skyMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, colorNode
 export default function AlienMegastructure() {
   return (
     <>
-      <ambientLight intensity={0.06} color="#110022" />
+      <ambientLight intensity={0.1} color="#110022" />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 0, 0]} intensity={4.0} color="#aa44ff" distance={20} />
       <pointLight position={[4, -2, 3]} intensity={3.0} color="#00aaff" distance={15} />
       <pointLight position={[-4, 2, -3]} intensity={2.5} color="#ff22cc" distance={15} />

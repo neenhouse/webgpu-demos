@@ -183,7 +183,8 @@ export default function EqualizerCity() {
     <>
       <color attach="background" args={['#000510']} />
       <fog attach="fog" args={['#000510', 15, 35]} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[0, 15, 5]} intensity={0.3} color="#6688ff" />
       <pointLight position={[0, 8, 0]} intensity={10} color="#ff0066" distance={25} />
       <pointLight position={[-8, 4, 0]} intensity={5} color="#0088ff" distance={18} />

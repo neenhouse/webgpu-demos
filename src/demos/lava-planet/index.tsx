@@ -372,7 +372,8 @@ export default function LavaPlanet() {
   return (
     <>
       {/* Minimal scene lighting - emissive lava provides most light */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#443322', '#221111', 0.3]} />
       <directionalLight position={[4, 2, 3]} intensity={0.4} color={0xffaa66} />
       <pointLight position={[0, 0, 0]} intensity={2.0} color={0xff4400} distance={8} />
 

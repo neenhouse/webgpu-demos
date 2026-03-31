@@ -82,6 +82,7 @@ export default function ShadowCascade() {
       </mesh>
       {/* Ambient fill */}
       <ambientLight intensity={0.12} color="#334455" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Light 1 — Near cascade, red tint, highest resolution */}
       <directionalLight

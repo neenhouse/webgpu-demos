@@ -351,7 +351,8 @@ export default function CrystalCavern() {
   return (
     <>
       {/* Very low ambient — crystals illuminate the cave */}
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Crystal-colored point lights */}
       <pointLight position={[1.5, -2.0, 1.0]} intensity={4.0} color="#bb66ee" distance={8} />

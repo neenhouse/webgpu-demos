@@ -206,7 +206,8 @@ export default function ElasticWaves() {
       </mesh>
 
       <color attach="background" args={['#000812']} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 8, 3]} intensity={0.5} />
       <pointLight position={[0, 5, 0]} intensity={25} color="#00ffee" distance={15} />
       <pointLight position={[3, 3, 3]} intensity={12} color="#ff6600" distance={10} />

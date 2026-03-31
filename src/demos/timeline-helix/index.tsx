@@ -624,7 +624,8 @@ export default function TimelineHelix() {
   return (
     <>
       {/* Lighting */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, totalHeight + 5, 5]} intensity={0.6} />
       <directionalLight position={[-3, totalHeight / 2, -5]} intensity={0.2} />
 

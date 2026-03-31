@@ -239,6 +239,7 @@ export default function LissajousWeb() {
         </mesh>
       ))}
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 6]} intensity={2} color={0x00ffff} />
       <pointLight position={[4, 4, -4]} intensity={1.5} color={0xff00ff} />
       <pointLight position={[-4, -4, 4]} intensity={1.5} color={0x00ff88} />

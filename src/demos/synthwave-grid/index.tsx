@@ -203,6 +203,7 @@ export default function SynthwaveGrid() {
     <group ref={groupRef}>
       {/* Ambient purple sky */}
       <ambientLight intensity={0.1} color="#220044" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 15, -20]} intensity={3} color="#ff00cc" distance={60} />
       <pointLight position={[-10, 2, 5]} intensity={1.5} color="#00ffff" distance={40} />
       <pointLight position={[10, 2, 5]} intensity={1.5} color="#ff00ff" distance={40} />

@@ -287,6 +287,7 @@ export default function VolcanicRift() {
     <>
       {/* Dark hellish ambient */}
       <ambientLight intensity={0.12} color="#220800" />
+      <hemisphereLight args={['#443322', '#221111', 0.3]} />
       <directionalLight position={[-5, 8, 3]} intensity={0.6} color="#ff4400" />
       {/* Lava glow from below */}
       <pointLight position={[0, -0.5, 0]} intensity={8.0} color="#ff4400" distance={20} />

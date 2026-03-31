@@ -963,7 +963,8 @@ export default function StateMachine3D() {
 
   return (
     <>
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight
         position={[activeStateData.position[0], activeStateData.position[1] + 2, 3]}
         intensity={3.0}

@@ -244,6 +244,7 @@ export default function StrangeAttractor() {
         </mesh>
       ))}
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 3, 5]} intensity={3} color={0xff6600} />
       <pointLight position={[-3, -2, -4]} intensity={2} color={0x0088ff} />
       <pointLight position={[3, 0, -5]} intensity={1.5} color={0xff00ff} />

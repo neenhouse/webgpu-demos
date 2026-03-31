@@ -187,7 +187,8 @@ export default function BassNebula() {
       <mesh material={atmMat}>
         <sphereGeometry args={[14, 16, 10]} />
       </mesh>
-      <ambientLight intensity={0.02} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 0, 0]} intensity={15} color="#ff2288" distance={10} />
       <pointLight position={[3, 2, -2]} intensity={5} color="#8800ff" distance={15} />
       <pointLight position={[-2, -3, 3]} intensity={5} color="#ff6600" distance={12} />

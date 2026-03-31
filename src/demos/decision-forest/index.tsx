@@ -671,6 +671,7 @@ export default function DecisionForest() {
     <>
       {/* Lighting - more dramatic */}
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       <directionalLight position={[8, 6, 4]} intensity={0.2} />
 
       {/* Colored accent lighting at key positions */}

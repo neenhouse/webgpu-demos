@@ -216,7 +216,8 @@ export default function MagneticFields() {
   return (
     <>
       <color attach="background" args={['#000508']} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[-1.5, 0.5, 0]} intensity={25} color="#ff2244" distance={8} />
       <pointLight position={[1.5, 0.5, 0]} intensity={25} color="#2244ff" distance={8} />
       <pointLight position={[0, 0.5, -1.5]} intensity={20} color="#ff4422" distance={8} />

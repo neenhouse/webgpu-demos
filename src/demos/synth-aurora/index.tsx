@@ -205,7 +205,8 @@ export default function SynthAurora() {
           <sphereGeometry args={[0.08, 4, 4]} />
         </mesh>
       ))}
-      <ambientLight intensity={0.02} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 4, 0]} intensity={3} color="#00ff88" distance={20} />
       <pointLight position={[-4, 6, 2]} intensity={2} color="#8800ff" distance={15} />
       {/* Additional teal atmosphere light */}

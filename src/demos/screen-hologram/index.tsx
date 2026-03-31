@@ -115,6 +115,7 @@ export default function ScreenHologram() {
       </mesh>
 
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 5, 4]} intensity={0.5} color={0x88ccff} />
       <pointLight position={[0, 2, 3]} intensity={1.5} color={0x00ccff} distance={10} />
       <pointLight position={[0, -2, -3]} intensity={0.8} color={0x0066ff} distance={10} />

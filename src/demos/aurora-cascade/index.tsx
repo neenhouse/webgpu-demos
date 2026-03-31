@@ -314,7 +314,8 @@ export default function AuroraCascade() {
       </mesh>
 
       {/* Minimal lighting - emissive-driven scene */}
-      <ambientLight intensity={0.02} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       <directionalLight position={[0, 5, 3]} intensity={0.05} />
 
       {/* Aurora-colored point lights for scene tinting */}

@@ -219,7 +219,8 @@ export default function DrumMachineCubes() {
       </mesh>
 
       <color attach="background" args={['#030308']} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 5]} intensity={0.5} color="#ffffff" />
       <pointLight position={[0, 5, 0]} intensity={8} color="#ff8800" distance={20} />
       <pointLight position={[-4, 3, -4]} intensity={4} color="#ff00ff" distance={12} />

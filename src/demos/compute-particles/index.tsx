@@ -185,6 +185,7 @@ export default function ComputeParticles() {
       </mesh>
 
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 5, 3]} intensity={0.5} />
       <pointLight position={[0, 3, 0]} intensity={6.0} color="#ffaa44" distance={12} />
       <pointLight position={[0, -1, 0]} intensity={4.0} color="#ff6622" distance={8} />

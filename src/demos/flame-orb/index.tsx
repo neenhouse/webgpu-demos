@@ -132,7 +132,8 @@ export default function FlameOrb() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#040208" />
       </mesh>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#443322', '#221111', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} />
       <mesh ref={meshRef} material={material}>
         <icosahedronGeometry args={[1.5, 4]} />

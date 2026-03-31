@@ -214,6 +214,7 @@ export default function VinylGrooves() {
         <sphereGeometry args={[12, 16, 10]} />
       </mesh>
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 8, 4]} intensity={1.2} color="#fff0e8" />
       <pointLight position={[0, 3, 0]} intensity={4} color="#ffaa44" distance={10} />
       <pointLight position={[-2, 2, 2]} intensity={2} color="#4488ff" distance={8} />

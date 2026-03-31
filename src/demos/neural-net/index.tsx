@@ -319,7 +319,8 @@ export default function NeuralNet() {
 
   return (
     <>
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 5, 5]} intensity={0.25} />
       {/* Layer-aligned accent lights */}
       <pointLight position={[-3.5, 0, 1.5]} intensity={1.0} color={0x3388ff} distance={8} />

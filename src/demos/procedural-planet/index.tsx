@@ -249,6 +249,7 @@ export default function ProceduralPlanet() {
     <>
       {/* Scene lighting: directional sunlight + faint ambient */}
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 3, 4]} intensity={1.4} color={0xfff5e6} />
       <directionalLight position={[-3, -1, -2]} intensity={0.2} color={0x4488cc} />
 

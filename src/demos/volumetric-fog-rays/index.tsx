@@ -162,7 +162,8 @@ export default function VolumetricFogRays() {
       </mesh>
 
       {/* Ambient fill — cool and dim */}
-      <ambientLight intensity={0.08} color="#334466" />
+      <ambientLight intensity={0.1} color="#334466" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Key light 1: Warm golden god ray from upper-left */}
       <directionalLight

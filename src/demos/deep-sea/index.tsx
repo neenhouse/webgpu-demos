@@ -451,7 +451,8 @@ export default function DeepSea() {
   return (
     <>
       {/* Very dark ambient — deep underwater */}
-      <ambientLight intensity={0.04} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       {/* Faint overhead light for shafts */}
       <directionalLight position={[0, 5, 2]} intensity={0.15} color="#3366aa" />
 

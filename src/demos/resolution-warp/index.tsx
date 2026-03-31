@@ -184,7 +184,8 @@ export default function ResolutionWarp() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 5, 5]} intensity={0.15} />
       <pointLight position={[0, 0, 0]} intensity={2.5} color="#ffaa44" distance={8} />
       <pointLight position={[2, 1, 2]} intensity={1.5} color="#2299ff" distance={10} />

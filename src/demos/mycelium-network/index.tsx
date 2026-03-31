@@ -208,6 +208,7 @@ export default function MyceliumNetwork() {
       </mesh>
 
       <ambientLight intensity={0.1} color="#112233" />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       <pointLight position={[0, 2, 0]} intensity={3.0} color="#ccff44" distance={10} />
       <pointLight position={[-1.5, 1, 0.5]} intensity={2.0} color="#44ffcc" distance={8} />
       <pointLight position={[1.5, 1, -0.5]} intensity={2.0} color="#88ff44" distance={8} />

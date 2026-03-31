@@ -221,6 +221,7 @@ export default function HopfFibration() {
         </mesh>
       ))}
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 4, 4]} intensity={2} color={0x4488ff} />
       <pointLight position={[-4, -2, 3]} intensity={1.5} color={0xff44aa} />
       <pointLight position={[3, 3, -4]} intensity={1.5} color={0x44ffaa} />

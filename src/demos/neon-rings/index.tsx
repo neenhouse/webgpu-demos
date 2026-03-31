@@ -138,7 +138,8 @@ export default function NeonRings() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 0]} intensity={0.3} color={0x444466} />
       {rings.map((config, i) => (
         <NeonRing key={i} {...config} />

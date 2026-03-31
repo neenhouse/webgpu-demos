@@ -370,7 +370,8 @@ export default function QuantumField() {
 
   return (
     <>
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 3, 5]} intensity={0.15} />
       <pointLight position={[0, 0, 0]} intensity={4.0} color="#4488ff" distance={8} />
       <pointLight position={[2, 1, 1]} intensity={2.0} color="#ffaa22" distance={6} />

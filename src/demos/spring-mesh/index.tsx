@@ -200,6 +200,7 @@ export default function SpringMesh() {
 
       <color attach="background" args={['#000810']} />
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 3]} intensity={0.7} />
       <pointLight position={[0, 5, 0]} intensity={20} color="#00ffcc" distance={15} />
       <pointLight position={[3, 3, 3]} intensity={10} color="#ff5500" distance={10} />

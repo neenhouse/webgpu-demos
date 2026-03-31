@@ -364,7 +364,8 @@ export default function BlackHole() {
   return (
     <>
       {/* Minimal lighting — the scene is mostly emissive-driven */}
-      <ambientLight intensity={0.03} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <pointLight position={[0, 0, 0]} intensity={0.5} color={0xff8844} distance={8} />
 
       {/* Background plane with gravitational lensing starfield */}

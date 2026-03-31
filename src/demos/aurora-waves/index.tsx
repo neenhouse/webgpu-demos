@@ -200,7 +200,8 @@ export default function AuroraWaves() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} color="#aaffcc" />
       <group ref={groupRef}>
         {ribbons.map((props, i) => (

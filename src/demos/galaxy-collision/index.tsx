@@ -319,7 +319,8 @@ export default function GalaxyCollision() {
 
   return (
     <>
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <directionalLight position={[3, 3, 5]} intensity={0.15} />
 
       {/* Attractor glow lights */}

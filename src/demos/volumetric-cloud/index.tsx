@@ -166,7 +166,8 @@ export default function VolumetricCloud() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 4, 5]} intensity={0.1} />
       {/* Core glow light */}
       <pointLight position={[0, 0, 0]} intensity={3.0} color="#ff8844" distance={5} />

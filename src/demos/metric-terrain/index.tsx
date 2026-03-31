@@ -688,6 +688,7 @@ export default function MetricTerrain() {
     <>
       {/* Lighting */}
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 5]} intensity={0.9} castShadow />
       <directionalLight position={[-3, 8, -4]} intensity={0.3} />
 

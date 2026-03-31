@@ -169,7 +169,8 @@ export default function NeonNoir() {
   return (
     <>
       {/* Dark ambient */}
-      <ambientLight intensity={0.05} color="#0a0010" />
+      <ambientLight intensity={0.1} color="#0a0010" />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Neon point lights */}
       <pointLight position={[-4, 3, -3]} intensity={4} color="#ff0033" distance={12} />

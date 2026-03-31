@@ -202,7 +202,8 @@ export default function PianoWaterfall() {
   return (
     <>
       <color attach="background" args={['#02020a']} />
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[0, 8, 5]} intensity={0.5} color="#8899ff" />
       <pointLight position={[0, 0, 3]} intensity={8} color="#4488ff" distance={20} />
       <pointLight position={[-8, 2, 2]} intensity={4} color="#ff2288" distance={12} />

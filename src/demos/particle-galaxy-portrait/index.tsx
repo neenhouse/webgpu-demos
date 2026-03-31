@@ -275,7 +275,8 @@ export default function ParticleGalaxyPortrait() {
   return (
     <>
       {/* Minimal ambient - emissive driven */}
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <directionalLight position={[2, 3, 5]} intensity={0.15} />
 
       {/* Accent lights */}

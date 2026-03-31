@@ -597,7 +597,8 @@ export default function CodeConstellation() {
         <sphereGeometry args={[60, 32, 32]} />
       </mesh>
 
-      <ambientLight intensity={0.04} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
 
       {/* Cluster point lights */}
       {clusterLights.map(({ dir, pos, color: c }) => (

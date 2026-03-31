@@ -279,6 +279,7 @@ export default function PendulumChaos() {
 
       <color attach="background" args={['#04020a']} />
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 8, 2]} intensity={0.5} />
       <pointLight position={[-2.5, 2.5, -1]} intensity={20} color="#ff2244" distance={10} />
       <pointLight position={[0, 2.5, 0]} intensity={20} color="#00eeff" distance={10} />

@@ -327,6 +327,7 @@ export default function GravitationalOrbits() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} />
       <pointLight position={[0, 3, 0]} intensity={4} color="#4400aa" distance={12} />
 

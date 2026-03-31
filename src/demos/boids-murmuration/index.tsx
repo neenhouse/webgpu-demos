@@ -266,6 +266,7 @@ export default function BoidsMurmuration() {
       </mesh>
 
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.3} />
       <pointLight position={[0, 0, 0]} intensity={5.0} color="#6644ff" distance={15} />
       <pointLight position={[4, 3, 4]} intensity={3.0} color="#22ccbb" distance={12} />

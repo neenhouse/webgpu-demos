@@ -291,7 +291,8 @@ export default function MushroomForest() {
   return (
     <>
       {/* Dark ambiance — bioluminescence is primary */}
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334433', '#112211', 0.3]} />
       {/* Colored point lights matching mushroom palette */}
       <pointLight position={[2, 1.5, 1]} intensity={5.0} color="#00ddaa" distance={8} />
       <pointLight position={[-2, 1.2, -1]} intensity={4.5} color="#ee22cc" distance={8} />

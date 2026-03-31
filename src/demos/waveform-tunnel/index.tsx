@@ -175,7 +175,8 @@ export default function WaveformTunnel() {
   return (
     <>
       <color attach="background" args={['#000000']} />
-      <ambientLight intensity={0.02} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 0]} intensity={20} color="#00ffff" distance={8} />
       <pointLight position={[0, -10, 0]} intensity={15} color="#ff00ff" distance={12} />
       <pointLight position={[0, -20, 0]} intensity={12} color="#8800ff" distance={15} />

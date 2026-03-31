@@ -139,7 +139,8 @@ export default function PbrMaterialLab() {
       </mesh>
 
       {/* 3 colored lights from different angles */}
-      <ambientLight intensity={0.08} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Key light — warm */}
       <pointLight position={[5, 6, 8]} intensity={80} color="#ffcc88" />

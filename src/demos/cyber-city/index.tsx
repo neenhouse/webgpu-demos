@@ -319,7 +319,8 @@ export default function CyberCity() {
       </mesh>
 
       {/* Scene lighting */}
-      <ambientLight intensity={0.05} color={0x111122} />
+      <ambientLight intensity={0.1} color={0x111122} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 3]} intensity={0.15} color={0x4444ff} />
 
       {/* Neon accent point lights */}

@@ -247,6 +247,7 @@ export default function MultiMaterial() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[4, 5, 3]} intensity={0.5} />
       {/* Colored accent lights — each reinforces one face's palette */}
       <pointLight position={[3, 0, 0]} intensity={2.0} color="#ff4400" distance={8} />

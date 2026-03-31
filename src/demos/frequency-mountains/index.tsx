@@ -171,6 +171,7 @@ export default function FrequencyMountains() {
     <>
       <color attach="background" args={['#000015']} />
       <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[8, 10, 5]} intensity={0.8} color="#8899ff" />
       <directionalLight position={[-6, 5, -8]} intensity={0.5} color="#ff88aa" />
       <pointLight position={[0, 5, 0]} intensity={6} color="#6644ff" distance={30} />

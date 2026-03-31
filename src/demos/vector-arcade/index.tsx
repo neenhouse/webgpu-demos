@@ -200,7 +200,8 @@ export default function VectorArcade() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
 
-      <ambientLight intensity={0.0} />
+      <ambientLight intensity={0.1} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 0]} intensity={0.5} color="#00ff44" distance={20} />
 
       {/* Main asteroid (icosahedron) */}

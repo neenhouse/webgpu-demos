@@ -242,6 +242,7 @@ export default function CollisionCascade() {
 
       <color attach="background" args={['#060408']} />
       <ambientLight intensity={0.15} />
+      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 12, 5]} intensity={0.7} castShadow />
       <pointLight position={[0, 6, 0]} intensity={30} color="#ffaa00" distance={15} />
       <pointLight position={[-4, 2, -4]} intensity={12} color="#1133aa" distance={10} />
