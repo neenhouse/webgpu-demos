@@ -132,6 +132,12 @@ export default function PbrMaterialLab() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       {/* 3 colored lights from different angles */}
       <ambientLight intensity={0.08} />
 

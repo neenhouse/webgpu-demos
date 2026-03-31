@@ -212,6 +212,12 @@ export default function ClothWind() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#050a15']} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[5, 8, 3]} intensity={0.8} />

@@ -178,6 +178,12 @@ export default function ComputeParticles() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.15} />
       <directionalLight position={[3, 5, 3]} intensity={0.5} />
       <pointLight position={[0, 3, 0]} intensity={6.0} color="#ffaa44" distance={12} />

@@ -144,6 +144,12 @@ export default function UvKaleidoscope() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.35} />
       <directionalLight position={[5, 6, 4]} intensity={0.7} />
       <directionalLight position={[-3, -2, -5]} intensity={0.2} color={0xcc88ff} />

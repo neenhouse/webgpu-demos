@@ -215,6 +215,12 @@ export default function SoftBodyBounce() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#080510']} />
       <ambientLight intensity={0.15} />
       <directionalLight position={[5, 10, 3]} intensity={0.6} />

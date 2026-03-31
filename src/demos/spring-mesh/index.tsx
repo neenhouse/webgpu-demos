@@ -192,6 +192,12 @@ export default function SpringMesh() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#000810']} />
       <ambientLight intensity={0.1} />
       <directionalLight position={[5, 10, 3]} intensity={0.7} />

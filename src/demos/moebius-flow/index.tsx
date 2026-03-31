@@ -211,6 +211,12 @@ export default function MoebiusFlow() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.15} />
       <pointLight position={[3, 2, 4]} intensity={2} color={0x44ff88} />
       <pointLight position={[-3, -2, 3]} intensity={1.5} color={0xff8844} />

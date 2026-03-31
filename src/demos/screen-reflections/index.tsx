@@ -140,6 +140,12 @@ export default function ScreenReflections() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.1} />
       <directionalLight position={[5, 8, 3]} intensity={0.5} color="#ffffff" />
       <directionalLight position={[-4, 6, -4]} intensity={0.3} color="#8899ff" />

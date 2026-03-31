@@ -234,6 +234,12 @@ export default function CollisionCascade() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#060408']} />
       <ambientLight intensity={0.15} />
       <directionalLight position={[5, 12, 5]} intensity={0.7} castShadow />

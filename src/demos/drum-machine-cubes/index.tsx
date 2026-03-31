@@ -212,6 +212,12 @@ export default function DrumMachineCubes() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#030308']} />
       <ambientLight intensity={0.05} />
       <directionalLight position={[5, 10, 5]} intensity={0.5} color="#ffffff" />

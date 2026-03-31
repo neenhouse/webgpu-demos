@@ -155,6 +155,12 @@ export default function VolumetricFogRays() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       {/* Ambient fill — cool and dim */}
       <ambientLight intensity={0.08} color="#334466" />
 

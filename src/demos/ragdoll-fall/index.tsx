@@ -256,6 +256,12 @@ export default function RagdollFall() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#080408']} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[4, 8, 3]} intensity={0.6} />

@@ -194,6 +194,12 @@ export default function VectorArcade() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.0} />
       <pointLight position={[0, 0, 0]} intensity={0.5} color="#00ff44" distance={20} />
 

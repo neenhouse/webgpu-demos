@@ -199,6 +199,12 @@ export default function ElasticWaves() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#000812']} />
       <ambientLight intensity={0.05} />
       <directionalLight position={[3, 8, 3]} intensity={0.5} />

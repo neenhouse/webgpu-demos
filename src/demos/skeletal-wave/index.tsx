@@ -265,6 +265,12 @@ export default function SkeletalWave() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.15} />
       <directionalLight position={[4, 6, 3]} intensity={0.8} />
       <pointLight position={[0, 0.5, 0]} intensity={5.0} color="#bb44ff" distance={10} />

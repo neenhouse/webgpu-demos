@@ -164,6 +164,54 @@ function auditDemo(slug, src, tags) {
     }
   }
 
+  // === ATMOSPHERE: MISSING BACKGROUND ===
+  // Every non-shader demo should have a BackSide sphere or fog
+  const isFullScreenShader = src.includes('MeshBasicNodeMaterial') &&
+    (src.includes('screenUV') || src.includes('viewport'));
+  if (!isFullScreenShader) {
+    const hasBackground = src.includes('BackSide') || src.includes('fogExp2') ||
+      src.includes('<fog') || src.includes('scene.background') || src.includes('scene.fog');
+    if (!hasBackground) {
+      warnings.push('ATMOSPHERE: No background sphere, fog, or scene background detected');
+    }
+  }
+
+  // === LIGHTING DIVERSITY: Need 2+ light types ===
+  if (!isFullScreenShader) {
+    const lightTypes = new Set();
+    if (src.includes('ambientLight') || src.includes('AmbientLight')) lightTypes.add('ambient');
+    if (src.includes('directionalLight') || src.includes('DirectionalLight')) lightTypes.add('directional');
+    if (src.includes('pointLight') || src.includes('PointLight')) lightTypes.add('point');
+    if (src.includes('spotLight') || src.includes('SpotLight')) lightTypes.add('spot');
+    if (lightTypes.size === 1) {
+      warnings.push(`LIGHTING: Only ${[...lightTypes][0]} light — need 2+ types for visual depth`);
+    }
+  }
+
+  // === EMISSIVE PRESENCE: All lit materials should use emissive ===
+  if (src.includes('MeshStandardNodeMaterial') && !isFullScreenShader) {
+    if (!src.includes('emissive') && !src.includes('emissiveNode') && !src.includes('emissiveIntensity')) {
+      warnings.push('EMISSIVE: No emissive on any material — demos look flat without glow');
+    }
+  }
+
+  // === BROKEN: positionNode for instance transforms ===
+  // Only flag if positionNode is ASSIGNED (not just mentioned in comments) with compute buffer
+  const codeOnly = srcLines.filter(l => !l.trim().startsWith('//') && !l.trim().startsWith('*')).join('\n');
+  if ((codeOnly.includes('instancedMesh') || codeOnly.includes('InstancedMesh')) &&
+      codeOnly.includes('.positionNode') && codeOnly.includes('instancedArray') &&
+      !codeOnly.includes('positionLocal') && !codeOnly.includes('positionWorld')) {
+    warnings.push('BROKEN_PATTERN: positionNode on InstancedMesh with compute buffer — offsets vertices, not instances');
+  }
+
+  // === BROKEN: If()/Discard() outside Fn context ===
+  // Check for If() or Discard() in useMemo (not in Fn() or compute context)
+  if (src.includes('Discard()') && !src.includes('computeFn') && !src.includes('.compute(')) {
+    if (src.includes('alphaTest') === false) {
+      warnings.push('BROKEN_PATTERN: Discard() without alphaTest — use alphaTest + opacityNode instead');
+    }
+  }
+
   return { slug, lines, issues, warnings };
 }
 

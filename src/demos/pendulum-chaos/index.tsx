@@ -271,6 +271,12 @@ export default function PendulumChaos() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <color attach="background" args={['#04020a']} />
       <ambientLight intensity={0.1} />
       <directionalLight position={[3, 8, 2]} intensity={0.5} />

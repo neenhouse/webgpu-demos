@@ -202,6 +202,12 @@ export default function SmokeTendrils() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#040208" />
+      </mesh>
+
       <color attach="background" args={['#0a0a0a']} />
       <ambientLight intensity={0.05} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} />

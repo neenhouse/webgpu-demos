@@ -254,6 +254,12 @@ export default function HyperbolicPlane() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.3} />
       <pointLight position={[0, 0, 5]} intensity={3} color={0x8822ff} />
       <pointLight position={[2, 2, 3]} intensity={1.5} color={0x4400ff} />

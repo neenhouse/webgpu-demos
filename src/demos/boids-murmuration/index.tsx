@@ -259,6 +259,12 @@ export default function BoidsMurmuration() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.1} />
       <directionalLight position={[5, 8, 5]} intensity={0.3} />
       <pointLight position={[0, 0, 0]} intensity={5.0} color="#6644ff" distance={15} />

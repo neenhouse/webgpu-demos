@@ -107,6 +107,12 @@ export default function PulseGrid() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.3} />
       <directionalLight position={[8, 15, 8]} intensity={1.2} color={0xffffff} />
       <directionalLight position={[-5, 10, -5]} intensity={0.4} color={0x8888ff} />

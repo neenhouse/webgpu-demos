@@ -108,6 +108,12 @@ export default function ScreenHologram() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.15} />
       <directionalLight position={[3, 5, 4]} intensity={0.5} color={0x88ccff} />
       <pointLight position={[0, 2, 3]} intensity={1.5} color={0x00ccff} distance={10} />

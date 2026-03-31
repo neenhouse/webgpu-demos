@@ -224,6 +224,12 @@ export default function PenroseTiles() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       <ambientLight intensity={0.25} />
       <directionalLight position={[0, 10, 5]} intensity={2} color={0xffffff} />
       <pointLight position={[0, 0, 4]} intensity={2} color={0xffdd88} />

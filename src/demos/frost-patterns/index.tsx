@@ -187,6 +187,12 @@ export default function FrostPatterns() {
 
   return (
     <>
+      {/* Background atmosphere */}
+      <mesh>
+        <sphereGeometry args={[30, 16, 16]} />
+        <meshBasicMaterial side={THREE.BackSide} color="#020408" />
+      </mesh>
+
       {/* Warm orange background gradient */}
       <color attach="background" args={['#ff8833']} />
       <ambientLight intensity={0.4} color="#ff8833" />
