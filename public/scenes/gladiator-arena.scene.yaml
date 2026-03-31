@@ -152,6 +152,11 @@ objects:
         roughness: 0.85
         metalness: 0.1
         color: "#8B6914"
+    animation:
+      - property: position.y
+        type: sine
+        speed: 0.5
+        amplitude: 0.03
     castShadow: true
     receiveShadow: true
 
@@ -174,6 +179,11 @@ objects:
         roughness: 0.85
         metalness: 0.1
         color: "#6B3A14"
+    animation:
+      - property: position.y
+        type: sine
+        speed: 0.5
+        amplitude: 0.03
     castShadow: true
     receiveShadow: true
 
@@ -194,6 +204,11 @@ objects:
         roughness: 0.15
         metalness: 0.95
         color: "#ccccdd"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 0.8
+        amplitude: 0.1
     castShadow: true
 
   # ── Weapon: Gladiator 1 shield ─────────────────
@@ -233,6 +248,11 @@ objects:
         roughness: 0.15
         metalness: 0.95
         color: "#ccccdd"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 0.8
+        amplitude: 0.1
     castShadow: true
 
   # ── Weapon: Gladiator 2 shield ─────────────────

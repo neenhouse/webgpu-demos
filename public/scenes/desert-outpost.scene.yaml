@@ -170,6 +170,11 @@ objects:
       pbr:
         color: "#6a7a40"
         roughness: 0.9
+    animation:
+      - property: rotation.z
+        type: sway
+        speed: 0.4
+        amplitude: 0.05
     register_prefab: true
     instances:
       - position: [4, 0, 6]
@@ -318,4 +323,9 @@ objects:
       pbr:
         color: "#5a4020"
         roughness: 0.85
+    animation:
+      - property: rotation.z
+        type: sway
+        speed: 0.8
+        amplitude: 0.15
     castShadow: true

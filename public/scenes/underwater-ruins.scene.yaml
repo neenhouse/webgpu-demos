@@ -89,6 +89,11 @@ objects:
       pbr:
         roughness: 0.88
         color: "#7a8070"
+    animation:
+      - property: position.y
+        type: sine
+        speed: 0.15
+        amplitude: 0.005
     register_prefab: true
     instances:
       - position: [-3, 0, -3]
@@ -182,6 +187,11 @@ objects:
         metalness: 0.05
         emissive: "#331108"
         emissive_intensity: 0.2
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 0.6
+        amplitude: 0.15
     register_prefab: true
     instances:
       - position: [-2, 0, -1]

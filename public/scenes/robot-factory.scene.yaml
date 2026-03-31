@@ -88,6 +88,10 @@ objects:
         roughness: 0.2
         metalness: 0.95
         color: "#aabbcc"
+    animation:
+      - property: rotation.y
+        type: rotate
+        speed: 0.15
     register_prefab: true
     instances:
       - position: [-5, 0, -2]
@@ -185,6 +189,11 @@ objects:
         roughness: 0.35
         metalness: 0.85
         color: "#999999"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 1.0
+        amplitude: 0.2
     register_prefab: true
     instances:
       - position: [-8, 0, -8]

@@ -143,6 +143,11 @@ objects:
         roughness: 0.15
         metalness: 0.9
         color: "#222233"
+    animation:
+      - property: position.y
+        type: sine
+        speed: 0.3
+        amplitude: 0.02
     castShadow: true
     receiveShadow: true
 
@@ -283,6 +288,11 @@ objects:
       preset: neon-glow
       pbr:
         color: "#ff1493"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 1.5
+        amplitude: 0.3
 
   - id: neon-sign-cyan
     prompt: glowing neon sign, cyan
@@ -298,6 +308,11 @@ objects:
       preset: neon-glow
       pbr:
         color: "#00e5ff"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 1.5
+        amplitude: 0.3
 
   - id: neon-sign-yellow
     prompt: glowing neon sign, yellow
@@ -313,3 +328,8 @@ objects:
       preset: neon-glow
       pbr:
         color: "#ffe100"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 1.5
+        amplitude: 0.3

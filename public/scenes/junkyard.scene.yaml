@@ -82,6 +82,11 @@ objects:
         roughness: 0.9
         metalness: 0.5
         color: "#7B3F00"
+    animation:
+      - property: position.y
+        type: sine
+        speed: 0.2
+        amplitude: 0.01
     castShadow: true
     receiveShadow: true
     lod: auto
@@ -168,6 +173,10 @@ objects:
       pbr:
         metalness: 0.7
         roughness: 0.8
+    animation:
+      - property: rotation.y
+        type: rotate
+        speed: 0.1
     register_prefab: true
     instances:
       - position: [7, 0, 1]

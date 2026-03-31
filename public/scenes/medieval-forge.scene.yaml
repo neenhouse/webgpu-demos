@@ -128,6 +128,11 @@ objects:
         roughness: 0.55
         metalness: 0.85
         color: "#888888"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 0.5
+        amplitude: 0.1
     register_prefab: true
     instances:
       - position: [3.5, 0.5, -3]
@@ -149,6 +154,11 @@ objects:
         roughness: 0.6
         metalness: 0.8
         color: "#777777"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 0.5
+        amplitude: 0.1
     register_prefab: true
     instances:
       - position: [3.8, 0.3, -2]
@@ -190,6 +200,11 @@ objects:
       pbr:
         roughness: 0.8
         color: "#5e3d1e"
+    animation:
+      - property: emissive_intensity
+        type: pulse
+        speed: 2.0
+        amplitude: 0.4
     register_prefab: true
     instances:
       - position: [-3, 0, 1]

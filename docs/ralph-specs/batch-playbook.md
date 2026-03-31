@@ -41,10 +41,14 @@ These combinations produced the best visual results in Batch 3:
 - Complementary pairs (teal+orange, magenta+green) for high contrast
 
 ## Animation Rules
-- Slow rotation: delta * 0.05-0.15 (not faster)
-- Particle breathing: oscSine at 1.5-2.0 speed
+- **Slow rotation**: delta * 0.05–0.15 (default for orbiting scenes)
+- **Medium rotation**: delta * 0.2–0.3 (accent elements, spinning objects)
+- **Fast rotation**: delta * 0.5–1.0 (specific effects only: spinning rings, glitch, retro)
+- **Extreme rotation**: delta > 1.0 (must have visual justification)
+- Particle breathing: oscSine at 1.5–2.0 speed
 - Bone animation amplitude increases toward tips (0.08 + progress * 0.15)
 - Pulsing emissive: oscSine(time.mul(0.5)) for slow, time.mul(2.0) for fast
+- Minimum ambient light: 0.05 for all lit-material demos (skip for MeshBasicNodeMaterial shader demos)
 
 ## Broken Patterns (NEVER USE)
 - If()/Discard() in material useMemo — use alphaTest
