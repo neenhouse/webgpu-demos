@@ -78,12 +78,13 @@ function KineticWord({
         g.rotation.x = Math.sin(t * 0.25) * 0.1;
         g.position.y = position[1] + Math.sin(t * 0.7) * 0.15;
         break;
-      case 1:
+      case 1: {
         // Scale breath + vertical bounce
         const scaleVal = 1.0 + Math.sin(t * 1.2 + phase) * 0.15;
         g.scale.setScalar(scaleVal);
         g.position.y = position[1] + Math.abs(Math.sin(t * 0.9 + phase)) * 0.3 - 0.15;
         break;
+      }
       case 2:
         // Horizontal oscillation + spin
         g.position.x = position[0] + Math.sin(t * 0.8 + phase) * 0.4;
@@ -94,13 +95,14 @@ function KineticWord({
         g.position.z = position[2] + Math.sin(t * 1.0 + phase) * 0.5;
         g.rotation.y = Math.sin(t * 0.5 + phase) * 0.25;
         break;
-      case 4:
+      case 4: {
         // Orbital path
         const orbitR = 0.25;
         g.position.x = position[0] + Math.cos(t * 0.7 + phase) * orbitR;
         g.position.y = position[1] + Math.sin(t * 0.7 + phase) * orbitR;
         g.rotation.z = t * 0.3;
         break;
+      }
       case 5:
         // Erratic energy shake
         g.position.x = position[0] + (Math.random() - 0.5) * 0.015;
@@ -198,17 +200,20 @@ function GlowOrbs() {
   );
 }
 
+// Module-scope particle positions to avoid Math.random() in useMemo
+const PARTICLE_POSITIONS = (() => {
+  const arr = new Float32Array(800 * 3);
+  for (let i = 0; i < 800; i++) {
+    arr[i * 3] = (Math.random() - 0.5) * 20;
+    arr[i * 3 + 1] = (Math.random() - 0.5) * 12;
+    arr[i * 3 + 2] = -3 - Math.random() * 8;
+  }
+  return arr;
+})();
+
 /** Particle field backdrop */
 function ParticleField() {
-  const positions = useMemo(() => {
-    const arr = new Float32Array(800 * 3);
-    for (let i = 0; i < 800; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 20;
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 12;
-      arr[i * 3 + 2] = -3 - Math.random() * 8;
-    }
-    return arr;
-  }, []);
+  const positions = useMemo(() => PARTICLE_POSITIONS, []);
 
   const colorsArr = useMemo(() => {
     const arr = new Float32Array(800 * 3);

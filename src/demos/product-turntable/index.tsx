@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { PresentationControls } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
 import {
-  color,
   normalWorld,
   cameraPosition,
   positionWorld,
@@ -106,24 +105,24 @@ function makeBackgroundMaterial() {
   return mat;
 }
 
+// Module-scope orbit ring data to avoid Math.random() in useMemo
+const ORBIT_RING_DATA = Array.from({ length: 60 }, (_, i) => {
+  const angle = (i / 60) * Math.PI * 2;
+  const r = 1.5 + Math.sin(i * 0.7) * 0.15;
+  return {
+    x: Math.cos(angle) * r,
+    y: Math.sin(i * 1.3) * 0.12,
+    z: Math.sin(angle) * r,
+    size: 0.025 + Math.random() * 0.025,
+    phase: i * 0.3,
+  };
+});
+
 /** Orbital particle ring around the hero */
 function OrbitRing() {
-  const particleCount = 60;
   const groupRef = useRef<THREE.Group>(null);
 
-  const positions = useMemo(() => {
-    return Array.from({ length: particleCount }, (_, i) => {
-      const angle = (i / particleCount) * Math.PI * 2;
-      const r = 1.5 + Math.sin(i * 0.7) * 0.15;
-      return {
-        x: Math.cos(angle) * r,
-        y: Math.sin(i * 1.3) * 0.12,
-        z: Math.sin(angle) * r,
-        size: 0.025 + Math.random() * 0.025,
-        phase: i * 0.3,
-      };
-    });
-  }, []);
+  const positions = useMemo(() => ORBIT_RING_DATA, []);
 
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -146,6 +145,20 @@ function OrbitRing() {
     </group>
   );
 }
+
+// Module-scope fog particle positions to avoid Math.random() during render
+const FOG_POSITIONS = (() => {
+  const a = new Float32Array(300 * 3);
+  for (let i = 0; i < 300; i++) {
+    const r = 4 + Math.random() * 8;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    a[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    a[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) - 1;
+    a[i * 3 + 2] = r * Math.cos(phi);
+  }
+  return a;
+})();
 
 export default function ProductTurntable() {
   const heroMat = useMemo(() => makeHeroMaterial(), []);
@@ -181,7 +194,7 @@ export default function ProductTurntable() {
       {/* Product showcase group */}
       <PresentationControls
         global
-        snap={{ mass: 1, tension: 120 }}
+        snap={true}
         rotation={[0, 0, 0]}
         polar={[-0.4, 0.4]}
         azimuth={[-Infinity, Infinity]}
@@ -222,21 +235,7 @@ export default function ProductTurntable() {
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            args={[
-              (() => {
-                const a = new Float32Array(300 * 3);
-                for (let i = 0; i < 300; i++) {
-                  const r = 4 + Math.random() * 8;
-                  const theta = Math.random() * Math.PI * 2;
-                  const phi = Math.acos(2 * Math.random() - 1);
-                  a[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-                  a[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) - 1;
-                  a[i * 3 + 2] = r * Math.cos(phi);
-                }
-                return a;
-              })(),
-              3
-            ]}
+            args={[FOG_POSITIONS, 3]}
           />
         </bufferGeometry>
         <pointsMaterial color={0xaabbff} size={0.03} sizeAttenuation transparent opacity={0.4} />

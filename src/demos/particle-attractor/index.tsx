@@ -2,8 +2,7 @@ import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  color, time, Fn, float, uniform, vec3, mix, smoothstep,
-  instanceIndex, hash, If, oscSine,
+  color, time, float, oscSine,
 } from 'three/tsl';
 
 /**
@@ -25,9 +24,25 @@ const DRAG = 0.97;
 const ORBIT_STRENGTH = 0.8;
 const SCATTER_STRENGTH = 8.0;
 
+// Module-scope initial particle state to avoid Math.random() in useMemo
+const INITIAL_POSITIONS = new Float32Array(PARTICLE_COUNT * 3);
+const INITIAL_VELOCITIES = new Float32Array(PARTICLE_COUNT * 3);
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const r = 2.0 + Math.random() * 2.0;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  INITIAL_POSITIONS[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+  INITIAL_POSITIONS[i * 3 + 1] = Math.cos(phi) * r;
+  INITIAL_POSITIONS[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * r;
+  INITIAL_VELOCITIES[i * 3] = (Math.random() - 0.5) * 0.5;
+  INITIAL_VELOCITIES[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
+  INITIAL_VELOCITIES[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+}
+
 export default function ParticleAttractor() {
   const { gl, camera } = useThree();
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
   const dummy = useRef(new THREE.Object3D());
   const raycaster = useRef(new THREE.Raycaster());
   const attractorPos = useRef(new THREE.Vector3(0, 0, 0));
@@ -38,26 +53,12 @@ export default function ParticleAttractor() {
   const velocities = useRef<Float32Array>(new Float32Array(PARTICLE_COUNT * 3));
   const colors = useRef<THREE.Color[]>([]);
 
-  // Initialize particles in a sphere
-  useMemo(() => {
-    const pos = positions.current;
-    const vel = velocities.current;
+  // Initialize particles from module-scope precomputed data (useEffect to avoid ref access during render)
+  useEffect(() => {
+    positions.current.set(INITIAL_POSITIONS);
+    velocities.current.set(INITIAL_VELOCITIES);
     const cols: THREE.Color[] = [];
-
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      // Random sphere distribution
-      const r = 2.0 + Math.random() * 2.0;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      pos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
-      pos[i * 3 + 1] = Math.cos(phi) * r;
-      pos[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * r;
-
-      // Small initial velocity
-      vel[i * 3] = (Math.random() - 0.5) * 0.5;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
-
       cols.push(new THREE.Color().setHSL(0.6, 1, 0.6));
     }
     colors.current = cols;
@@ -80,7 +81,7 @@ export default function ParticleAttractor() {
     const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.current.setFromCamera({ x, y }, camera);
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
 
     // Intersect with plane at z=0
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -188,6 +189,12 @@ export default function ParticleAttractor() {
 
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+    // Update glow indicator position and visibility via ref (avoid reading refs during render)
+    if (glowRef.current) {
+      glowRef.current.position.copy(attractorPos.current);
+      glowRef.current.visible = isAttracting.current;
+    }
   });
 
   return (
@@ -220,8 +227,8 @@ export default function ParticleAttractor() {
         <meshBasicMaterial />
       </mesh>
 
-      {/* Attractor glow indicator */}
-      <mesh position={attractorPos.current} visible={isAttracting.current}>
+      {/* Attractor glow indicator — position/visibility controlled in useFrame */}
+      <mesh ref={glowRef} visible={false}>
         <sphereGeometry args={[0.1, 8, 8]} />
         <meshBasicMaterial color="#ff6644" transparent opacity={0.6} />
       </mesh>

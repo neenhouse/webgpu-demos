@@ -166,20 +166,23 @@ function Section({
   );
 }
 
+// Module-scope star positions to avoid Math.random() in useMemo
+const STAR_POSITIONS = (() => {
+  const arr = new Float32Array(600 * 3);
+  for (let i = 0; i < 600; i++) {
+    const r = 12 + Math.random() * 8;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    arr[i * 3 + 2] = r * Math.cos(phi);
+  }
+  return arr;
+})();
+
 /** Ambient star particles */
 function StarField() {
-  const positions = useMemo(() => {
-    const arr = new Float32Array(600 * 3);
-    for (let i = 0; i < 600; i++) {
-      const r = 12 + Math.random() * 8;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
-    }
-    return arr;
-  }, []);
+  const positions = useMemo(() => STAR_POSITIONS, []);
 
   return (
     <points>
@@ -195,6 +198,8 @@ export default function ScrollStorytelling() {
   const cameraRef = useRef({ progress: 0 });
   const camPosRef = useRef(new THREE.Vector3(...CAMERA_PATH[0]));
   const camLookRef = useRef(new THREE.Vector3(...LOOK_AT_PATH[0]));
+  const targetPos = useMemo(() => new THREE.Vector3(), []);
+  const targetLook = useMemo(() => new THREE.Vector3(), []);
 
   const bgMat = useMemo(() => makeBackgroundMaterial(), []);
 
@@ -217,13 +222,13 @@ export default function ScrollStorytelling() {
     const l0 = LOOK_AT_PATH[segIdx];
     const l1 = LOOK_AT_PATH[segIdx + 1];
 
-    const targetPos = new THREE.Vector3(
+    targetPos.set(
       p0[0] + (p1[0] - p0[0]) * st,
       p0[1] + (p1[1] - p0[1]) * st,
       p0[2] + (p1[2] - p0[2]) * st,
     );
 
-    const targetLook = new THREE.Vector3(
+    targetLook.set(
       l0[0] + (l1[0] - l0[0]) * st,
       l0[1] + (l1[1] - l0[1]) * st,
       l0[2] + (l1[2] - l0[2]) * st,
@@ -249,6 +254,7 @@ export default function ScrollStorytelling() {
     <>
       <ambientLight intensity={0.05} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <directionalLight position={[5, 8, 5]} intensity={0.4} />
 
       {/* Deep space background */}
       <mesh material={bgMat}>

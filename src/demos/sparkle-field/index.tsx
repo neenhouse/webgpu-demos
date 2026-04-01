@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Sparkles, Stars } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
 import {
-  color,
   normalWorld,
   cameraPosition,
   positionWorld,
@@ -176,11 +175,11 @@ function OrbitMotes() {
   const count = 24;
   const ref = useRef<THREE.InstancedMesh>(null);
   const mat = useMemo(() => makeMotesMaterial(), []);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(() => {
     if (!ref.current) return;
     const t = Date.now() * 0.001;
-    const dummy = new THREE.Object3D();
 
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + t * (0.15 + i * 0.003);

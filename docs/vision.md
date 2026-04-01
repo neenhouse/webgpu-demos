@@ -8,7 +8,7 @@ A gallery of Three.js WebGPU experiments — each demo explores a different capa
 
 **Stage**: Active
 
-146 demos across 12 categories: TSL shader art, compute simulations, scene pipeline, emergent systems, interactive data visualizations, audio-reactive music, physics playgrounds, procedural worlds, retro aesthetics, organic nature, abstract math art, and game-ready techniques. Gallery with WebGPU/WebGL auto-detection, scrollable grid, hash routing. Twelve batch generation cycles complete via Choo Choo Ralph. Scene pipeline renders YAML-driven demos. Batches 6-12 expanded into 7 new themed categories with 70 additional demos. CI deploys to Cloudflare Pages.
+166 demos across 14 categories: TSL shader art, compute simulations, scene pipeline, emergent systems, interactive data visualizations, audio-reactive music, physics playgrounds, procedural worlds, retro aesthetics, organic nature, abstract math art, and game-ready techniques. Gallery with WebGPU/WebGL auto-detection, scrollable grid, hash routing. Twelve batch generation cycles complete via Choo Choo Ralph. Scene pipeline renders YAML-driven demos. Batches 6-12 expanded into 7 new themed categories with 70 additional demos. CI deploys to Cloudflare Pages.
 
 > **Last updated**: 2026-03-28 (Batches 6-12) — See `docs/prd/` for detailed feature status.
 

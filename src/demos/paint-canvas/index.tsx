@@ -2,7 +2,7 @@ import { useRef, useMemo, useEffect, useCallback, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
-import { color, time, oscSine, Fn, float, mix } from 'three/tsl';
+import { color, time, oscSine, Fn, float } from 'three/tsl';
 
 /**
  * Paint Canvas — Draw on a 3D surface with mouse
@@ -37,8 +37,7 @@ export default function PaintCanvas() {
   const lastPos = useRef<THREE.Vector3 | null>(null);
   const drawTime = useRef(0);
   const [dotCount, setDotCount] = useState(0);
-
-  const canvasColor = useRef(0x440088);
+  const _tempColor = useMemo(() => new THREE.Color(), []);
 
   const paintMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
@@ -66,7 +65,7 @@ export default function PaintCanvas() {
     const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
     const x = ((clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.current.setFromCamera({ x, y }, camera);
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
     if (planeRef.current) {
       const hits = raycaster.current.intersectObject(planeRef.current);
       if (hits.length > 0) return hits[0].point.clone();
@@ -152,7 +151,7 @@ export default function PaintCanvas() {
       dummy.current.scale.setScalar(d.scale);
       dummy.current.updateMatrix();
       mesh.setMatrixAt(i, dummy.current.matrix);
-      mesh.setColorAt(i, new THREE.Color().setHSL(d.hue / 360, 1.0, 0.6));
+      mesh.setColorAt(i, _tempColor.setHSL(d.hue / 360, 1.0, 0.6));
     }
     // Hide unused slots
     for (let i = count; i < MAX_PAINT; i++) {

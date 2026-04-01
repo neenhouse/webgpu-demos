@@ -2,7 +2,6 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
-  color,
   normalWorld,
   cameraPosition,
   positionWorld,
@@ -139,25 +138,28 @@ function ArchCorridor() {
   );
 }
 
+// Module-scope random values for SpeedLines (avoids Math.random() in useMemo)
+const SPEED_LINE_DATA = Array.from({ length: 80 }, (_, i) => {
+  const count = 80;
+  const angle = (i / count) * Math.PI * 2 + Math.random() * 0.3;
+  const r = 1.8 + Math.random() * 1.2;
+  const z = -(Math.random() * ARCH_COUNT * ARCH_SPACING);
+  return { x: Math.cos(angle) * r, y: Math.sin(angle) * r + 0.5, z };
+});
+
 /** Speed lines: instanced thin cylinders flying past */
 function SpeedLines() {
   const ref = useRef<THREE.InstancedMesh>(null);
   const mat = useMemo(() => makeSpeedLineMaterial(), []);
   const count = 80;
 
-  const positions = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => {
-      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.3;
-      const r = 1.8 + Math.random() * 1.2;
-      const z = -(Math.random() * ARCH_COUNT * ARCH_SPACING);
-      return { x: Math.cos(angle) * r, y: Math.sin(angle) * r + 0.5, z };
-    });
-  }, []);
+  const positions = useMemo(() => SPEED_LINE_DATA, []);
+
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(() => {
     if (!ref.current) return;
     const t = Date.now() * 0.001;
-    const dummy = new THREE.Object3D();
 
     positions.forEach((p, i) => {
       // Lines animate along Z, wrapping around
@@ -212,6 +214,8 @@ export default function CameraDolly() {
     lookAt: new THREE.Vector3(0, 0.5, 0),
     progress: 0,
   });
+  const targetPos = useMemo(() => new THREE.Vector3(), []);
+  const targetLook = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ camera }, delta) => {
     const state = camState.current;
@@ -222,8 +226,8 @@ export default function CameraDolly() {
     const wave = Math.sin(state.progress * 0.8) * 0.5;
     const waveY = Math.sin(state.progress * 0.6 + 1.2) * 0.2 + 0.3;
 
-    const targetPos = new THREE.Vector3(wave, waveY, z + 4);
-    const targetLook = new THREE.Vector3(wave * 1.2, waveY * 0.8, z);
+    targetPos.set(wave, waveY, z + 4);
+    targetLook.set(wave * 1.2, waveY * 0.8, z);
 
     state.pos.lerp(targetPos, delta * 2.5);
     state.lookAt.lerp(targetLook, delta * 2.5);

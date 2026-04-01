@@ -4,7 +4,7 @@ import * as THREE from 'three/webgpu';
 import {
   color, time, normalWorld, cameraPosition, positionWorld,
   positionLocal, normalLocal, Fn, float, uniform, vec3, mix,
-  smoothstep, sin, cos, length,
+  smoothstep, sin,
 } from 'three/tsl';
 
 /**
@@ -54,9 +54,12 @@ export default function RippleInteract() {
     mat.side = THREE.DoubleSide;
 
     // Build displacement from all ripple uniforms
-    const computeDisplacement = Fn(() => {
-      let totalDisp = float(0.0);
-      let totalCrestFactor = float(0.0);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const computeDisplacement = Fn((): any => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let totalDisp: any = float(0.0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let totalCrestFactor: any = float(0.0);
 
       for (let i = 0; i < MAX_RIPPLES; i++) {
         const center = rippleUniforms[i].center;
@@ -98,7 +101,8 @@ export default function RippleInteract() {
     const crest = dispResult.crest;
 
     // Apply displacement along Y (up)
-    mat.positionNode = positionLocal.add(vec3(float(0.0), disp, float(0.0)));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mat.positionNode = positionLocal.add(vec3(float(0.0), disp as any, float(0.0)));
 
     // Recompute normal direction from displacement gradient
     mat.normalNode = normalLocal;
@@ -108,9 +112,12 @@ export default function RippleInteract() {
     const crestColor = color(0x44ddff);
     const whiteTop = color(0xaaffff);
 
-    const crestNorm = crest.div(float(MAX_RIPPLES)).saturate();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const crestNorm: any = crest.div(float(MAX_RIPPLES)).saturate();
     mat.colorNode = mix(baseWater, mix(crestColor, whiteTop, crestNorm), crestNorm.mul(float(3.0)).saturate());
-    mat.emissiveNode = color(0x0a3050).add(mix(color(0x000000), color(0x22aacc), crestNorm.mul(float(2.0)).saturate()).mul(float(0.8)));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const emissiveAdd = mix(color(0x000000), color(0x22aacc), crestNorm.mul(float(2.0)).saturate()).mul(float(0.8)) as any;
+    mat.emissiveNode = color(0x0a3050).add(emissiveAdd);
 
     // Fresnel for water surface look
     const fresnel = Fn(() => {
@@ -128,7 +135,7 @@ export default function RippleInteract() {
     const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.current.setFromCamera({ x, y }, camera);
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
 
     if (planeRef.current) {
       const hits = raycaster.current.intersectObject(planeRef.current);

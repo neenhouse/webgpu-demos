@@ -95,7 +95,7 @@ export default function ClickToReveal() {
   const [cubeStates, setCubeStates] = useState<CubeState[]>(() =>
     Array.from({ length: CUBE_COUNT }, () => ({ open: 0, animDir: 0, animT: 0 }))
   );
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [, setActiveIndex] = useState<number>(-1);
   const statesRef = useRef(cubeStates);
   const meshRefs = useRef<(THREE.Mesh | null)[]>(Array(CUBE_COUNT).fill(null));
   const innerGroupRefs = useRef<(THREE.Group | null)[]>(Array(CUBE_COUNT).fill(null));
@@ -146,7 +146,7 @@ export default function ClickToReveal() {
     const dt = Math.min(delta, 0.033);
     setCubeStates(prev => {
       let changed = false;
-      const next = prev.map((s, i) => {
+      const next = prev.map((s) => {
         if (s.animDir === 0) return s;
         let t = s.animT + s.animDir * dt / ANIM_DURATION;
         t = Math.max(0, Math.min(1, t));

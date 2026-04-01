@@ -234,6 +234,17 @@ function CorridorWalls() {
   );
 }
 
+// Module-scope mist particle positions to avoid Math.random() during render
+const MIST_POSITIONS = (() => {
+  const a = new Float32Array(400 * 3);
+  for (let i = 0; i < 400; i++) {
+    a[i * 3] = (Math.random() - 0.5) * 4;
+    a[i * 3 + 1] = Math.random() * 3;
+    a[i * 3 + 2] = Math.random() * -20;
+  }
+  return a;
+})();
+
 export default function MirrorGallery() {
   const floorMat = useMemo(() => makeMirrorFloorMaterial(), []);
   const bgMat = useMemo(() => makeBackgroundMaterial(), []);
@@ -267,18 +278,7 @@ export default function MirrorGallery() {
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            args={[
-              (() => {
-                const a = new Float32Array(400 * 3);
-                for (let i = 0; i < 400; i++) {
-                  a[i * 3] = (Math.random() - 0.5) * 4;
-                  a[i * 3 + 1] = Math.random() * 3;
-                  a[i * 3 + 2] = Math.random() * -20;
-                }
-                return a;
-              })(),
-              3
-            ]}
+            args={[MIST_POSITIONS, 3]}
           />
         </bufferGeometry>
         <pointsMaterial color={0x8866cc} size={0.02} sizeAttenuation transparent opacity={0.3} />

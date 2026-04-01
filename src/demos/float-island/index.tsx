@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three/webgpu';
 import {
-  color,
   normalWorld,
   cameraPosition,
   positionWorld,
@@ -14,8 +13,6 @@ import {
   mix,
   vec3,
   positionLocal,
-  normalLocal,
-  hash,
 } from 'three/tsl';
 
 /**
@@ -252,23 +249,24 @@ function Trees() {
   );
 }
 
+// Module-scope cloud data to avoid Math.random() in useMemo
+const CLOUD_DATA = Array.from({ length: 8 }, (_, i) => {
+  const angle = (i / 8) * Math.PI * 2;
+  const r = 1.8 + Math.random() * 0.5;
+  return {
+    x: Math.cos(angle) * r,
+    y: -0.1 + Math.random() * 0.4,
+    z: Math.sin(angle) * r,
+    scale: 0.35 + Math.random() * 0.25,
+    phase: i * 0.785,
+  };
+});
+
 /** Cloud wisps floating around the island */
 function Clouds() {
   const cloudMat = useMemo(() => makeCloudMaterial(), []);
 
-  const cloudData = useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => {
-      const angle = (i / 8) * Math.PI * 2;
-      const r = 1.8 + Math.random() * 0.5;
-      return {
-        x: Math.cos(angle) * r,
-        y: -0.1 + Math.random() * 0.4,
-        z: Math.sin(angle) * r,
-        scale: 0.35 + Math.random() * 0.25,
-        phase: i * 0.785,
-      };
-    });
-  }, []);
+  const cloudData = useMemo(() => CLOUD_DATA, []);
 
   return (
     <>
@@ -297,11 +295,11 @@ function Waterfall() {
   }, []);
 
   const startPos = useMemo(() => new THREE.Vector3(1.0, 0.5, 0.3), []);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(() => {
     if (!ref.current) return;
     const t = Date.now() * 0.001;
-    const dummy = new THREE.Object3D();
 
     for (let i = 0; i < count; i++) {
       const progress = ((i / count + t * 0.5) % 1.0);

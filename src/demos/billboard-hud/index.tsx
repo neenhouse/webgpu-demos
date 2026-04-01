@@ -105,12 +105,6 @@ function makeLineMaterial() {
   mat.transparent = true;
   mat.depthWrite = false;
 
-  const fresnel = Fn(() => {
-    const viewDir = cameraPosition.sub(positionWorld).normalize();
-    const nDotV = normalWorld.dot(viewDir).saturate();
-    return float(1.0).sub(nDotV).pow(1.0);
-  });
-
   const pulse = oscSine(time.mul(0.8)).mul(0.2).add(0.8);
   mat.colorNode = vec3(0.0, 0.9, 0.8);
   mat.emissiveNode = vec3(0.0, 0.7, 0.6).mul(pulse.mul(1.5));
@@ -181,7 +175,7 @@ function DataNodeComponent({ node, index }: { node: DataNode; index: number }) {
   const coreMat = useMemo(() => makeNodeMaterial(node.color, index * 0.785), [node.color, index]);
   const haloMat = useMemo(() => makeNodeHaloMaterial(node.color, index * 0.785), [node.color, index]);
   const valueRef = useRef<string>(`${node.baseValue.toFixed(1)}${node.unit}`);
-  const textRef = useRef<any>(null);
+  const textRef = useRef<{ text: string } | null>(null);
 
   useFrame(() => {
     const t = Date.now() * 0.001;

@@ -34,7 +34,7 @@ export default function FpsExplorer() {
   // Set initial camera position
   useEffect(() => {
     camera.position.set(0, 1.6, 0);
-    camera.fov = 75;
+    (camera as THREE.PerspectiveCamera).fov = 75;
     (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
     camRef.current = camera as THREE.PerspectiveCamera;
 
@@ -136,19 +136,23 @@ export default function FpsExplorer() {
     return mat;
   }, []);
 
+  const _forward = useMemo(() => new THREE.Vector3(), []);
+  const _right = useMemo(() => new THREE.Vector3(), []);
+  const _moveVec = useMemo(() => new THREE.Vector3(), []);
+
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.033);
     const k = keys.current;
 
-    const forward = new THREE.Vector3();
+    const forward = _forward;
     camera.getWorldDirection(forward);
     forward.y = 0;
     forward.normalize();
 
-    const right = new THREE.Vector3();
+    const right = _right;
     right.crossVectors(forward, camera.up).normalize();
 
-    const moveVec = new THREE.Vector3();
+    const moveVec = _moveVec.set(0, 0, 0);
     if (k['KeyW'] || k['ArrowUp']) moveVec.addScaledVector(forward, MOVE_SPEED * dt);
     if (k['KeyS'] || k['ArrowDown']) moveVec.addScaledVector(forward, -MOVE_SPEED * dt);
     if (k['KeyA'] || k['ArrowLeft']) moveVec.addScaledVector(right, -MOVE_SPEED * dt);

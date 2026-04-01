@@ -98,7 +98,6 @@ export default function ExplodeMesh() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const mainMeshRef = useRef<THREE.Mesh>(null);
   const dummy = useRef(new THREE.Object3D());
-  const quat = useRef(new THREE.Quaternion());
 
   const geometry = useMemo(() => {
     const geo = new THREE.DodecahedronGeometry(1.2, 0);

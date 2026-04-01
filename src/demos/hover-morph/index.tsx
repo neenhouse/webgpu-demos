@@ -1,9 +1,9 @@
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color, time, oscSine, normalWorld, cameraPosition, positionWorld,
-  positionLocal, normalLocal, Fn, float, uniform, vec3, mix, smoothstep,
+  positionLocal, normalLocal, Fn, float, uniform, mix, smoothstep,
 } from 'three/tsl';
 
 /**
@@ -56,8 +56,6 @@ export default function HoverMorph() {
     mat.positionNode = positionLocal.add(displacement).add(normalLocal.mul(breathe));
 
     // Color: shifts toward emissive color near deformation zone
-    const baseColor = vec3(0.05, 0.1, 0.3);
-    const deformColor = vec3(1.0, 0.4, 0.1);
     const fresnel = Fn(() => {
       const viewDir = cameraPosition.sub(positionWorld).normalize();
       const nDotV = normalWorld.dot(viewDir).saturate();
@@ -95,7 +93,7 @@ export default function HoverMorph() {
     const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.current.setFromCamera({ x, y }, camera);
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
 
     if (meshRef.current) {
       const hits = raycaster.current.intersectObject(meshRef.current);

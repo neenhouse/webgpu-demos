@@ -220,7 +220,7 @@ export default function EnvironmentHDR() {
       </group>
 
       {/* The 5 roughness spheres */}
-      {ROUGHNESS_VALUES.map((r, i) => (
+      {ROUGHNESS_VALUES.map((_r, i) => (
         <group key={i} position={[SPHERE_X[i], 0, 0]}>
           {/* Sphere */}
           <mesh material={sphereMats[i]} position={[0, 0.82, 0]}>

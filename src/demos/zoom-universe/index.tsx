@@ -1,7 +1,7 @@
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
-import { color, time, oscSine, normalWorld, cameraPosition, positionWorld, Fn, float, mix, uniform } from 'three/tsl';
+import { color, time, oscSine, normalWorld, cameraPosition, positionWorld, Fn, float } from 'three/tsl';
 
 /**
  * Zoom Universe — Camera zoom from galaxy scale to atom scale
@@ -227,11 +227,12 @@ export default function ZoomUniverse() {
     }
   });
 
-  const opacity = (levelIndex: number, targetLevel: number, range: number = 1.5) => {
+  const _getLevelOpacity = (_levelIndex: number, targetLevel: number, range: number = 1.5) => {
     const z = Math.abs(cameraZ.current);
     const levelZ = Math.abs(LEVELS[targetLevel].z);
     return Math.max(0, 1 - Math.abs(z - levelZ) / (levelZ * range));
   };
+  void _getLevelOpacity;
 
   return (
     <>

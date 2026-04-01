@@ -1,7 +1,7 @@
 import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
-import { color, time, oscSine, positionLocal, normalLocal, Fn, float, uniform } from 'three/tsl';
+import { color, time, oscSine, float, uniform } from 'three/tsl';
 
 /**
  * Drag Physics — Spring-physics drag interactions on 12 instanced spheres
@@ -41,6 +41,9 @@ const SPHERE_COLORS = [
   0xaa44ff, 0xff44cc, 0xff88aa, 0x88ffaa,
 ];
 
+// Pre-computed Color objects to avoid allocations in useFrame
+const SPHERE_COLOR_OBJECTS = SPHERE_COLORS.map(hex => new THREE.Color(hex));
+
 const SPHERE_ORIGINS: [number, number, number][] = [
   [-2.5, 1.5, 0], [0, 1.5, 0], [2.5, 1.5, 0],
   [-2.5, 0, 0], [0, 0, 0], [2.5, 0, 0],
@@ -72,7 +75,8 @@ export default function DragPhysics() {
       pulsing: false,
       pulseTimer: 0,
     }));
-    forceUpdate(n => n + 1);
+    // Defer state update to avoid synchronous setState in effect
+    requestAnimationFrame(() => forceUpdate(n => n + 1));
   }, []);
 
   const sphereMaterial = useMemo(() => {
@@ -98,7 +102,7 @@ export default function DragPhysics() {
     const rect = (gl.domElement as HTMLCanvasElement).getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.current.setFromCamera({ x, y }, camera);
+    raycaster.current.setFromCamera(new THREE.Vector2(x, y), camera);
     return raycaster.current;
   }, [gl, camera, size]);
 
@@ -180,7 +184,7 @@ export default function DragPhysics() {
             pos: s.pos.clone(),
             life: 0,
             maxLife: 0.4 + Math.random() * 0.3,
-            color: new THREE.Color(SPHERE_COLORS[i]),
+            color: SPHERE_COLOR_OBJECTS[i].clone(),
           });
         }
       }
@@ -205,8 +209,7 @@ export default function DragPhysics() {
       mesh.setMatrixAt(i, dummy.current.matrix);
 
       // Set per-instance color
-      const col = new THREE.Color(SPHERE_COLORS[i]);
-      mesh.setColorAt(i, col);
+      mesh.setColorAt(i, SPHERE_COLOR_OBJECTS[i]);
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
