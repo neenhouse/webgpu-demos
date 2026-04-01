@@ -79,9 +79,39 @@ scripts/                — Build, quality audit, thumbnail capture, verificatio
 ## Key Decisions
 
 1. **R3F over vanilla Three.js** — React component model fits gallery pattern; drei provides orbit controls, loaders
-2. **Hash routing** — simple, no server config, works on Cloudflare Pages
-3. **One file per demo** — keeps demos independent, easy to batch-generate
-4. **Cloudflare Pages** — free, fast, auto-deploys from GitHub
+2. **WebGPURenderer as primary, WebGL fallback** — WebGPU enables compute shaders, TSL node materials, and GPU-driven particles. Falls back to WebGLRenderer when unavailable. This is a one-way door: WebGPU-specific features (compute, instancedArray, TSL Fn()) have no WebGL equivalent.
+3. **R3F owns the render loop** — We do NOT replace R3F's internal render cycle. This means `@react-three/postprocessing` (WebGL-only, uses WebGLRenderTarget) is incompatible. Three.js TSL-native PostProcessing (`THREE.PostProcessing` + `pass()` + `bloom()`) requires replacing `renderer.render()` which conflicts with R3F's fiber loop. Bloom/SSAO/DOF are achieved per-demo via TSL material tricks (BackSide halo shells, screen-space effects) rather than global post-processing passes.
+4. **Hash routing** — simple, no server config, works on Cloudflare Pages
+5. **One file per demo** — keeps demos independent, easy to batch-generate
+6. **Cloudflare Pages** — free, fast, auto-deploys from GitHub
+7. **ACES filmic tone mapping** — Enabled globally on both renderers. Compresses highlights for cinematic color. Demos should not fight it with excessive emissive values (max 3.0).
+
+## Technology Tradeoffs
+
+| What we gain (WebGPU + R3F) | What we give up |
+|-----|------|
+| Compute shaders (instancedArray, Fn().compute()) | No `@react-three/postprocessing` (WebGL-only) |
+| TSL node materials (colorNode, positionNode) | No global Bloom/SSAO/DOF post-processing pass |
+| GPU-driven particles and physics | Post-processing must be done per-demo via TSL tricks |
+| React component model for scene graph | Cannot replace R3F render loop |
+| Automatic dispose on unmount (key={demo.name}) | WebGPU not available in all browsers |
+| WebGL fallback for non-compute demos | Compute demos show "requires WebGPU" block |
+
+### Why not global post-processing?
+
+Scene Lab (babylon-demos) uses `@react-three/postprocessing` for Bloom + Vignette, which dramatically improves visual quality. We cannot use it because:
+
+1. `@react-three/postprocessing` wraps the `postprocessing` npm package which uses `WebGLRenderTarget` — incompatible with `WebGPURenderer`
+2. Three.js TSL-native `THREE.PostProcessing` requires calling `postProcessing.render()` instead of `renderer.render()`, which conflicts with R3F's fiber reconciler that owns the render call
+3. The R3F render loop is not replaceable without forking fiber or using `frameloop="never"` + manual rendering, which breaks React integration (useFrame, invalidate, performance regression)
+
+**Our alternative:** Per-demo visual effects via TSL material nodes:
+- BackSide halo shells with AdditiveBlending for bloom-like glow
+- Screen-space vignette via screenUV distance
+- Emissive materials with ACES tone mapping for bright highlights
+- HemisphereLight for ambient depth (sky/ground fill)
+
+These are cheaper than post-processing passes and work on both WebGPU and WebGL fallback.
 
 ## Glossary
 

@@ -101,6 +101,9 @@ Dispatch one sonnet subagent per batch of 10 demos. Provide: learnings.md, batch
 
 - Playwright headless cannot render WebGPU or WebGL canvases (no GPU). Use `pnpm preview` (port 4173) not `pnpm dev` for Playwright scripts.
 - Vite dev server crashes under rapid Playwright tab switching. Always use production preview for automated scripts.
+- `@react-three/postprocessing` is WebGL-only — do NOT install it. It uses `WebGLRenderTarget` which is incompatible with `WebGPURenderer`.
+- Three.js TSL-native `PostProcessing` requires replacing R3F's render loop — do NOT do this. Use per-demo TSL material tricks instead (BackSide halo shells, screenUV vignette, emissive + ACES).
+- See `docs/vision.md` "Technology Tradeoffs" for the full rationale.
 
 ## Key File Locations
 
