@@ -25,7 +25,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const THUMB_DIR = path.join(ROOT, 'public', 'thumbnails');
-const REGISTRY_PATH = path.join(ROOT, 'src', 'lib', 'registry.ts');
+const REGISTRY_PATH = path.join(ROOT, 'src', 'lib', 'registry-generated.ts');
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const RENDER_WAIT_MS = parseInt(process.env.RENDER_WAIT || '4000', 10);
 const VIEWPORT = { width: 1280, height: 720 };

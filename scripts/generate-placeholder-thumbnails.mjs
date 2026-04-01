@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const THUMB_DIR = path.join(ROOT, 'public', 'thumbnails');
-const REGISTRY_PATH = path.join(ROOT, 'src', 'lib', 'registry.ts');
+const REGISTRY_PATH = path.join(ROOT, 'src', 'lib', 'registry-generated.ts');
 
 const WIDTH = 640;
 const HEIGHT = 360;

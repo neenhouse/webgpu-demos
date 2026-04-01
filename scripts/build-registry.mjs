@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { DEMO_ORDER } from './demo-order.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -32,6 +33,18 @@ function loadManifests() {
     errors.forEach(e => console.error(`  ${e}`));
     process.exit(1);
   }
+
+  // Sort by batch order
+  manifests.sort((a, b) => {
+    const aIdx = DEMO_ORDER.indexOf(a.meta.name);
+    const bIdx = DEMO_ORDER.indexOf(b.meta.name);
+    // Demos in the order list come first, sorted by position
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    if (aIdx !== -1) return -1;
+    if (bIdx !== -1) return 1;
+    // Remaining demos sorted alphabetically
+    return a.meta.name.localeCompare(b.meta.name);
+  });
 
   return manifests;
 }
