@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: camera-dolly
+  title: "Camera Dolly"
+  description: "Cinematic auto-fly through a 20-arch corridor — sinusoidal camera path, speed lines, and glowing portal"
+  tags:
+    - r3f-showcase
+  color: "#ff8844"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: camera-dolly

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: product-turntable
+  title: "Product Turntable"
+  description: "PresentationControls product showcase with metallic torus knot, orbital particle ring, and reflective platform"
+  tags:
+    - r3f-showcase
+  color: "#44aaff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: product-turntable

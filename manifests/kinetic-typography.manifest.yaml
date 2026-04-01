@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: kinetic-typography
+  title: "Kinetic Typography"
+  description: "Animated 3D text using drei Text component — 6 words each with unique motion personality and color cycling"
+  tags:
+    - r3f-showcase
+  color: "#ff44aa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: kinetic-typography

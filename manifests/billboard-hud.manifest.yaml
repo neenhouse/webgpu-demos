@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: billboard-hud
+  title: "Billboard HUD"
+  description: "Sci-fi data visualization — 8 data nodes with always-facing Billboard labels, animated values, and connection lines"
+  tags:
+    - r3f-showcase
+  color: "#44ffaa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: billboard-hud

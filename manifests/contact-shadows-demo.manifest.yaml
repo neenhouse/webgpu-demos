@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: contact-shadows-demo
+  title: "Contact Shadows"
+  description: "7 floating objects with dynamic contact shadow simulation — shadows soften and shrink as objects float higher"
+  tags:
+    - r3f-showcase
+  color: "#44cc88"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: contact-shadows-demo

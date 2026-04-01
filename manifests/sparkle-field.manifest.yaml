@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: sparkle-field
+  title: "Sparkle Field"
+  description: "Pure atmospheric scene — drei Sparkles and Stars with volumetric clouds, orbiting motes, and golden glow"
+  tags:
+    - r3f-showcase
+  color: "#ffcc22"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: sparkle-field

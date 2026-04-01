@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: environment-hdr
+  title: "Environment HDR"
+  description: "5 chrome spheres demonstrating roughness 0.0 to 1.0 against a simulated city HDR environment"
+  tags:
+    - r3f-showcase
+  color: "#ccaa44"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: environment-hdr

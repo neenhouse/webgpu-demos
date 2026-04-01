@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: mirror-gallery
+  title: "Mirror Gallery"
+  description: "Reflective corridor with 7 glowing geometric sculptures and Y-flipped mirror floor simulation"
+  tags:
+    - r3f-showcase
+  color: "#8844ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: mirror-gallery

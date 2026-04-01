@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: scroll-storytelling
+  title: "Scroll Storytelling"
+  description: "Time-driven camera journey through 5 narrative sections, each with unique geometry and TSL glow materials"
+  tags:
+    - r3f-showcase
+  color: "#ff6644"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: scroll-storytelling

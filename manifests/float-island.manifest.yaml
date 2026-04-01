@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: float-island
+  title: "Float Island"
+  description: "Dreamy floating terrain scene using drei Float — displaced icosahedron island with trees, waterfall, and clouds"
+  tags:
+    - r3f-showcase
+  color: "#22ccaa"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: float-island
