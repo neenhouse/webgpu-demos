@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: ripple-interact
+  title: "Ripple Interact"
+  description: "Click a water plane to spawn expanding ripple waves — TSL displacement with up to 10 simultaneous ripples creating interference patterns"
+  tags:
+    - interactive
+  color: "#88ff44"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: ripple-interact

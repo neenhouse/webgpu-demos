@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: particle-attractor
+  title: "Particle Attractor"
+  description: "5000 particles swirl toward the mouse pointer with spring attraction and orbital vortex — color by velocity, release to scatter"
+  tags:
+    - interactive
+  color: "#ff6688"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: particle-attractor

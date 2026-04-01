@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: drag-physics
+  title: "Drag Physics"
+  description: "Click and drag 12 instanced spheres with spring physics — stretch toward pointer, spring back on release with trail particles"
+  tags:
+    - interactive
+  color: "#ff4466"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: drag-physics

@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: hover-morph
+  title: "Hover Morph"
+  description: "A sphere that morphs based on pointer proximity — vertices near the intersection bulge outward via TSL positionNode displacement with color shift"
+  tags:
+    - interactive
+  color: "#ff8822"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: hover-morph

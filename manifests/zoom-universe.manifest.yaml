@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: zoom-universe
+  title: "Zoom Universe"
+  description: "Scroll to zoom from galaxy scale to atom scale through 5 levels: galaxy stars, solar system, earth, city, electron cloud"
+  tags:
+    - interactive
+  color: "#2244ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: zoom-universe

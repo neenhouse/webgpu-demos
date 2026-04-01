@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const TAG_TAXONOMY = [
   'tsl', 'shader-art', 'compute', 'scene', 'emergent', 'data-viz',
   'audio', 'physics', 'procedural', 'retro', 'organic', 'math', 'game-ready',
+  'r3f-showcase', 'interactive',
 ] as const;
 
 export const TECHNIQUE_LIST = [

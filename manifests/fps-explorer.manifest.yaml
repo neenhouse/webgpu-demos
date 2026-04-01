@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: fps-explorer
+  title: "FPS Explorer"
+  description: "First-person camera through a glowing corridor with WASD movement, pointer lock mouse look, floating crystals and archway openings"
+  tags:
+    - interactive
+  color: "#44ff66"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: fps-explorer

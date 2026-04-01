@@ -15,6 +15,8 @@ const KNOWN_TAGS = [
   'organic',
   'math',
   'game-ready',
+  'r3f-showcase',
+  'interactive',
 ];
 
 describe('registry tags', () => {

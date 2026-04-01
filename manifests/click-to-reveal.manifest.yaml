@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: click-to-reveal
+  title: "Click to Reveal"
+  description: "Grid of 16 mystery cubes that unfold on click to reveal glowing inner objects — sphere, torus, crystal and more — with smooth animation"
+  tags:
+    - interactive
+  color: "#6644ff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: click-to-reveal

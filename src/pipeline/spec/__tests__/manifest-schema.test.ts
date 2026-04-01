@@ -92,8 +92,8 @@ describe('ManifestSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('TAG_TAXONOMY has 13 tags', () => {
-    expect(TAG_TAXONOMY.length).toBe(13);
+  it('TAG_TAXONOMY has 15 tags', () => {
+    expect(TAG_TAXONOMY.length).toBe(15);
   });
 
   it('TECHNIQUE_LIST has entries', () => {

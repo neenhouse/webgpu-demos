@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: explode-mesh
+  title: "Explode Mesh"
+  description: "Click a dodecahedron to explode it into face fragments flying outward with gravity — debris settles then reassembles in a satisfying loop"
+  tags:
+    - interactive
+  color: "#ccff44"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: explode-mesh

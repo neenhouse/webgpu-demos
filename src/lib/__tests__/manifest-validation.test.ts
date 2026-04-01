@@ -19,8 +19,8 @@ function loadAllManifests() {
 describe('manifest validation', () => {
   const manifests = loadAllManifests();
 
-  it('found 146 manifest files', () => {
-    expect(manifests.length).toBe(146);
+  it('found 166 manifest files', () => {
+    expect(manifests.length).toBe(166);
   });
 
   it('every manifest passes Zod schema validation', () => {

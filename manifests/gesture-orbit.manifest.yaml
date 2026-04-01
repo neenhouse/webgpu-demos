@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: gesture-orbit
+  title: "Gesture Orbit"
+  description: "Orbit a torus knot with momentum — spin and release for decay, double-tap to snap to preset camera angles with smooth animated transitions"
+  tags:
+    - interactive
+  color: "#44ccff"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: gesture-orbit

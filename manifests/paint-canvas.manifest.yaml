@@ -1,0 +1,14 @@
+version: "2.0"
+
+meta:
+  name: paint-canvas
+  title: "Paint Canvas"
+  description: "Draw on a 3D surface — drag to spawn glowing paint dots with rainbow color cycling, speed-based brush size, and a clear button"
+  tags:
+    - interactive
+  color: "#ff44cc"
+  requiresWebGPU: false
+
+renderer:
+  type: component
+  module: paint-canvas
