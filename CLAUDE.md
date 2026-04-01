@@ -104,6 +104,7 @@ Dispatch one sonnet subagent per batch of 10 demos. Provide: learnings.md, batch
 - `@react-three/postprocessing` is WebGL-only — do NOT install it. It uses `WebGLRenderTarget` which is incompatible with `WebGPURenderer`.
 - Three.js TSL-native `PostProcessing` requires replacing R3F's render loop — do NOT do this. Use per-demo TSL material tricks instead (BackSide halo shells, screenUV vignette, emissive + ACES).
 - See `docs/vision.md` "Technology Tradeoffs" for the full rationale.
+- Most drei helpers are WebGL-only and don't work with WebGPURenderer. **WebGPU-compatible drei**: Text, Billboard, Float, Sparkles, Stars, PresentationControls, Html. **NOT compatible**: ContactShadows, MeshReflectorMaterial, Environment, Cloud, ScrollControls, EffectComposer. Use manual equivalents (Y-flip reflections, shadow discs, multi-directional lights).
 
 ## Key File Locations
 
