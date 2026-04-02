@@ -13,18 +13,18 @@ import {
 } from 'three/tsl';
 
 /**
- * Deferred Lights — 100 dynamic point lights in a room scene
+ * Deferred Lights — 30 dynamic point lights in a large dark room scene
  *
  * Demonstrates:
- * - 100 point lights with varied colors orbiting in small circles
- * - Room scene: floor, 2 walls, 20 furniture boxes
- * - Each light = small emissive instanced sphere for visualization
+ * - 30 point lights with varied colors orbiting in small circles
+ * - Large dark room: floor 30x30, walls absorb light (dark material)
+ * - Each light = emissive sphere that IS the visual star of the scene
  * - Three.js WebGPU handles many lights natively
  * - Warm/cool light mix for visual interest
  * - Dynamic light movement showing real-time GI-like illumination
  */
 
-const LIGHT_COUNT = 100;
+const LIGHT_COUNT = 30;
 const FURNITURE_COUNT = 20;
 
 interface LightData {
@@ -39,9 +39,9 @@ interface LightData {
 const LIGHT_DATA: LightData[] = (() => {
   const lights: LightData[] = [];
   for (let i = 0; i < LIGHT_COUNT; i++) {
-    const x = (Math.random() - 0.5) * 16;
-    const y = 0.5 + Math.random() * 3.0;
-    const z = (Math.random() - 0.5) * 10;
+    const x = (Math.random() - 0.5) * 26;
+    const y = 0.5 + Math.random() * 3.5;
+    const z = (Math.random() - 0.5) * 26;
     let lightColor: THREE.Color;
     if (i % 3 === 0) {
       lightColor = new THREE.Color().setHSL(0.05 + Math.random() * 0.1, 0.9, 0.6);
@@ -67,8 +67,8 @@ const FURNITURE_MATRICES: THREE.Matrix4[] = (() => {
   for (let i = 0; i < FURNITURE_COUNT; i++) {
     const col = i % 5;
     const row = Math.floor(i / 5);
-    const x = -8 + col * 4 + (Math.random() - 0.5) * 1.5;
-    const z = -3 + row * 2 + (Math.random() - 0.5) * 0.5;
+    const x = -10 + col * 5 + (Math.random() - 0.5) * 2.0;
+    const z = -8 + row * 4 + (Math.random() - 0.5) * 1.5;
     const w = 0.8 + Math.random() * 0.8;
     const h = 0.4 + Math.random() * 1.2;
     const d = 0.6 + Math.random() * 0.6;
@@ -108,8 +108,8 @@ export default function DeferredLights() {
       smoothstep(float(1.5), float(2.5), phase)
     );
     mat.colorNode = col;
-    mat.emissiveNode = col.mul(oscSine(timeUniform.mul(2).add(idx.mul(0.7))).mul(0.3).add(2.0));
-    mat.roughness = 0.2;
+    mat.emissiveNode = col.mul(oscSine(timeUniform.mul(2).add(idx.mul(0.7))).mul(0.3).add(2.5));
+    mat.roughness = 0.1;
     mat.metalness = 0.0;
     void r; void hue;
     return mat;
@@ -124,23 +124,21 @@ export default function DeferredLights() {
     return mat;
   }, []);
 
-  // Floor material
+  // Floor material — dark, absorbs light, slight metalness so emissive spheres reflect subtly
   const floorMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color.set(0x111122);
-    mat.emissive.set(0x050510);
-    mat.emissiveIntensity = 0.2;
-    mat.roughness = 0.3;
-    mat.metalness = 0.3; // slightly reflective floor
+    mat.color.set(0x0a0a14);
+    mat.roughness = 0.15;
+    mat.metalness = 0.3;
     return mat;
   }, []);
 
-  // Wall material
+  // Wall material — very dark, low roughness so they absorb rather than diffuse
   const wallMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color.set(0x1a2233);
-    mat.roughness = 0.85;
-    mat.metalness = 0.05;
+    mat.color.set(0x0d0d18);
+    mat.roughness = 0.15;
+    mat.metalness = 0.3;
     return mat;
   }, []);
 
@@ -155,7 +153,7 @@ export default function DeferredLights() {
       const dummy = new THREE.Object3D();
       lightData.forEach((ld, i) => {
         dummy.position.copy(ld.basePos);
-        dummy.scale.setScalar(0.08);
+        dummy.scale.setScalar(0.15);
         dummy.updateMatrix();
         lightSphereRef.current!.setMatrixAt(i, dummy.matrix);
       });
@@ -178,7 +176,7 @@ export default function DeferredLights() {
       const pz = ld.basePos.z + Math.sin(angle) * ld.orbitRadius;
 
       dummy.position.set(px, py, pz);
-      dummy.scale.setScalar(0.08);
+      dummy.scale.setScalar(0.15);
       dummy.updateMatrix();
       lightSphereRef.current?.setMatrixAt(i, dummy.matrix);
 
@@ -197,11 +195,10 @@ export default function DeferredLights() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
-      <ambientLight intensity={0.3} color="#112233" />
-      <directionalLight position={[0, 8, 4]} intensity={0.5} color="#aabbcc" />
-      <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <ambientLight intensity={0.05} color="#0a0a1a" />
+      <hemisphereLight args={['#111122', '#050510', 0.08]} />
 
-      {/* 100 actual point lights */}
+      {/* 30 actual point lights */}
       {lightData.map((ld, i) => (
         <pointLight
           key={i}
@@ -214,34 +211,40 @@ export default function DeferredLights() {
         />
       ))}
 
-      {/* Floor */}
+      {/* Floor — large dark 30x30 room */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[20, 14]} />
+        <planeGeometry args={[30, 30]} />
         <primitive object={floorMat} />
       </mesh>
 
       {/* Back wall */}
-      <mesh position={[0, 2.5, -7]}>
-        <planeGeometry args={[20, 5]} />
+      <mesh position={[0, 2.5, -15]}>
+        <planeGeometry args={[30, 5]} />
+        <primitive object={wallMat} />
+      </mesh>
+
+      {/* Front wall */}
+      <mesh rotation={[0, Math.PI, 0]} position={[0, 2.5, 15]}>
+        <planeGeometry args={[30, 5]} />
         <primitive object={wallMat} />
       </mesh>
 
       {/* Left wall */}
-      <mesh rotation={[0, Math.PI / 2, 0]} position={[-10, 2.5, 0]}>
-        <planeGeometry args={[14, 5]} />
+      <mesh rotation={[0, Math.PI / 2, 0]} position={[-15, 2.5, 0]}>
+        <planeGeometry args={[30, 5]} />
         <primitive object={wallMat} />
       </mesh>
 
       {/* Right wall */}
-      <mesh rotation={[0, -Math.PI / 2, 0]} position={[10, 2.5, 0]}>
-        <planeGeometry args={[14, 5]} />
+      <mesh rotation={[0, -Math.PI / 2, 0]} position={[15, 2.5, 0]}>
+        <planeGeometry args={[30, 5]} />
         <primitive object={wallMat} />
       </mesh>
 
       {/* Ceiling */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 5, 0]}>
-        <planeGeometry args={[20, 14]} />
-        <meshStandardMaterial color="#222233" roughness={1} />
+        <planeGeometry args={[30, 30]} />
+        <meshStandardMaterial color="#0a0a14" roughness={1} />
       </mesh>
 
       {/* Furniture boxes */}
@@ -268,21 +271,21 @@ export default function DeferredLights() {
 
       {/* Floor reflection plane */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]}>
-        <planeGeometry args={[20, 14]} />
+        <planeGeometry args={[30, 30]} />
         <meshStandardMaterial
-          color="#111122"
-          roughness={0.1}
-          metalness={0.95}
+          color="#08080f"
+          roughness={0.05}
+          metalness={0.98}
           transparent
-          opacity={0.5}
+          opacity={0.6}
         />
       </mesh>
 
       {/* Corner pillars */}
-      {[[-9, -6], [-9, 6], [9, -6], [9, 6]].map(([px, pz], i) => (
+      {[[-13, -13], [-13, 13], [13, -13], [13, 13]].map(([px, pz], i) => (
         <mesh key={i} position={[px, 2.5, pz]}>
           <cylinderGeometry args={[0.2, 0.2, 5, 12]} />
-          <meshStandardMaterial color="#445566" roughness={0.6} metalness={0.4} />
+          <meshStandardMaterial color="#0d0d18" roughness={0.15} metalness={0.3} />
         </mesh>
       ))}
     </>

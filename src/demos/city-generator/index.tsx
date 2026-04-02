@@ -44,10 +44,11 @@ function makeBuildingMaterial() {
     const seed = hash(vec3(px.floor(), float(0.0), pz.floor()));
 
     // Zone colors: central glass towers, mid-city brick, suburbs beige, outer industrial
-    const glass    = vec3(0.35, 0.48, 0.58);
-    const brick    = vec3(0.52, 0.38, 0.28);
-    const beige    = vec3(0.72, 0.65, 0.52);
-    const concrete = vec3(0.42, 0.42, 0.42);
+    // Use darker values so windows stand out without blowing out
+    const glass    = vec3(0.12, 0.16, 0.22);
+    const brick    = vec3(0.18, 0.13, 0.10);
+    const beige    = vec3(0.22, 0.20, 0.16);
+    const concrete = vec3(0.14, 0.14, 0.14);
 
     const z1 = mix(glass,   brick,    smoothstep(float(0.0), float(0.3), dist));
     const z2 = mix(z1,      beige,    smoothstep(float(0.3), float(0.6), dist));
@@ -61,6 +62,7 @@ function makeBuildingMaterial() {
   mat.colorNode = zoneFn();
 
   // Window grid: hash on quantized Y creates window pattern
+  // Only lit windows contribute emissive — dark windows and building body get zero.
   const windowFn = Fn(() => {
     const py = positionWorld.y;
     const px = positionWorld.x;
@@ -70,15 +72,20 @@ function makeBuildingMaterial() {
     // Quantize X or Z for window columns
     const col = px.add(pz).div(0.06).floor();
     const windowSeed = hash(vec3(floor, col, float(0.5)));
+    // Per-window brightness variation: some off, some dim, some bright
+    const windowBrightnessSeed = hash(vec3(floor, col, float(1.3)));
     // Building accent color for windows (warm amber tint)
     const windowSeed2 = hash(vec3(px.floor(), float(1.7), pz.floor()));
-    const warmYellow = vec3(float(1.0), float(0.8), float(0.35));
-    const warmOrange = vec3(float(1.0), float(0.55), float(0.2));
-    const warmWhite  = vec3(float(0.9), float(0.85), float(0.65));
+    const warmYellow = vec3(float(0.9), float(0.7), float(0.3));
+    const warmOrange = vec3(float(0.85), float(0.45), float(0.15));
+    const warmWhite  = vec3(float(0.8), float(0.75), float(0.55));
     const winColor = mix(mix(warmYellow, warmOrange, smoothstep(float(0.3), float(0.6), windowSeed2)), warmWhite, smoothstep(float(0.7), float(0.9), windowSeed2));
-    // Windows are on 30% of faces with warm accent color
-    const isWindow = smoothstep(float(0.70), float(0.75), windowSeed);
-    return winColor.mul(isWindow.mul(1.5));
+    // Sharp window threshold: only ~20% of cells are lit windows
+    const isWindow = smoothstep(float(0.78), float(0.82), windowSeed);
+    // Per-window brightness: some dim (0.2), most medium (0.5), some bright (0.8)
+    const brightness = smoothstep(float(0.0), float(1.0), windowBrightnessSeed).mul(0.6).add(0.2);
+    // Emissive is ONLY where isWindow > 0 — non-window areas get exactly zero
+    return winColor.mul(isWindow.mul(brightness).mul(0.8));
   });
 
   mat.emissiveNode = windowFn();

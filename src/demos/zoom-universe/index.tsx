@@ -17,11 +17,11 @@ import { color, time, oscSine, normalWorld, cameraPosition, positionWorld, Fn, f
  */
 
 const LEVELS = [
-  { z: -120, label: 'Galaxy', color: '#0a0020' },
-  { z: -40,  label: 'Solar System', color: '#000815' },
-  { z: -10,  label: 'Earth', color: '#000a14' },
-  { z: -2.5, label: 'City', color: '#050508' },
-  { z: -0.4, label: 'Atom', color: '#000508' },
+  { z: -30,   label: 'Galaxy', color: '#0a0020' },
+  { z: -10,   label: 'Solar System', color: '#000815' },
+  { z: -3,    label: 'Earth', color: '#000a14' },
+  { z: -0.8,  label: 'City', color: '#050508' },
+  { z: -0.15, label: 'Atom', color: '#000508' },
 ];
 
 const STAR_COUNT = 8000;
@@ -30,8 +30,8 @@ const ELECTRON_COUNT = 60;
 
 export default function ZoomUniverse() {
   const { camera, gl } = useThree();
-  const cameraZ = useRef(-120);
-  const targetZ = useRef(-120);
+  const cameraZ = useRef(-30);
+  const targetZ = useRef(-30);
   const dummy = useRef(new THREE.Object3D());
 
   const starMesh = useRef<THREE.InstancedMesh>(null);
@@ -49,7 +49,7 @@ export default function ZoomUniverse() {
     const canvas = gl.domElement as HTMLCanvasElement;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      targetZ.current = Math.max(-120, Math.min(-0.4, targetZ.current + e.deltaY * 0.1));
+      targetZ.current = Math.max(-30, Math.min(-0.15, targetZ.current + e.deltaY * 0.03));
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     return () => canvas.removeEventListener('wheel', onWheel);
@@ -183,16 +183,16 @@ export default function ZoomUniverse() {
     // Determine level
     const z = Math.abs(cameraZ.current);
     let idx = 0;
-    if (z < 1.5) idx = 4;
-    else if (z < 5) idx = 3;
-    else if (z < 20) idx = 2;
-    else if (z < 60) idx = 1;
+    if (z < 0.4) idx = 4;
+    else if (z < 1.5) idx = 3;
+    else if (z < 6) idx = 2;
+    else if (z < 18) idx = 1;
     else idx = 0;
     setLevelIndex(idx);
 
     // Auto-scroll if near start
-    if (targetZ.current === -120 && Math.abs(cameraZ.current - (-120)) < 5) {
-      targetZ.current = -0.4;
+    if (targetZ.current === -30 && Math.abs(cameraZ.current - (-30)) < 2) {
+      targetZ.current = -0.15;
     }
 
     // Rotate galaxies
@@ -245,53 +245,53 @@ export default function ZoomUniverse() {
       <ambientLight intensity={0.05} />
       <hemisphereLight args={['#110022', '#000010', 0.2]} />
 
-      {/* Galaxy level — stars */}
-      <group visible={levelIndex <= 1}>
+      {/* Galaxy level — stars + glow centered at camera start z=-30 */}
+      <group position={[0, 0, -30]} visible={levelIndex <= 1}>
         <instancedMesh ref={starMesh} args={[undefined, undefined, STAR_COUNT]} material={starMat} frustumCulled={false}>
           <sphereGeometry args={[1, 6, 6]} />
         </instancedMesh>
-        {/* Galaxy center glow — large enough to be visible at z=-120 */}
+        {/* Galaxy center glow — sized for z=-30 camera distance */}
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[30, 16, 16]} />
+          <sphereGeometry args={[10, 16, 16]} />
           <meshBasicMaterial color="#440088" transparent opacity={0.6} />
         </mesh>
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[60, 16, 16]} />
+          <sphereGeometry args={[25, 16, 16]} />
           <meshBasicMaterial color="#220044" transparent opacity={0.25} />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={2000} color="#ffaa44" distance={200} />
+        <pointLight position={[0, 0, 0]} intensity={500} color="#ffaa44" distance={80} />
       </group>
 
       {/* Solar system level */}
-      <group position={[0, 0, -40]} visible={levelIndex >= 1 && levelIndex <= 2}>
+      <group position={[0, 0, -10]} visible={levelIndex >= 1 && levelIndex <= 2}>
         <mesh ref={sunRef} material={sunMat}>
-          <sphereGeometry args={[3, 32, 32]} />
+          <sphereGeometry args={[1.2, 32, 32]} />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={500} color="#ffaa22" distance={60} />
+        <pointLight position={[0, 0, 0]} intensity={120} color="#ffaa22" distance={25} />
         <group ref={planetGroupRef}>
-          {[8, 13, 20, 30].map((r, i) => (
+          {[3, 5, 7.5, 11].map((r, i) => (
             <mesh key={i} position={[r, 0, 0]} material={earthMat}>
-              <sphereGeometry args={[0.5 + i * 0.3, 16, 16]} />
+              <sphereGeometry args={[0.18 + i * 0.1, 16, 16]} />
             </mesh>
           ))}
         </group>
       </group>
 
       {/* Earth level */}
-      <group position={[0, 0, -10]} visible={levelIndex >= 2 && levelIndex <= 3}>
+      <group position={[0, 0, -3]} visible={levelIndex >= 2 && levelIndex <= 3}>
         <mesh ref={earthRef} material={earthMat}>
-          <sphereGeometry args={[3, 32, 32]} />
+          <sphereGeometry args={[1.0, 32, 32]} />
         </mesh>
         {/* Atmosphere shell */}
         <mesh scale={[1.07, 1.07, 1.07]}>
-          <sphereGeometry args={[3, 24, 24]} />
+          <sphereGeometry args={[1.0, 24, 24]} />
           <meshBasicMaterial color="#2266aa" transparent opacity={0.12} side={THREE.BackSide} />
         </mesh>
-        <pointLight position={[6, 4, 6]} intensity={80} color="#ffffff" distance={25} />
+        <pointLight position={[2, 1.5, 2]} intensity={8} color="#ffffff" distance={8} />
       </group>
 
       {/* City level */}
-      <group position={[0, 0, -2.5]} visible={levelIndex >= 3 && levelIndex <= 4}>
+      <group position={[0, 0, -0.8]} visible={levelIndex >= 3 && levelIndex <= 4}>
         <instancedMesh ref={buildingMesh} args={[undefined, undefined, BUILDING_COUNT]} material={buildingMat} frustumCulled={false}>
           <boxGeometry args={[1, 1, 1]} />
         </instancedMesh>
@@ -304,7 +304,7 @@ export default function ZoomUniverse() {
       </group>
 
       {/* Atom level */}
-      <group position={[0, 0, -0.4]} visible={levelIndex >= 4}>
+      <group position={[0, 0, -0.15]} visible={levelIndex >= 4}>
         {/* Nucleus */}
         <mesh ref={atomNucleusRef} material={nucleusMat}>
           <sphereGeometry args={[0.12, 16, 16]} />
