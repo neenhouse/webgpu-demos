@@ -158,6 +158,8 @@ export default function DnaHelix() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
       {/* Background atmosphere */}
       <mesh>
         <sphereGeometry args={[30, 16, 16]} />

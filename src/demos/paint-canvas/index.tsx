@@ -178,6 +178,8 @@ export default function PaintCanvas() {
       </mesh>
 
       <color attach="background" args={['#050008']} />
+
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
       <ambientLight intensity={0.08} />
       <hemisphereLight args={['#220044', '#050008', 0.3]} />
       <directionalLight position={[0, 5, 5]} intensity={0.4} />

@@ -241,6 +241,8 @@ export default function CollisionCascade() {
       </mesh>
 
       <color attach="background" args={['#060408']} />
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.15} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 12, 5]} intensity={0.7} castShadow />

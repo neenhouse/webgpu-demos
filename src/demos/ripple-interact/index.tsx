@@ -194,6 +194,8 @@ export default function RippleInteract() {
       </mesh>
 
       <color attach="background" args={['#020810']} />
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#112244', '#020810', 0.5]} />
       <directionalLight position={[3, 8, 3]} intensity={0.5} />

@@ -272,8 +272,8 @@ export default function BillboardHUD() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
-      <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <ambientLight intensity={0.15} />
+      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 4, 0]} intensity={0.5} color={0x00ffcc} distance={12} />
 
       {/* Background */}

@@ -216,6 +216,8 @@ export default function MagneticFields() {
   return (
     <>
       <color attach="background" args={['#000508']} />
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[-1.5, 0.5, 0]} intensity={25} color="#ff2244" distance={8} />

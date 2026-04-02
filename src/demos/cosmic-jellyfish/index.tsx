@@ -623,6 +623,8 @@ export default function CosmicJellyfish() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       {/* Minimal scene lighting — emissive-driven scene (proven) */}
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />

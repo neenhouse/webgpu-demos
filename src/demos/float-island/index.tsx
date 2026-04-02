@@ -329,6 +329,8 @@ export default function FloatIsland() {
 
   return (
     <>
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
+
       <ambientLight intensity={0.4} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       {/* Warm sun */}

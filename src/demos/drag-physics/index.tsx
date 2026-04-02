@@ -256,6 +256,8 @@ export default function DragPhysics() {
       </mesh>
 
       <color attach="background" args={['#0d0010']} />
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#331144', '#110022', 0.5]} />
       <directionalLight position={[5, 8, 5]} intensity={0.8} />

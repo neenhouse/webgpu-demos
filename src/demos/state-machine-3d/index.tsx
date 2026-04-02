@@ -963,6 +963,8 @@ export default function StateMachine3D() {
 
   return (
     <>
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
+
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight

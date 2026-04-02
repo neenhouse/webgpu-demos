@@ -230,6 +230,8 @@ export default function GlitchPortrait() {
       </mesh>
 
       <color attach="background" args={['#050008']} />
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
     </>
   );
 }

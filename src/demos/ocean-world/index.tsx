@@ -211,6 +211,8 @@ export default function OceanWorld() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.05} />
       {/* Sky-simulating ambient */}
       <ambientLight intensity={0.35} color="#7eb5d5" />
       <directionalLight position={[10, 18, 5]} intensity={1.8} color="#fffaec" />

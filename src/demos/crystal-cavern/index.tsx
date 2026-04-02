@@ -350,6 +350,8 @@ export default function CrystalCavern() {
 
   return (
     <>
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
+
       {/* Very low ambient — crystals illuminate the cave */}
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />

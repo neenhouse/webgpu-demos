@@ -150,6 +150,8 @@ export default function CrystalGrid() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       {/* Background atmosphere */}
       <mesh>
         <sphereGeometry args={[30, 16, 16]} />

@@ -233,6 +233,8 @@ export default function StrangeAttractor() {
   return (
     <>
       <color attach="background" args={['#050205']} />
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[15, 16, 10]} />

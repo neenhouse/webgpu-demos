@@ -251,7 +251,7 @@ export default function MirrorGallery() {
 
   return (
     <>
-      <ambientLight intensity={0.03} />
+      <ambientLight intensity={0.15} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[0, 5, 3]} intensity={0.3} color={0x8899ff} />
 

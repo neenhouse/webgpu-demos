@@ -183,6 +183,8 @@ export default function EnvironmentHDR() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.3} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
 

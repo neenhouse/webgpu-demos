@@ -195,6 +195,8 @@ export default function SynthAurora() {
   return (
     <>
       <color attach="background" args={['#000008']} />
+
+      <fogExp2 attach="fog" color="#040208" density={0.04} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[35, 16, 10]} />

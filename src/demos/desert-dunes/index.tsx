@@ -193,6 +193,8 @@ export default function DesertDunes() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
       {/* Warm desert sun */}
       <ambientLight intensity={0.45} color="#e8c880" />
       <directionalLight position={[15, 20, -8]} intensity={2.2} color="#ffe8a0" castShadow />

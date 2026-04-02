@@ -165,6 +165,8 @@ export default function PendulumWave() {
   return (
     <>
       <color attach="background" args={['#00000a']} />
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[30, 16, 10]} />

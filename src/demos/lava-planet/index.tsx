@@ -371,6 +371,8 @@ export default function LavaPlanet() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#080402" density={0.04} />
       {/* Minimal scene lighting - emissive lava provides most light */}
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#443322', '#221111', 0.3]} />

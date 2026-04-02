@@ -206,8 +206,8 @@ export default function ParticleAttractor() {
       </mesh>
 
       <color attach="background" args={['#030008']} />
-      <ambientLight intensity={0.06} />
-      <hemisphereLight args={['#110033', '#030008', 0.3]} />
+      <ambientLight intensity={0.15} />
+      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#110033', '#030008', 0.3]} />
       <directionalLight position={[3, 5, 5]} intensity={0.4} />
       <pointLight position={[0, 0, 0]} intensity={30} color="#4422ff" distance={10} />
 

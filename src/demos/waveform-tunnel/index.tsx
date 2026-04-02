@@ -175,6 +175,8 @@ export default function WaveformTunnel() {
   return (
     <>
       <color attach="background" args={['#000000']} />
+
+      <fogExp2 attach="fog" color="#040208" density={0.04} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 0, 0]} intensity={20} color="#00ffff" distance={8} />

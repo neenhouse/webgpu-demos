@@ -206,6 +206,8 @@ export default function ElasticWaves() {
       </mesh>
 
       <color attach="background" args={['#000812']} />
+
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 8, 3]} intensity={0.5} />

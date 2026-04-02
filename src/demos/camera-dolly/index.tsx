@@ -238,8 +238,8 @@ export default function CameraDolly() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
-      <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <ambientLight intensity={0.15} />
+      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Tunnel interior lights */}
       <pointLight position={[-1.5, 1.5, -10]} intensity={1.5} color={0xff7733} distance={8} />

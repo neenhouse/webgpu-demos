@@ -171,6 +171,8 @@ export default function SpriteSparks() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[3, 5, 3]} intensity={0.5} />
       <pointLight position={[0, -1.5, 0]} intensity={5.0} color="#ff6622" distance={10} />

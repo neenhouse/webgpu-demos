@@ -209,6 +209,8 @@ export default function VinylGrooves() {
   return (
     <>
       <color attach="background" args={['#0a0508']} />
+
+      <fogExp2 attach="fog" color="#040208" density={0.04} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[12, 16, 10]} />

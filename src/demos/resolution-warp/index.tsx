@@ -184,6 +184,8 @@ export default function ResolutionWarp() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 5, 5]} intensity={0.15} />

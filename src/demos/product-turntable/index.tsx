@@ -176,7 +176,7 @@ export default function ProductTurntable() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.15} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Key light — warm, from top-right */}

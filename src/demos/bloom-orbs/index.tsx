@@ -169,6 +169,8 @@ export default function BloomOrbs() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       {/* Minimal scene lighting — the orbs provide their own glow */}

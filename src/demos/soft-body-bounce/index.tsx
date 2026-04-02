@@ -222,6 +222,8 @@ export default function SoftBodyBounce() {
       </mesh>
 
       <color attach="background" args={['#080510']} />
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.15} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 3]} intensity={0.6} />

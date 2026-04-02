@@ -228,6 +228,8 @@ export default function LissajousWeb() {
   return (
     <>
       <color attach="background" args={['#000208']} />
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[14, 16, 10]} />

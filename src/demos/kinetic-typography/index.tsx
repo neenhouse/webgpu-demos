@@ -255,8 +255,8 @@ export default function KineticTypography() {
 
   return (
     <>
-      <ambientLight intensity={0.05} />
-      <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <ambientLight intensity={0.15} />
+      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <pointLight position={[0, 3, 3]} intensity={0.8} color={0xff44aa} />
       <pointLight position={[3, -2, 2]} intensity={0.6} color={0x44aaff} />
 

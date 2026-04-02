@@ -141,6 +141,8 @@ export default function HoverMorph() {
       </mesh>
 
       <color attach="background" args={['#020814']} />
+
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
       <ambientLight intensity={0.08} />
       <hemisphereLight args={['#112244', '#020814', 0.4]} />
       <directionalLight position={[4, 6, 4]} intensity={0.6} />

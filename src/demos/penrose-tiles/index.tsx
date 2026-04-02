@@ -224,6 +224,8 @@ export default function PenroseTiles() {
 
   return (
     <>
+
+      <fogExp2 attach="fog" color="#030306" density={0.03} />
       {/* Background atmosphere */}
       <mesh>
         <sphereGeometry args={[30, 16, 16]} />

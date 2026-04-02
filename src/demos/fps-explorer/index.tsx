@@ -182,7 +182,7 @@ export default function FpsExplorer() {
   return (
     <>
       <color attach="background" args={['#050010']} />
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.15} />
       <hemisphereLight args={['#220044', '#050010', 0.2]} />
 
       {/* Corridor floor */}

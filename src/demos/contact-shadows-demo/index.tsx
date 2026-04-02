@@ -183,6 +183,8 @@ export default function ContactShadowsDemo() {
 
   return (
     <>
+      <fogExp2 attach="fog" color="#020408" density={0.04} />
+
       <ambientLight intensity={0.6} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 8, 4]} intensity={1.5} color={0xffffff} castShadow />

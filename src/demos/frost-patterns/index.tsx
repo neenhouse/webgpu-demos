@@ -203,6 +203,8 @@ export default function FrostPatterns() {
 
       {/* Warm orange background gradient */}
       <color attach="background" args={['#ff8833']} />
+
+      <fogExp2 attach="fog" color="#020804" density={0.03} />
       <ambientLight intensity={0.4} color="#ff8833" />
       <directionalLight position={[2, 4, 3]} intensity={1.2} color="#ffffff" />
       <pointLight position={[-2, 1, 2]} intensity={3.0} color="#ff6600" distance={10} />
