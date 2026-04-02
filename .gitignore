@@ -36,3 +36,7 @@ test-results/
 
 # Auto-generated registry from manifests
 src/lib/registry-generated.ts
+
+# Visual evaluation artifacts
+.screenshots/
+.chrome-eval-profile/
