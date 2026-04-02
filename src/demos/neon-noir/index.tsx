@@ -43,10 +43,10 @@ export default function NeonNoir() {
   const groundMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.color = new THREE.Color(0x080810);
-    mat.metalness = 0.85;
-    mat.roughness = 0.12;
+    mat.metalness = 1.0;
+    mat.roughness = 0.1;
     mat.emissive = new THREE.Color(0x110022);
-    mat.emissiveIntensity = 0.1;
+    mat.emissiveIntensity = 0.3;
     return mat;
   }, []);
 
@@ -88,9 +88,9 @@ export default function NeonNoir() {
   // ── Volumetric light cone materials ──
   const volLightMats = useMemo(() => {
     return [
-      { color: new THREE.Color(0xff0033), pos: [-4, 8, -5] as [number, number, number] },
-      { color: new THREE.Color(0x0033ff), pos: [0, 8, -8] as [number, number, number] },
-      { color: new THREE.Color(0xff00cc), pos: [4, 8, -5] as [number, number, number] },
+      { color: new THREE.Color(0xff0033), pos: [-4, 5, -5] as [number, number, number] },
+      { color: new THREE.Color(0x0033ff), pos: [0, 5, -8] as [number, number, number] },
+      { color: new THREE.Color(0xff00cc), pos: [4, 5, -5] as [number, number, number] },
     ].map(({ color, pos }) => {
       const mat = new THREE.MeshStandardNodeMaterial();
       mat.transparent = true;
@@ -173,11 +173,12 @@ export default function NeonNoir() {
       <ambientLight intensity={0.08} color="#220033" />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
-      {/* Neon point lights */}
-      <pointLight position={[-4, 3, -3]} intensity={4} color="#ff0033" distance={12} />
-      <pointLight position={[3, 4, -6]} intensity={3} color="#0033ff" distance={15} />
-      <pointLight position={[0, 3, -2]} intensity={2.5} color="#ff00cc" distance={10} />
-      <pointLight position={[5, 2, -4]} intensity={2} color="#00ffcc" distance={12} />
+      {/* Neon point lights — lowered to illuminate ground */}
+      <pointLight position={[-4, 1.5, -3]} intensity={6} color="#ff0033" distance={14} />
+      <pointLight position={[3, 1.5, -6]} intensity={5} color="#0033ff" distance={16} />
+      <pointLight position={[0, 1.0, -2]} intensity={4} color="#ff00cc" distance={12} />
+      <pointLight position={[5, 1.0, -4]} intensity={3} color="#00ffcc" distance={14} />
+      <pointLight position={[-7, 0.5, -3]} intensity={3} color="#ff6600" distance={10} />
 
       {/* Ground plane */}
       <mesh material={groundMat} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
@@ -203,31 +204,31 @@ export default function NeonNoir() {
         <boxGeometry args={[1, 8, 12]} />
       </mesh>
 
-      {/* Neon signs */}
-      <mesh material={neonMats[0]} position={[-6, 4, -10]}>
+      {/* Neon signs — lowered closer to ground so light reaches floor */}
+      <mesh material={neonMats[0]} position={[-6, 2.5, -10]}>
         <boxGeometry args={[2.5, 0.6, 0.1]} />
       </mesh>
-      <mesh material={neonMats[1]} position={[-4, 6, -10]}>
+      <mesh material={neonMats[1]} position={[-4, 3.5, -10]}>
         <boxGeometry args={[1.5, 0.5, 0.1]} />
       </mesh>
-      <mesh material={neonMats[2]} position={[4, 5, -10]}>
+      <mesh material={neonMats[2]} position={[4, 2.8, -10]}>
         <boxGeometry args={[3.0, 0.5, 0.1]} />
       </mesh>
-      <mesh material={neonMats[3]} position={[7, 3.5, -10]}>
+      <mesh material={neonMats[3]} position={[7, 2.0, -10]}>
         <boxGeometry args={[1.8, 0.4, 0.1]} />
       </mesh>
-      <mesh material={neonMats[4]} position={[-7, 2.5, -10]}>
+      <mesh material={neonMats[4]} position={[-7, 1.5, -10]}>
         <boxGeometry args={[2.0, 0.4, 0.1]} />
       </mesh>
-      <mesh material={neonMats[5]} position={[1, 7, -10]}>
+      <mesh material={neonMats[5]} position={[1, 4.0, -10]}>
         <boxGeometry args={[2.5, 0.6, 0.1]} />
       </mesh>
 
-      {/* Additional neon on side walls */}
-      <mesh material={neonMats[0]} position={[-9.3, 3, -4]} rotation={[0, Math.PI / 2, 0]}>
+      {/* Additional neon on side walls — lowered */}
+      <mesh material={neonMats[0]} position={[-9.3, 1.5, -4]} rotation={[0, Math.PI / 2, 0]}>
         <boxGeometry args={[3.0, 0.5, 0.1]} />
       </mesh>
-      <mesh material={neonMats[2]} position={[9.3, 5, -7]} rotation={[0, -Math.PI / 2, 0]}>
+      <mesh material={neonMats[2]} position={[9.3, 2.5, -7]} rotation={[0, -Math.PI / 2, 0]}>
         <boxGeometry args={[2.5, 0.5, 0.1]} />
       </mesh>
 
@@ -244,7 +245,7 @@ export default function NeonNoir() {
       ))}
 
       {/* Fog — dark purple tint for depth */}
-      <fog attach="fog" args={['#110022', 12, 30]} />
+      <fog attach="fog" args={['#110022', 5, 28]} />
     </>
   );
 }

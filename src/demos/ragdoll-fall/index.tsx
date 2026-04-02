@@ -264,9 +264,12 @@ export default function RagdollFall() {
 
       <color attach="background" args={['#080408']} />
       <ambientLight intensity={0.2} />
-      <directionalLight position={[4, 8, 3]} intensity={0.6} />
-      <pointLight position={[0, 0, 3]} intensity={20} color="#ff4488" distance={15} />
-      <pointLight position={[-3, -3, 3]} intensity={10} color="#4488ff" distance={10} />
+      <directionalLight position={[4, 8, 3]} intensity={0.8} />
+      <pointLight position={[0, 0, 5]} intensity={30} color="#ff4488" distance={20} />
+      <pointLight position={[-3, -3, 5]} intensity={15} color="#4488ff" distance={14} />
+
+      {/* Scene group — scaled up 2x so the figure fills more of the viewport */}
+      <group scale={[2, 2, 2]}>
 
       {/* Joint spheres */}
       <instancedMesh
@@ -286,33 +289,44 @@ export default function RagdollFall() {
         <cylinderGeometry args={[1, 1, 1, 6]} />
       </instancedMesh>
 
-      {/* Horizontal bar obstacles */}
-      {BAR_Y_POSITIONS.map((y, i) => (
-        <mesh key={i} position={[0, y, 0]}>
-          <cylinderGeometry args={[0.06, 0.06, 5.0, 8, 1]} />
-          <meshStandardMaterial color="#334455" metalness={0.7} roughness={0.3} emissive="#112233" emissiveIntensity={0.5} />
-        </mesh>
-      ))}
+      {/* Colored point lights at each obstacle bar */}
+      {BAR_Y_POSITIONS.map((y, i) => {
+        const barColors = ['#ff3366', '#33aaff', '#ffcc00', '#44ffaa', '#ff6633'];
+        return <pointLight key={`pl${i}`} position={[0, y, 1]} intensity={8} color={barColors[i]} distance={6} />;
+      })}
+
+      {/* Horizontal bar obstacles — each bar a distinct emissive color */}
+      {BAR_Y_POSITIONS.map((y, i) => {
+        const barColors = ['#ff3366', '#33aaff', '#ffcc00', '#44ffaa', '#ff6633'];
+        return (
+          <mesh key={i} position={[0, y, 0]}>
+            <cylinderGeometry args={[0.08, 0.08, 6.0, 8, 1]} />
+            <meshStandardMaterial color={barColors[i]} metalness={0.5} roughness={0.3} emissive={barColors[i]} emissiveIntensity={1.5} />
+          </mesh>
+        );
+      })}
 
       {/* Left/right supports */}
       {BAR_Y_POSITIONS.map((y, i) => (
         <group key={`s${i}`}>
-          <mesh position={[-2.5, y, 0.5]}>
-            <boxGeometry args={[0.08, 0.08, 1.0]} />
-            <meshStandardMaterial color="#223344" metalness={0.6} roughness={0.4} />
+          <mesh position={[-3.0, y, 0.5]}>
+            <boxGeometry args={[0.1, 0.1, 1.2]} />
+            <meshStandardMaterial color="#445566" metalness={0.6} roughness={0.4} emissive="#223344" emissiveIntensity={0.5} />
           </mesh>
-          <mesh position={[2.5, y, 0.5]}>
-            <boxGeometry args={[0.08, 0.08, 1.0]} />
-            <meshStandardMaterial color="#223344" metalness={0.6} roughness={0.4} />
+          <mesh position={[3.0, y, 0.5]}>
+            <boxGeometry args={[0.1, 0.1, 1.2]} />
+            <meshStandardMaterial color="#445566" metalness={0.6} roughness={0.4} emissive="#223344" emissiveIntensity={0.5} />
           </mesh>
         </group>
       ))}
 
-      {/* Floor grid plane */}
+      {/* Floor grid plane — brighter emissive */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -9.5, 0]}>
-        <planeGeometry args={[10, 10, 20, 20]} />
-        <meshStandardMaterial color="#1a2233" wireframe />
+        <planeGeometry args={[14, 14, 24, 24]} />
+        <meshStandardMaterial color="#2a3a55" emissive="#1a2a44" emissiveIntensity={0.5} wireframe />
       </mesh>
+
+      </group>
     </>
   );
 }

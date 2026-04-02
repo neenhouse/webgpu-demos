@@ -70,10 +70,15 @@ function makeBuildingMaterial() {
     // Quantize X or Z for window columns
     const col = px.add(pz).div(0.06).floor();
     const windowSeed = hash(vec3(floor, col, float(0.5)));
-    // Windows are on 30% of faces, bright yellow-white at night
+    // Building accent color for windows (warm amber tint)
+    const windowSeed2 = hash(vec3(px.floor(), float(1.7), pz.floor()));
+    const warmYellow = vec3(float(1.0), float(0.8), float(0.35));
+    const warmOrange = vec3(float(1.0), float(0.55), float(0.2));
+    const warmWhite  = vec3(float(0.9), float(0.85), float(0.65));
+    const winColor = mix(mix(warmYellow, warmOrange, smoothstep(float(0.3), float(0.6), windowSeed2)), warmWhite, smoothstep(float(0.7), float(0.9), windowSeed2));
+    // Windows are on 30% of faces with warm accent color
     const isWindow = smoothstep(float(0.70), float(0.75), windowSeed);
-    const windowColor = vec3(float(1.0), float(0.92), float(0.6));
-    return windowColor.mul(isWindow.mul(4.0));
+    return winColor.mul(isWindow.mul(1.5));
   });
 
   mat.emissiveNode = windowFn();
@@ -106,10 +111,10 @@ function makeReflectionMaterial() {
     const col = px.add(pz).div(0.06).floor();
     const ws = hash(vec3(floor, col, float(0.5)));
     const isWin = smoothstep(float(0.70), float(0.75), ws);
-    return vec3(float(1.0), float(0.92), float(0.6)).mul(isWin.mul(0.6));
+    return vec3(float(1.0), float(0.8), float(0.35)).mul(isWin.mul(0.5));
   });
   mat.emissiveNode = winRefl();
-  mat.opacityNode = float(0.25);
+  mat.opacityNode = float(0.45);
   mat.roughness = 0.1;
   mat.metalness = 0.8;
 

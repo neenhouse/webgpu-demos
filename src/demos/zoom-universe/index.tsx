@@ -60,7 +60,7 @@ export default function ZoomUniverse() {
     // Stars
     if (starMesh.current) {
       for (let i = 0; i < STAR_COUNT; i++) {
-        const r = 30 + Math.random() * 90;
+        const r = 80 + Math.random() * 60;
         const theta = Math.random() * Math.PI * 2;
         const spiralOffset = theta * 0.3;
         const phi = (Math.random() - 0.5) * 0.3;
@@ -69,7 +69,7 @@ export default function ZoomUniverse() {
           Math.sin(phi) * r * 0.1,
           Math.sin(theta + spiralOffset) * r
         );
-        dummy.current.scale.setScalar(0.1 + Math.random() * 0.3);
+        dummy.current.scale.setScalar(0.3 + Math.random() * 0.7);
         dummy.current.updateMatrix();
         starMesh.current.setMatrixAt(i, dummy.current.matrix);
         const brightness = Math.random();
@@ -250,16 +250,16 @@ export default function ZoomUniverse() {
         <instancedMesh ref={starMesh} args={[undefined, undefined, STAR_COUNT]} material={starMat} frustumCulled={false}>
           <sphereGeometry args={[1, 6, 6]} />
         </instancedMesh>
-        {/* Galaxy center glow */}
+        {/* Galaxy center glow — large enough to be visible at z=-120 */}
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[5, 16, 16]} />
-          <meshBasicMaterial color="#440088" transparent opacity={0.5} />
+          <sphereGeometry args={[30, 16, 16]} />
+          <meshBasicMaterial color="#440088" transparent opacity={0.6} />
         </mesh>
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[12, 16, 16]} />
-          <meshBasicMaterial color="#220044" transparent opacity={0.2} />
+          <sphereGeometry args={[60, 16, 16]} />
+          <meshBasicMaterial color="#220044" transparent opacity={0.25} />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={500} color="#ffaa44" distance={80} />
+        <pointLight position={[0, 0, 0]} intensity={2000} color="#ffaa44" distance={200} />
       </group>
 
       {/* Solar system level */}

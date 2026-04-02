@@ -127,8 +127,10 @@ export default function DeferredLights() {
   // Floor material
   const floorMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color.set(0x445566);
-    mat.roughness = 0.6;
+    mat.color.set(0x111122);
+    mat.emissive.set(0x050510);
+    mat.emissiveIntensity = 0.2;
+    mat.roughness = 0.3;
     mat.metalness = 0.3; // slightly reflective floor
     return mat;
   }, []);
@@ -136,7 +138,7 @@ export default function DeferredLights() {
   // Wall material
   const wallMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color.set(0x334455);
+    mat.color.set(0x1a2233);
     mat.roughness = 0.85;
     mat.metalness = 0.05;
     return mat;
@@ -205,9 +207,9 @@ export default function DeferredLights() {
           key={i}
           ref={(l) => { if (l) lightRefs.current[i] = l; }}
           position={[ld.basePos.x, ld.basePos.y, ld.basePos.z]}
-          intensity={1.5}
+          intensity={0.5}
           color={ld.color}
-          distance={8}
+          distance={5}
           decay={2}
         />
       ))}
