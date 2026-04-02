@@ -42,10 +42,11 @@ export default function NeonNoir() {
   // ── Ground material (wet reflective) ──
   const groundMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color = new THREE.Color(0x050508);
+    mat.color = new THREE.Color(0x080810);
     mat.metalness = 0.85;
     mat.roughness = 0.12;
-    mat.emissive = new THREE.Color(0x010103);
+    mat.emissive = new THREE.Color(0x110022);
+    mat.emissiveIntensity = 0.1;
     return mat;
   }, []);
 
@@ -64,7 +65,7 @@ export default function NeonNoir() {
       const mat = new THREE.MeshStandardNodeMaterial();
       mat.color = c;
       mat.emissive = c;
-      mat.emissiveIntensity = 2.5;
+      mat.emissiveIntensity = 3.5;
       mat.roughness = 1.0;
       mat.metalness = 0.0;
       return mat;
@@ -75,12 +76,12 @@ export default function NeonNoir() {
   const rainMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
     mat.transparent = true;
-    mat.color = new THREE.Color(0xaaccff);
-    mat.emissive = new THREE.Color(0x2244aa);
-    mat.emissiveIntensity = 0.5;
+    mat.color = new THREE.Color(0xccddff);
+    mat.emissive = new THREE.Color(0x4466cc);
+    mat.emissiveIntensity = 1.5;
     mat.roughness = 0.0;
     mat.metalness = 0.0;
-    mat.opacityNode = float(0.35);
+    mat.opacityNode = float(0.6);
     return mat;
   }, []);
 
@@ -169,7 +170,7 @@ export default function NeonNoir() {
   return (
     <>
       {/* Dark ambient */}
-      <ambientLight intensity={0.1} color="#0a0010" />
+      <ambientLight intensity={0.08} color="#220033" />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* Neon point lights */}
@@ -242,8 +243,8 @@ export default function NeonNoir() {
         </mesh>
       ))}
 
-      {/* Fog */}
-      <fog attach="fog" args={['#000005', 15, 35]} />
+      {/* Fog — dark purple tint for depth */}
+      <fog attach="fog" args={['#110022', 12, 30]} />
     </>
   );
 }

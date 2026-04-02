@@ -73,7 +73,7 @@ function makeBuildingMaterial() {
     // Windows are on 30% of faces, bright yellow-white at night
     const isWindow = smoothstep(float(0.70), float(0.75), windowSeed);
     const windowColor = vec3(float(1.0), float(0.92), float(0.6));
-    return windowColor.mul(isWindow.mul(2.8));
+    return windowColor.mul(isWindow.mul(4.0));
   });
 
   mat.emissiveNode = windowFn();
@@ -258,12 +258,15 @@ export default function CityGenerator() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
-      <ambientLight intensity={0.15} color="#334466" />
-      <hemisphereLight args={['#334466', '#111122', 0.3]} />
-      <directionalLight position={[8, 14, 6]} intensity={0.6} color="#aabbdd" />
-      <pointLight position={[0, 8, 0]} intensity={2.0} color="#ffcc88" distance={40} />
-      <pointLight position={[-8, 2, 0]} intensity={1.2} color="#ff4488" distance={20} />
-      <pointLight position={[8, 2, 0]} intensity={1.2} color="#44aaff" distance={20} />
+      <ambientLight intensity={0.4} color="#334466" />
+      <hemisphereLight args={['#446688', '#111122', 0.5]} />
+      <directionalLight position={[8, 14, 6]} intensity={0.8} color="#aabbdd" />
+      <pointLight position={[0, 8, 0]} intensity={5.0} color="#ffcc88" distance={60} />
+      <pointLight position={[-8, 2, 0]} intensity={3.0} color="#ff4488" distance={30} />
+      <pointLight position={[8, 2, 0]} intensity={3.0} color="#44aaff" distance={30} />
+      <pointLight position={[0, 2, 8]} intensity={2.0} color="#ff8833" distance={25} />
+      {/* City fog */}
+      <fog attach="fog" args={['#050a14', 20, 50]} />
 
       <group ref={groupRef}>
         {/* Road network */}

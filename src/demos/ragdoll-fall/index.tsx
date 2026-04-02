@@ -90,19 +90,19 @@ function createRagdoll(startY: number): { particles: Particle[]; constraints: Co
   const spread = (Math.random() - 0.5) * 0.5;
 
   const jointDefs: [number, number, number][] = [
-    [spread, startY + 1.8, 0],      // HEAD
-    [spread, startY + 1.4, 0],      // NECK
-    [spread - 0.4, startY + 1.2, 0], // L_SHOULDER
-    [spread + 0.4, startY + 1.2, 0], // R_SHOULDER
-    [spread - 0.6, startY + 0.7, 0], // L_ELBOW
-    [spread + 0.6, startY + 0.7, 0], // R_ELBOW
-    [spread - 0.5, startY + 0.2, 0], // L_HAND
-    [spread + 0.5, startY + 0.2, 0], // R_HAND
-    [spread, startY + 0.7, 0],       // HIPS
-    [spread - 0.25, startY + 0.0, 0], // L_KNEE
-    [spread + 0.25, startY + 0.0, 0], // R_KNEE
-    [spread - 0.25, startY - 0.7, 0], // L_FOOT
-    [spread + 0.25, startY - 0.7, 0], // R_FOOT
+    [spread, startY + 2.7, 0],       // HEAD
+    [spread, startY + 2.1, 0],       // NECK
+    [spread - 0.6, startY + 1.8, 0], // L_SHOULDER
+    [spread + 0.6, startY + 1.8, 0], // R_SHOULDER
+    [spread - 0.9, startY + 1.05, 0], // L_ELBOW
+    [spread + 0.9, startY + 1.05, 0], // R_ELBOW
+    [spread - 0.75, startY + 0.3, 0], // L_HAND
+    [spread + 0.75, startY + 0.3, 0], // R_HAND
+    [spread, startY + 1.05, 0],       // HIPS
+    [spread - 0.375, startY + 0.0, 0], // L_KNEE
+    [spread + 0.375, startY + 0.0, 0], // R_KNEE
+    [spread - 0.375, startY - 1.05, 0], // L_FOOT
+    [spread + 0.375, startY - 1.05, 0], // R_FOOT
   ];
 
   const particles: Particle[] = jointDefs.map(([x, y, z]) => {
@@ -221,7 +221,7 @@ export default function RagdollFall() {
       for (let i = 0; i < JOINT_COUNT; i++) {
         const p = particles[i];
         dummy.position.copy(p.pos);
-        const scale = i === HEAD ? 0.18 : i === HIPS ? 0.13 : 0.09;
+        const scale = i === HEAD ? 0.27 : i === HIPS ? 0.20 : 0.14;
         dummy.scale.setScalar(scale);
         dummy.rotation.set(0, 0, 0);
         dummy.updateMatrix();
@@ -245,7 +245,7 @@ export default function RagdollFall() {
         tmpQ.setFromUnitVectors(up, tmpDir);
         dummy.position.copy(tmpMid);
         dummy.quaternion.copy(tmpQ);
-        const thick = ai === HEAD || bi === HEAD ? 0.04 : 0.035;
+        const thick = ai === HEAD || bi === HEAD ? 0.06 : 0.05;
         dummy.scale.set(thick, len * 0.5, thick);
         dummy.updateMatrix();
         limbMesh.setMatrixAt(i, dummy.matrix);
@@ -307,6 +307,12 @@ export default function RagdollFall() {
           </mesh>
         </group>
       ))}
+
+      {/* Floor grid plane */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -9.5, 0]}>
+        <planeGeometry args={[10, 10, 20, 20]} />
+        <meshStandardMaterial color="#1a2233" wireframe />
+      </mesh>
     </>
   );
 }

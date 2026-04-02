@@ -34,7 +34,7 @@ import {
 
 const WIDTH = 256;
 const TOTAL = WIDTH * WIDTH;
-const WALKERS = 64;
+const WALKERS = 256;
 
 export default function FrostPatterns() {
   const { viewport, gl } = useThree();
@@ -53,7 +53,7 @@ export default function FrostPatterns() {
     const frameU = uniform(0.0);
     const w = float(WIDTH);
 
-    // Init: seed edges frozen, walkers random
+    // Init: seed edges + center area frozen, walkers random
     const computeInit = Fn(() => {
       const idx = float(instanceIndex);
       const gx = idx.mod(w);
@@ -62,13 +62,21 @@ export default function FrostPatterns() {
       // Freeze edges (border seeds)
       const isBorder = gx.lessThan(float(2)).or(gx.greaterThan(w.sub(3)))
         .or(gy.lessThan(float(2)).or(gy.greaterThan(w.sub(3))));
-      If(isBorder, () => {
+
+      // Also freeze a small center seed region (20x20 pixels around center)
+      const cx = w.div(2.0);
+      const cy = w.div(2.0);
+      const isCenter = gx.sub(cx).abs().lessThan(float(10)).and(gy.sub(cy).abs().lessThan(float(10)));
+
+      const isSeed = isBorder.or(isCenter);
+
+      If(isSeed, () => {
         gridA.element(instanceIndex).assign(float(1.0));
         gridB.element(instanceIndex).assign(float(1.0));
       });
 
       // Inner: unfrozen
-      If(isBorder.not(), () => {
+      If(isSeed.not(), () => {
         gridA.element(instanceIndex).assign(float(0.0));
         gridB.element(instanceIndex).assign(float(0.0));
       });
@@ -137,13 +145,13 @@ export default function FrostPatterns() {
     );
 
     // Frozen = white/cyan, unfrozen = dark blue
-    const frostColor = vec3(0.85, 0.95, 1.0).mul(shimmer);
-    const glassColor = vec3(0.02, 0.05, 0.12);
+    const frostColor = vec3(0.9, 0.97, 1.0).mul(shimmer);
+    const glassColor = vec3(0.02, 0.05, 0.18);
     const finalColor = mix(glassColor, frostColor, frozen);
 
     renderMat.colorNode = vec4(finalColor, float(1.0));
     renderMat.emissiveNode = vec4(
-      mix(vec3(0.0), frostColor.mul(0.4), frozen),
+      mix(vec3(0.0), frostColor.mul(0.8), frozen),
       float(1.0),
     );
     renderMat.roughness = 0.1;
@@ -178,7 +186,7 @@ export default function FrostPatterns() {
     const renderer = gl as unknown as THREE.WebGPURenderer;
     if (initialized && renderer?.compute) {
       // Run multiple walker steps per frame for faster formation
-      for (let s = 0; s < 4; s++) {
+      for (let s = 0; s < 8; s++) {
         compute.frameU.value += 0.25;
         renderer.compute(compute.computeDLA);
       }

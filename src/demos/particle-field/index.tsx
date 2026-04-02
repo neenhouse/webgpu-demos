@@ -44,7 +44,7 @@ export default function ParticleField() {
             (Math.random() - 0.5) * 0.3;
 
           // Vary scale slightly per particle
-          const scale = 0.03 + Math.random() * 0.04;
+          const scale = 0.06 + Math.random() * 0.06;
 
           dummy.position.set(x, y, z);
           dummy.scale.setScalar(scale);
@@ -106,7 +106,7 @@ export default function ParticleField() {
       return mix(magenta, cyan, blend);
     });
 
-    mat.emissiveNode = emissiveColor().mul(fresnel()).mul(float(1.5));
+    mat.emissiveNode = emissiveColor().mul(fresnel()).mul(float(3.0));
 
     // Subtle vertex displacement: particles "breathe" along normals
     mat.positionNode = positionLocal.add(

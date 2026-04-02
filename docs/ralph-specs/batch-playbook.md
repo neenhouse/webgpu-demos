@@ -72,6 +72,14 @@ These combinations produced the best visual results in Batch 3:
 - **Never switch material references on hover/state change** — mutate material properties (opacity, emissiveIntensity) imperatively in useFrame instead. Reference switching triggers GPU shader recompilation (3-second freeze).
 - **R3F handles dispose automatically** — don't manually call `.dispose()` on geometry/materials. The Canvas `key={demo.name}` unmounts/remounts the fiber tree on demo switch.
 
+## Visual Evaluation Learnings
+- **Camera must show the content** — demos with terrain/planes must override the default [0,0,4] camera to look DOWN, not edge-on
+- **Dark scenes need ambient > 0.2** — neon/night demos with ambient < 0.1 render as nearly black in screenshots
+- **Small objects need bigger scale** — ragdoll/particle demos at default camera distance look like dots. Scale up or move camera closer
+- **Compute demos need faster init** — DLA/frost demos grow too slowly, initial seed area should be large so 5-second screenshot captures visible content
+- **Buildings need emissive windows** — flat untextured buildings with no window glow look like cardboard boxes
+- **Stars need color variation** — monochrome star fields look flat. Mix warm/cool star temperatures
+
 ## Demo Naming Convention
 - Evocative, 2-3 word names (not technical descriptions)
 - Good: "Cosmic Jellyfish", "Phoenix Rising", "Crystal Cavern"

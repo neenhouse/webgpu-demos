@@ -108,7 +108,7 @@ export default function DeferredLights() {
       smoothstep(float(1.5), float(2.5), phase)
     );
     mat.colorNode = col;
-    mat.emissiveNode = col.mul(oscSine(timeUniform.mul(2).add(idx.mul(0.7))).mul(0.3).add(1.2));
+    mat.emissiveNode = col.mul(oscSine(timeUniform.mul(2).add(idx.mul(0.7))).mul(0.3).add(2.0));
     mat.roughness = 0.2;
     mat.metalness = 0.0;
     void r; void hue;
@@ -127,7 +127,7 @@ export default function DeferredLights() {
   // Floor material
   const floorMat = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
-    mat.color.set(0x222233);
+    mat.color.set(0x445566);
     mat.roughness = 0.6;
     mat.metalness = 0.3; // slightly reflective floor
     return mat;
@@ -195,7 +195,8 @@ export default function DeferredLights() {
         <sphereGeometry args={[30, 16, 16]} />
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
-      <ambientLight intensity={0.1} color="#112233" />
+      <ambientLight intensity={0.3} color="#112233" />
+      <directionalLight position={[0, 8, 4]} intensity={0.5} color="#aabbcc" />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
 
       {/* 100 actual point lights */}
@@ -204,9 +205,9 @@ export default function DeferredLights() {
           key={i}
           ref={(l) => { if (l) lightRefs.current[i] = l; }}
           position={[ld.basePos.x, ld.basePos.y, ld.basePos.z]}
-          intensity={0.8}
+          intensity={1.5}
           color={ld.color}
-          distance={6}
+          distance={8}
           decay={2}
         />
       ))}

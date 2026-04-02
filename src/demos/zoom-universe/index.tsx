@@ -24,7 +24,7 @@ const LEVELS = [
   { z: -0.4, label: 'Atom', color: '#000508' },
 ];
 
-const STAR_COUNT = 2000;
+const STAR_COUNT = 8000;
 const BUILDING_COUNT = 100;
 const ELECTRON_COUNT = 60;
 
@@ -73,9 +73,14 @@ export default function ZoomUniverse() {
         dummy.current.updateMatrix();
         starMesh.current.setMatrixAt(i, dummy.current.matrix);
         const brightness = Math.random();
-        starMesh.current.setColorAt(i, new THREE.Color().setHSL(
-          0.55 + Math.random() * 0.15, 0.3 + Math.random() * 0.5, 0.6 + brightness * 0.4
-        ));
+        // Wide color variation: hot blue, yellow-white, orange-red, cool blue-white
+        const starHue = Math.random();
+        let hue: number, sat: number, lit: number;
+        if (starHue < 0.25) { hue = 0.6; sat = 0.8; lit = 0.7 + brightness * 0.3; }       // blue
+        else if (starHue < 0.5) { hue = 0.15; sat = 0.5; lit = 0.8 + brightness * 0.2; }  // yellow-white
+        else if (starHue < 0.75) { hue = 0.07; sat = 0.7; lit = 0.7 + brightness * 0.3; } // orange
+        else { hue = 0.55; sat = 0.3; lit = 0.85 + brightness * 0.15; }                    // blue-white
+        starMesh.current.setColorAt(i, new THREE.Color().setHSL(hue, sat, lit));
       }
       starMesh.current.instanceMatrix.needsUpdate = true;
       if (starMesh.current.instanceColor) starMesh.current.instanceColor.needsUpdate = true;
@@ -247,10 +252,14 @@ export default function ZoomUniverse() {
         </instancedMesh>
         {/* Galaxy center glow */}
         <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[3, 16, 16]} />
-          <meshBasicMaterial color="#220044" transparent opacity={0.3} />
+          <sphereGeometry args={[5, 16, 16]} />
+          <meshBasicMaterial color="#440088" transparent opacity={0.5} />
         </mesh>
-        <pointLight position={[0, 0, 0]} intensity={200} color="#ffaa44" distance={40} />
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[12, 16, 16]} />
+          <meshBasicMaterial color="#220044" transparent opacity={0.2} />
+        </mesh>
+        <pointLight position={[0, 0, 0]} intensity={500} color="#ffaa44" distance={80} />
       </group>
 
       {/* Solar system level */}

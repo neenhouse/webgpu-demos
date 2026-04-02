@@ -1,5 +1,5 @@
-import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef, useMemo, useEffect } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three/webgpu';
 import {
   color,
@@ -13,6 +13,13 @@ import {
 
 export default function ProceduralTerrain() {
   const meshRef = useRef<THREE.Mesh>(null);
+  const { camera } = useThree();
+
+  // Position camera to look down at terrain from above-front
+  useEffect(() => {
+    camera.position.set(0, 4, 3);
+    camera.lookAt(0, 0, 0);
+  }, [camera]);
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardNodeMaterial();
@@ -125,7 +132,7 @@ export default function ProceduralTerrain() {
         ref={meshRef}
         material={material}
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -1, 0]}
+        position={[0, 0, 0]}
       >
         <planeGeometry args={[10, 10, 128, 128]} />
       </mesh>
