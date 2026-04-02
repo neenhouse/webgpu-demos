@@ -3,6 +3,52 @@
 ## Mandatory Pre-Read
 Before creating ANY demo, read `docs/ralph-specs/learnings.md` in full.
 
+## Composition Principles (from Scene Lab — what separates 5/10 from 9/10)
+
+### Depth Layers — EVERY demo needs all three
+| Layer | Distance | Purpose | Example |
+|-------|----------|---------|---------|
+| **Foreground** | 2-8 units from camera | Frames the view, provides scale | Rocks, particles, floating debris near camera |
+| **Midground** | 8-20 units | Main content, hero element | The torus knot, the boids flock, the crystal |
+| **Background** | 20+ units | Depth, atmosphere | BackSide sphere, fog, distant stars |
+Without foreground, scenes look like "viewing a diorama from above."
+
+### Hero Element — ONE thing must dominate
+- ONE element 5-10x larger or brighter than neighbors
+- If every crystal glows equally, NOTHING glows — make ONE bright, the rest dim
+- Hero gets dedicated rim/accent light if possible
+- Place hero at visual center, NOT dead center of viewport
+
+### 60-30-10 Color Rule
+- **60%** dominant color (background/ground — the "mood")
+- **30%** secondary (mid-ground objects)
+- **10%** accent (emissive focal points — concentrated, not scattered)
+- Accent color should be OPPOSITE temperature from dominant (cool scene → warm accent)
+
+### Warm Near, Cool Far (Atmospheric Perspective)
+- Foreground: warm lights (orange/gold point light near camera)
+- Background: cool fog (blue/purple tones)
+- This mimics real physics where close = vivid/warm, far = hazy/cool
+
+### Camera = Human Eye Level
+- Position the camera where a PERSON would stand
+- Terrain demos: camera at y=2 ON the terrain, not 50 units above
+- Lower camera makes objects feel monumental
+- FOV 55-70 for tech demos, FOV 35-45 for cinematic composition
+
+### Placement: Clustered + Asymmetric
+- NEVER place objects on a uniform grid — use 2-4 random clusters
+- Leave intentional empty space between clusters
+- Tilt/lean objects 5-15 degrees (perfect upright = artificial)
+- Size variation within same type (some 2x, some 0.5x)
+
+### Ambient Light — Go BRIGHTER Than You Think
+Scene Lab learned from 106 scenes: "every scene needed ambient DOUBLED."
+- Cave/enclosed: ambient 0.5+ (not 0.1)
+- Landscape: ambient 0.5-0.8
+- Night/neon: ambient 0.3+ (not 0.05)
+- Rule: brighter is easier to fix than invisible
+
 ## Complexity Requirements (Batch 4+)
 - Every demo MUST combine 4+ proven techniques
 - Minimum 200 lines of code (anything shorter isn't complex enough)

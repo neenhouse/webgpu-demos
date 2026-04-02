@@ -212,6 +212,27 @@ function auditDemo(slug, src, tags) {
     }
   }
 
+  // === COMPOSITION: LOW AMBIENT LIGHT ===
+  // Scene Lab learned: every scene needed ambient DOUBLED. Flag very low ambient.
+  const ambientMatches = [...src.matchAll(/ambientLight.*intensity[=:{]\s*\{?\s*(\d+\.?\d*)/g)];
+  for (const m of ambientMatches) {
+    const val = parseFloat(m[1]);
+    if (val < 0.08 && !isFullScreenShader) {
+      warnings.push(`COMPOSITION: ambientLight intensity=${val} is very low — Scene Lab recommends 0.3+ minimum`);
+    }
+  }
+
+  // === COMPOSITION: SINGLE LIGHT TYPE ===
+  // Already checked above in LIGHTING DIVERSITY
+
+  // === COMPOSITION: NO FOG ===
+  if (!isFullScreenShader && !src.includes('fog') && !src.includes('Fog')) {
+    // Only flag if the demo has 3D content (not a flat shader)
+    if (src.includes('MeshStandardNodeMaterial') && lines > 150) {
+      warnings.push('COMPOSITION: No fog detected — fog adds atmospheric depth and hides scene edges');
+    }
+  }
+
   return { slug, lines, issues, warnings };
 }
 
