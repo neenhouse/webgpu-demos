@@ -179,7 +179,7 @@ export default function PlasmaGlobe() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#080402" density={0.04} />
+      <fogExp2 attach="fog" args={["#080402", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[3, 3, 5]} intensity={0.2} color={0x4400ff} />

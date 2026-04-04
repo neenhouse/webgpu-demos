@@ -269,7 +269,7 @@ export default function ExplodeMesh() {
 
       <color attach="background" args={['#050008']} />
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.08} />
       <hemisphereLight args={['#220044', '#050008', 0.4]} />
       <directionalLight position={[4, 6, 4]} intensity={0.6} />

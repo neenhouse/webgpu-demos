@@ -300,7 +300,7 @@ export default function IceFortress() {
 
   return (
     <>
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
 
       <ambientLight intensity={0.4} color="#aaddff" />
       <directionalLight position={[8, 14, 5]} intensity={1.5} color="#e8f5ff" />

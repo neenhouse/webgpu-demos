@@ -210,7 +210,7 @@ export default function SmokeTendrils() {
 
       <color attach="background" args={['#0a0a0a']} />
 
-      <fogExp2 attach="fog" color="#020804" density={0.03} />
+      <fogExp2 attach="fog" args={["#020804", 0.03]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} />

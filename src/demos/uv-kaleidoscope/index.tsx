@@ -145,7 +145,7 @@ export default function UvKaleidoscope() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#040208" density={0.04} />
+      <fogExp2 attach="fog" args={["#040208", 0.04]} />
       {/* Background atmosphere */}
       <mesh>
         <sphereGeometry args={[30, 16, 16]} />

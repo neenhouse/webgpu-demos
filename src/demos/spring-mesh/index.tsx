@@ -200,7 +200,7 @@ export default function SpringMesh() {
 
       <color attach="background" args={['#000810']} />
 
-      <fogExp2 attach="fog" color="#020804" density={0.03} />
+      <fogExp2 attach="fog" args={["#020804", 0.03]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 3]} intensity={0.7} />

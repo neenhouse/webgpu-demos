@@ -201,7 +201,7 @@ export default function AuroraWaves() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334433', '#112211', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} color="#aaffcc" />

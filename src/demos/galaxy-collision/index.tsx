@@ -320,7 +320,7 @@ export default function GalaxyCollision() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#222244', '#111111', 0.25]} />
       <directionalLight position={[3, 3, 5]} intensity={0.15} />

@@ -243,7 +243,7 @@ export default function ZoomUniverse() {
     <>
       <color attach="background" args={['#000010']} />
       <ambientLight intensity={0.15} />
-      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#110022', '#000010', 0.2]} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />      <hemisphereLight args={['#110022', '#000010', 0.2]} />
 
       {/* Galaxy level — stars + glow centered at camera start z=-30 */}
       <group position={[0, 0, -30]} visible={levelIndex <= 1}>

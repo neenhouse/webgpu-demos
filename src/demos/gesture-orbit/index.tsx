@@ -182,7 +182,7 @@ export default function GestureOrbit() {
 
       <color attach="background" args={['#030008']} />
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.08} />
       <hemisphereLight args={['#220055', '#030008', 0.4]} />
       <directionalLight position={[5, 8, 5]} intensity={0.6} />

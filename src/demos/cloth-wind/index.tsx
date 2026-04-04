@@ -220,7 +220,7 @@ export default function ClothWind() {
 
       <color attach="background" args={['#050a15']} />
 
-      <fogExp2 attach="fog" color="#020804" density={0.03} />
+      <fogExp2 attach="fog" args={["#020804", 0.03]} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[5, 8, 3]} intensity={0.8} />
       <pointLight position={[-3, 5, 4]} intensity={10} color="#44aaff" distance={15} />

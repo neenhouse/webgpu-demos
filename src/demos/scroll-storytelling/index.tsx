@@ -253,7 +253,7 @@ export default function ScrollStorytelling() {
   return (
     <>
       <ambientLight intensity={0.15} />
-      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#334466', '#111122', 0.3]} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />      <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 5]} intensity={0.4} />
 
       {/* Deep space background */}

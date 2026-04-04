@@ -142,7 +142,7 @@ export default function ToonOutline() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.35} />
       <directionalLight position={[-3, 6, 4]} intensity={0.8} color="#ffffff" />
       <directionalLight position={[4, 3, -3]} intensity={0.2} color="#ffeecc" />

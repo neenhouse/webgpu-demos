@@ -191,7 +191,7 @@ export default function FibonacciSpiral() {
     <>
       <color attach="background" args={['#0a0500']} />
 
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[18, 16, 10]} />

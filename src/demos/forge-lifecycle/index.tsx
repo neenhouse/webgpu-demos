@@ -645,7 +645,7 @@ export default function ForgeLifecycle() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#080402" density={0.04} />
+      <fogExp2 attach="fog" args={["#080402", 0.04]} />
       {/* Lighting */}
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />

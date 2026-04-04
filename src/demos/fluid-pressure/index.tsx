@@ -240,7 +240,7 @@ export default function FluidPressure() {
 
       <color attach="background" args={['#010510']} />
 
-      <fogExp2 attach="fog" color="#020408" density={0.05} />
+      <fogExp2 attach="fog" args={["#020408", 0.05]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 8, 3]} intensity={0.5} />

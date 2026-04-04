@@ -286,7 +286,7 @@ export default function VolcanicRift() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#080402" density={0.04} />
+      <fogExp2 attach="fog" args={["#080402", 0.04]} />
       {/* Dark hellish ambient */}
       <ambientLight intensity={0.12} color="#220800" />
       <hemisphereLight args={['#443322', '#221111', 0.3]} />

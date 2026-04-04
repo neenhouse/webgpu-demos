@@ -220,7 +220,7 @@ export default function DrumMachineCubes() {
 
       <color attach="background" args={['#030308']} />
 
-      <fogExp2 attach="fog" color="#040208" density={0.04} />
+      <fogExp2 attach="fog" args={["#040208", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[5, 10, 5]} intensity={0.5} color="#ffffff" />

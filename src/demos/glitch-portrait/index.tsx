@@ -231,7 +231,7 @@ export default function GlitchPortrait() {
 
       <color attach="background" args={['#050008']} />
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
     </>
   );
 }

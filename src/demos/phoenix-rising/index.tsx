@@ -635,7 +635,7 @@ export default function PhoenixRising() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#080402" density={0.04} />
+      <fogExp2 attach="fog" args={["#080402", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#443322', '#221111', 0.3]} />
       <directionalLight position={[3, 5, 3]} intensity={0.4} color={0xffaa66} />

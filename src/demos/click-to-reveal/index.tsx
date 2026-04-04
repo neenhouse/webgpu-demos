@@ -206,7 +206,7 @@ export default function ClickToReveal() {
 
       <color attach="background" args={['#060012']} />
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#220044', '#060012', 0.4]} />
       <directionalLight position={[3, 5, 5]} intensity={0.6} />

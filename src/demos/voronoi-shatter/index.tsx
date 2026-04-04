@@ -228,7 +228,7 @@ export default function VoronoiShatter() {
     <>
       <color attach="background" args={['#000810']} />
 
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
       {/* Background atmosphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[14, 16, 10]} />

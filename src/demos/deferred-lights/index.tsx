@@ -196,7 +196,7 @@ export default function DeferredLights() {
         <meshBasicMaterial side={THREE.BackSide} color="#020408" />
       </mesh>
       <ambientLight intensity={0.15} color="#0a0a1a" />
-      <fogExp2 attach="fog" color="#020408" density={0.04} />      <hemisphereLight args={['#111122', '#050510', 0.08]} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />      <hemisphereLight args={['#111122', '#050510', 0.08]} />
 
       {/* 30 actual point lights */}
       {lightData.map((ld, i) => (

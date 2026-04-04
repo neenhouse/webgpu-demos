@@ -211,7 +211,7 @@ export default function HopfFibration() {
     <>
       <color attach="background" args={['#000108']} />
 
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[12, 16, 10]} />

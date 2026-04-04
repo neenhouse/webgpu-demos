@@ -592,7 +592,7 @@ export default function CodeConstellation() {
 
   return (
     <>
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
 
       {/* Space background sphere with procedural star field */}
       <mesh material={bgMat} raycast={() => null}>

@@ -686,7 +686,7 @@ export default function MetricTerrain() {
 
   return (
     <>
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
 
       {/* Lighting */}
       <ambientLight intensity={0.15} />

@@ -308,7 +308,7 @@ export default function AuroraCascade() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#020408" density={0.04} />
+      <fogExp2 attach="fog" args={["#020408", 0.04]} />
       {/* Sky dome */}
       <mesh>
         <sphereGeometry args={[30, 16, 16]} />

@@ -248,7 +248,7 @@ export default function SonicBloom() {
     <>
       <color attach="background" args={['#050210']} />
 
-      <fogExp2 attach="fog" color="#040208" density={0.04} />
+      <fogExp2 attach="fog" args={["#040208", 0.04]} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[4, 8, 3]} intensity={0.8} color="#ffe8cc" />
       <pointLight position={[0, 3, 1]} intensity={5} color="#ff88cc" distance={12} />

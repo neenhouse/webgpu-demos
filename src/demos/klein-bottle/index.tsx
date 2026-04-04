@@ -246,7 +246,7 @@ export default function KleinBottle() {
     <>
       <color attach="background" args={['#060204']} />
 
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
       {/* Background atmosphere sphere */}
       <mesh material={atmMat}>
         <sphereGeometry args={[11, 16, 10]} />

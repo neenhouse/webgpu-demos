@@ -171,7 +171,7 @@ export default function FrequencyMountains() {
     <>
       <color attach="background" args={['#000015']} />
 
-      <fogExp2 attach="fog" color="#040208" density={0.04} />
+      <fogExp2 attach="fog" args={["#040208", 0.04]} />
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334466', '#111122', 0.3]} />
       <directionalLight position={[8, 10, 5]} intensity={0.8} color="#8899ff" />

@@ -242,7 +242,7 @@ export default function VectorArcade() {
       {/* Background color */}
       <color attach="background" args={['#000008']} />
 
-      <fogExp2 attach="fog" color="#030306" density={0.03} />
+      <fogExp2 attach="fog" args={["#030306", 0.03]} />
     </>
   );
 }

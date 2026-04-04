@@ -670,7 +670,7 @@ export default function DecisionForest() {
   return (
     <>
 
-      <fogExp2 attach="fog" color="#020804" density={0.03} />
+      <fogExp2 attach="fog" args={["#020804", 0.03]} />
       {/* Lighting - more dramatic */}
       <ambientLight intensity={0.1} />
       <hemisphereLight args={['#334433', '#112211', 0.3]} />
